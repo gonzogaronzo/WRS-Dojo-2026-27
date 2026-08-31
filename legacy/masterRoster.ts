@@ -1,4 +1,3 @@
-
 import { GroupInstructionalProfile, GroupProfile, StudentProfile } from './types';
 import { ALL_MASTER_LESSONS } from './lessons/index';
 import { cumulativeWrsScope } from './cumulativeWrsScope';
@@ -13,10 +12,10 @@ export const scheduleField = (schedule?: string): Pick<GroupProfile, 'schedule'>
 export const MASTER_NINJAS: StudentProfile[] = [
   ...[
     ['Oliver', 'student-oliver'], ['Ethan', 'student-ethan'], ['Alex', 'student-alex'], ['Finn', 'student-finn'], ['Maya', 'student-maya'],
-    ['Enrique', 'student-enrique'], ['Ellie', 'student-elise'], ['Eleanor', 'student-eleanor'], ['Juliana', 'student-juliana'],
+    ['Enrique', 'student-enrique'], ['Elise', 'student-elise'], ['Eleanor', 'student-eleanor'], ['Juliana', 'student-juliana'],
     ['Carolyn', 'student-carolyn'], ['Izzy', 'student-izzy'], ['Levi', 'student-levi'], ['Nora', 'student-nora'],
     ['Charlotte', 'student-charlotte'], ['Bennett', 'student-bennett'], ['Ben', 'student-ben'], ['Xavier', 'student-xavier'],
-    ['Uffarren', 'student-uffarren'], ["K'lee", 'student-klee']
+    ['Uffarren', 'student-uffarren']
   ]
     .map(([name, id]) => ({
       id,
@@ -124,25 +123,19 @@ export const MASTER_SQUADS: GroupProfile[] = [
   },
   {
     id: 'group-2026-27-3a', name: 'Group 3A', schedule: '11:00–11:45', active: true, schoolYear: CURRENT_SCHOOL_YEAR,
-    studentIds: ['student-levi', 'student-nora', 'student-izzy'],
+    studentIds: ['student-elise', 'student-eleanor', 'student-juliana', 'student-carolyn'],
     inventory: { learnedSounds: [], learnedHFW: [] }, instructionalProfile: profileFor('3.1'),
     jobs: {}, savedLessons: [...ALL_MASTER_LESSONS], history: []
   },
   {
     id: 'group-2026-27-3b', name: 'Group 3B', schedule: '1:15–2:00', active: true, schoolYear: CURRENT_SCHOOL_YEAR,
-    studentIds: ['student-eleanor', 'student-elise', 'student-carolyn', 'student-juliana'],
+    studentIds: ['student-izzy', 'student-levi', 'student-nora'],
     inventory: { learnedSounds: [], learnedHFW: [] }, instructionalProfile: profileFor('3.1'),
     jobs: {}, savedLessons: [...ALL_MASTER_LESSONS], history: []
   },
   {
     id: 'group-2026-27-4', name: 'Group 4A', schedule: '2:05–2:50', active: true, schoolYear: CURRENT_SCHOOL_YEAR,
     studentIds: ['student-charlotte', 'student-bennett', 'student-ben', 'student-xavier', 'student-uffarren'],
-    inventory: { learnedSounds: [], learnedHFW: [] }, instructionalProfile: profileFor('4.1'),
-    jobs: {}, savedLessons: [...ALL_MASTER_LESSONS], history: []
-  },
-  {
-    id: 'group-2026-27-4b', name: 'Group 4B', active: true, schoolYear: CURRENT_SCHOOL_YEAR,
-    studentIds: ['student-klee'],
     inventory: { learnedSounds: [], learnedHFW: [] }, instructionalProfile: profileFor('4.1'),
     jobs: {}, savedLessons: [...ALL_MASTER_LESSONS], history: []
   }
