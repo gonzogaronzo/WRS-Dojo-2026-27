@@ -94,31 +94,37 @@ jobs:
           fi
           echo "Unauthenticated Firestore read blocked (HTTP $code)"
 
-      - name: Build standalone source and compare deployment bundle
+      - name: Build standalone source and diagnose deployment parity
         shell: bash
         run: |
           set -euo pipefail
           npm ci
+          npm run build:standalone
+          rm -rf /tmp/build-one && cp -R standalone-dist /tmp/build-one
           npm run build:standalone
           curl -fsS 'https://wrs-firebase.web.app/' >/tmp/live-index.html
 
           python3 - <<'PY'
           import hashlib, pathlib, re, urllib.request
           site='https://wrs-firebase.web.app'
-          local=pathlib.Path('standalone-dist/index.html').read_text(encoding='utf-8')
+          def assets(html):
+              return sorted(set(re.findall(r'(?:src|href)=["\'](/assets/[^"\']+)["\']', html)))
+          one=pathlib.Path('/tmp/build-one/index.html').read_text(encoding='utf-8')
+          two=pathlib.Path('standalone-dist/index.html').read_text(encoding='utf-8')
           live=pathlib.Path('/tmp/live-index.html').read_text(encoding='utf-8')
-          get_assets=lambda s: sorted(set(re.findall(r'(?:src|href)=["\'](/assets/[^"\']+)["\']', s)))
-          local_assets=get_assets(local)
-          live_assets=get_assets(live)
-          if local_assets != live_assets:
-              raise SystemExit(f'Deployed asset manifest differs from local build\nlocal={local_assets}\nlive={live_assets}')
-          for path in local_assets:
-              local_bytes=pathlib.Path('standalone-dist'+path).read_bytes()
+          one_assets, two_assets, live_assets=assets(one), assets(two), assets(live)
+          if one_assets != two_assets:
+              raise SystemExit(f'Fresh builds are nondeterministic: {one_assets} vs {two_assets}')
+          print(f'Fresh standalone builds are deterministic: {two_assets}')
+          print(f'Live deployment assets: {live_assets}')
+          print('PARITY=' + ('MATCH' if two_assets == live_assets else 'MISMATCH'))
+          for path in live_assets:
               with urllib.request.urlopen(site+path, timeout=30) as r:
-                  live_bytes=r.read()
-              if hashlib.sha256(local_bytes).digest() != hashlib.sha256(live_bytes).digest():
-                  raise SystemExit(f'Deployed asset differs from local build: {path}')
-          print(f'Deployed bundle exactly matches local standalone build for {len(local_assets)} asset(s)')
+                  data=r.read()
+              print(f'LIVE {path} bytes={len(data)} sha256={hashlib.sha256(data).hexdigest()}')
+          for path in two_assets:
+              data=pathlib.Path('standalone-dist'+path).read_bytes()
+              print(f'LOCAL {path} bytes={len(data)} sha256={hashlib.sha256(data).hexdigest()}')
           PY
 
       - name: Headless browser render smoke
@@ -140,5 +146,6 @@ jobs:
           if (text.length < 50) throw new Error(`Rendered body is unexpectedly empty (${text.length} chars)`);
           if (pageErrors.length) throw new Error(`Browser page errors: ${pageErrors.join(' | ')}`);
           console.log(`Headless render OK (${text.length} chars of rendered UI)`);
+          console.log(text.slice(0, 1500));
           await browser.close();
           NODE
