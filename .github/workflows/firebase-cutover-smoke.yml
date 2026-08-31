@@ -9,8 +9,17 @@ on:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
+      - name: Check out validation source
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
       - name: Check live Firebase Hosting shell and assets
         shell: bash
         run: |
@@ -84,3 +93,52 @@ jobs:
             exit 1
           fi
           echo "Unauthenticated Firestore read blocked (HTTP $code)"
+
+      - name: Build standalone source and compare deployment bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build:standalone
+          curl -fsS 'https://wrs-firebase.web.app/' >/tmp/live-index.html
+
+          python3 - <<'PY'
+          import hashlib, pathlib, re, urllib.request
+          site='https://wrs-firebase.web.app'
+          local=pathlib.Path('standalone-dist/index.html').read_text(encoding='utf-8')
+          live=pathlib.Path('/tmp/live-index.html').read_text(encoding='utf-8')
+          get_assets=lambda s: sorted(set(re.findall(r'(?:src|href)=["\'](/assets/[^"\']+)["\']', s)))
+          local_assets=get_assets(local)
+          live_assets=get_assets(live)
+          if local_assets != live_assets:
+              raise SystemExit(f'Deployed asset manifest differs from local build\nlocal={local_assets}\nlive={live_assets}')
+          for path in local_assets:
+              local_bytes=pathlib.Path('standalone-dist'+path).read_bytes()
+              with urllib.request.urlopen(site+path, timeout=30) as r:
+                  live_bytes=r.read()
+              if hashlib.sha256(local_bytes).digest() != hashlib.sha256(live_bytes).digest():
+                  raise SystemExit(f'Deployed asset differs from local build: {path}')
+          print(f'Deployed bundle exactly matches local standalone build for {len(local_assets)} asset(s)')
+          PY
+
+      - name: Headless browser render smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install chromium
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true});
+          const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+          const pageErrors = [];
+          page.on('pageerror', err => pageErrors.push(String(err)));
+          const response = await page.goto('https://wrs-firebase.web.app/', {waitUntil:'networkidle', timeout:60000});
+          if (!response || response.status() >= 400) throw new Error(`Navigation failed: ${response?.status()}`);
+          await page.waitForSelector('#root > *', {timeout:30000});
+          const text = (await page.locator('body').innerText()).trim();
+          if (text.length < 50) throw new Error(`Rendered body is unexpectedly empty (${text.length} chars)`);
+          if (pageErrors.length) throw new Error(`Browser page errors: ${pageErrors.join(' | ')}`);
+          console.log(`Headless render OK (${text.length} chars of rendered UI)`);
+          await browser.close();
+          NODE
