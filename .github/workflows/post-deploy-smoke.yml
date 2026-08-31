@@ -60,21 +60,39 @@ jobs:
             exit 1
           fi
 
-          JS_PATH="$(grep -oE 'src="[^"]+\.js"' /tmp/live-index.html | head -1 | cut -d'"' -f2)"
-          if [[ -z "$JS_PATH" ]]; then
-            echo 'Could not locate live JavaScript bundle.'
+          mapfile -t JS_PATHS < <(grep -oE 'src="[^"]+\.js"' /tmp/live-index.html | cut -d'"' -f2 | sort -u)
+          if [[ "${#JS_PATHS[@]}" -eq 0 ]]; then
+            echo 'Could not locate live JavaScript bundles.'
             cat /tmp/live-index.html
             exit 1
           fi
-          curl -fsSL --retry 3 "$BASE$JS_PATH" -o /tmp/live-app.js
+          : > /tmp/live-all.js
+          for path in "${JS_PATHS[@]}"; do
+            echo "Fetching live JS asset: $path"
+            curl -fsSL --retry 3 "$BASE$path" >> /tmp/live-all.js
+            printf '\n' >> /tmp/live-all.js
+          done
 
+          echo 'Live bundle roster diagnostics:'
+          for probe in 'Group 3A' 'Group 3B' 'Group 4A' 'Group 4B' 'Elise' 'Ellie' "K'lee" 'student-elise' 'student-klee'; do
+            if grep -Fq "$probe" /tmp/live-all.js; then
+              echo "  PRESENT: $probe"
+            else
+              echo "  ABSENT:  $probe"
+            fi
+          done
+
+          bundle_failed=0
           for expected in 'Group 3A' 'Group 3B' 'Group 4A' 'Elise' 'Eleanor' 'Juliana' 'Carolyn' 'Izzy' 'Levi' 'Nora' 'Charlotte' 'Bennett' 'Ben' 'Xavier' 'Uffarren'; do
-            grep -Fq "$expected" /tmp/live-app.js || { echo "Live bundle is missing expected corrected-roster value: $expected"; exit 1; }
+            if ! grep -Fq "$expected" /tmp/live-all.js; then
+              echo "Live bundle is missing expected corrected-roster value: $expected"
+              bundle_failed=1
+            fi
           done
           for stale in 'Group 4B' 'Ellie' "K'lee"; do
-            if grep -Fq "$stale" /tmp/live-app.js; then
+            if grep -Fq "$stale" /tmp/live-all.js; then
               echo "Live bundle still contains stale roster value: $stale"
-              exit 1
+              bundle_failed=1
             fi
           done
 
@@ -85,11 +103,25 @@ jobs:
           fi
           "$CHROME" --headless=new --disable-gpu --no-sandbox --virtual-time-budget=8000 --dump-dom "$BASE/" > /tmp/live-dom.html
 
-          grep -Fq 'Group 3A' /tmp/live-dom.html || { echo 'Rendered UI missing Group 3A'; exit 1; }
-          grep -Fq 'Group 3B' /tmp/live-dom.html || { echo 'Rendered UI missing Group 3B'; exit 1; }
-          grep -Fq 'Group 4A' /tmp/live-dom.html || { echo 'Rendered UI missing Group 4A'; exit 1; }
+          echo 'Rendered DOM roster diagnostics:'
+          for probe in 'Group 3A' 'Group 3B' 'Group 4A' 'Group 4B' 'Elise' 'Ellie' "K'lee"; do
+            if grep -Fq "$probe" /tmp/live-dom.html; then
+              echo "  PRESENT: $probe"
+            else
+              echo "  ABSENT:  $probe"
+            fi
+          done
+
+          dom_failed=0
+          grep -Fq 'Group 3A' /tmp/live-dom.html || { echo 'Rendered UI missing Group 3A'; dom_failed=1; }
+          grep -Fq 'Group 3B' /tmp/live-dom.html || { echo 'Rendered UI missing Group 3B'; dom_failed=1; }
+          grep -Fq 'Group 4A' /tmp/live-dom.html || { echo 'Rendered UI missing Group 4A'; dom_failed=1; }
           if grep -Fq 'Group 4B' /tmp/live-dom.html; then
             echo 'Rendered UI still shows stale Group 4B.'
+            dom_failed=1
+          fi
+
+          if [[ "$bundle_failed" -ne 0 || "$dom_failed" -ne 0 ]]; then
             exit 1
           fi
 
