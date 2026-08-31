@@ -1,0 +1,86 @@
+name: Firebase cutover smoke
+
+on:
+  push:
+    branches:
+      - firebase-cutover-validation
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check live Firebase Hosting shell and assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          SITE='https://wrs-firebase.web.app'
+          tmp="$(mktemp -d)"
+          code="$(curl -L -sS -o "$tmp/index.html" -w '%{http_code}' "$SITE/")"
+          test "$code" = '200'
+          grep -q '<div id="root"></div>' "$tmp/index.html"
+
+          python3 - "$tmp/index.html" "$SITE" <<'PY'
+          import re, sys, urllib.request
+          html_path, site = sys.argv[1:]
+          html = open(html_path, encoding='utf-8').read()
+          paths = re.findall(r'(?:src|href)=["\']([^"\']+)["\']', html)
+          assets = [p for p in paths if p.startswith('/assets/')]
+          if not assets:
+              raise SystemExit('No /assets/ references found in deployed index')
+          for path in assets:
+              with urllib.request.urlopen(site + path, timeout=20) as r:
+                  if r.status != 200:
+                      raise SystemExit(f'{path} returned {r.status}')
+          print(f'Live shell OK; {len(assets)} asset(s) returned 200')
+          PY
+
+      - name: Verify Firebase Hosting reserved endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS 'https://wrs-firebase.web.app/__/firebase/init.json' >/tmp/firebase-init.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/firebase-init.json'))
+          assert data.get('projectId') == 'wrs-firebase', data
+          assert data.get('authDomain') == 'wrs-firebase.firebaseapp.com', data
+          print('Firebase reserved config points to wrs-firebase')
+          PY
+          curl -fsS 'https://wrs-firebase.firebaseapp.com/__/auth/handler' >/dev/null
+
+      - name: Verify Google Auth accepts Firebase hostname
+        shell: bash
+        env:
+          FIREBASE_WEB_API_KEY: 'AIzaSyCFrIPEViRG1RvezuhU-uh1MgGxmpvk67U'
+        run: |
+          set -euo pipefail
+          response="$(curl -sS -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"providerId":"google.com","continueUri":"https://wrs-firebase.web.app/"}' \
+            "https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${FIREBASE_WEB_API_KEY}")"
+          printf '%s' "$response" >/tmp/auth-uri.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/auth-uri.json'))
+          err=data.get('error', {})
+          if err:
+              raise SystemExit(f"Auth preflight failed: {err.get('message', err)}")
+          if data.get('providerId') != 'google.com' and 'authUri' not in data:
+              raise SystemExit(f'Unexpected auth response: {data}')
+          print('Google Auth preflight accepts https://wrs-firebase.web.app/')
+          PY
+
+      - name: Verify unauthenticated Firestore access is not open
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o /tmp/firestore-anon.json -w '%{http_code}' \
+            'https://firestore.googleapis.com/v1/projects/wrs-firebase/databases/(default)/documents/students?pageSize=1')"
+          if [ "$code" = '200' ]; then
+            echo 'ERROR: unauthenticated Firestore students read unexpectedly returned 200'
+            cat /tmp/firestore-anon.json
+            exit 1
+          fi
+          echo "Unauthenticated Firestore read blocked (HTTP $code)"
