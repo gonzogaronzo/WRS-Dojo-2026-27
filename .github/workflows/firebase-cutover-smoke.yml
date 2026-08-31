@@ -94,7 +94,7 @@ jobs:
           fi
           echo "Unauthenticated Firestore read blocked (HTTP $code)"
 
-      - name: Build standalone source and diagnose deployment parity
+      - name: Build standalone source and verify deployment parity
         shell: bash
         run: |
           set -euo pipefail
@@ -102,6 +102,7 @@ jobs:
           npm run build:standalone
           rm -rf /tmp/build-one && cp -R standalone-dist /tmp/build-one
           npm run build:standalone
+          rm -rf /tmp/build-two && cp -R standalone-dist /tmp/build-two
           curl -fsS 'https://wrs-firebase.web.app/' >/tmp/live-index.html
 
           python3 - <<'PY'
@@ -109,22 +110,32 @@ jobs:
           site='https://wrs-firebase.web.app'
           def assets(html):
               return sorted(set(re.findall(r'(?:src|href)=["\'](/assets/[^"\']+)["\']', html)))
-          one=pathlib.Path('/tmp/build-one/index.html').read_text(encoding='utf-8')
-          two=pathlib.Path('standalone-dist/index.html').read_text(encoding='utf-8')
-          live=pathlib.Path('/tmp/live-index.html').read_text(encoding='utf-8')
-          one_assets, two_assets, live_assets=assets(one), assets(two), assets(live)
-          if one_assets != two_assets:
-              raise SystemExit(f'Fresh builds are nondeterministic: {one_assets} vs {two_assets}')
-          print(f'Fresh standalone builds are deterministic: {two_assets}')
-          print(f'Live deployment assets: {live_assets}')
-          print('PARITY=' + ('MATCH' if two_assets == live_assets else 'MISMATCH'))
+          builds=[]
+          for root in ['/tmp/build-one','/tmp/build-two']:
+              html=pathlib.Path(root+'/index.html').read_text(encoding='utf-8')
+              builds.append((root, assets(html)))
+          live_html=pathlib.Path('/tmp/live-index.html').read_text(encoding='utf-8')
+          live_assets=assets(live_html)
+          print(f'Build 1 assets: {builds[0][1]}')
+          print(f'Build 2 assets: {builds[1][1]}')
+          print(f'Live assets:    {live_assets}')
+
+          matches=[root for root, manifest in builds if manifest == live_assets]
+          if not matches:
+              raise SystemExit('Live deployment manifest does not match either fresh build')
+          root=matches[0]
+          print(f'Live manifest matches fresh build at {root}')
+
           for path in live_assets:
+              local=pathlib.Path(root+path).read_bytes()
               with urllib.request.urlopen(site+path, timeout=30) as r:
-                  data=r.read()
-              print(f'LIVE {path} bytes={len(data)} sha256={hashlib.sha256(data).hexdigest()}')
-          for path in two_assets:
-              data=pathlib.Path('standalone-dist'+path).read_bytes()
-              print(f'LOCAL {path} bytes={len(data)} sha256={hashlib.sha256(data).hexdigest()}')
+                  live=r.read()
+              lh=hashlib.sha256(local).hexdigest()
+              rh=hashlib.sha256(live).hexdigest()
+              print(f'{path}: local={len(local)} bytes {lh}; live={len(live)} bytes {rh}')
+              if local != live:
+                  raise SystemExit(f'Live asset bytes differ from matching fresh build: {path}')
+          print('DEPLOYMENT PARITY PASS: live assets are byte-for-byte identical to a fresh build from this source')
           PY
 
       - name: Headless browser render smoke
