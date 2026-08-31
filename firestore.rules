@@ -1,0 +1,66 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ownsExistingTeacherRecord() {
+      return signedIn() && resource.data.teacherId == request.auth.uid;
+    }
+
+    function ownsIncomingTeacherRecord() {
+      return signedIn() && request.resource.data.teacherId == request.auth.uid;
+    }
+
+    match /students/{studentId} {
+      allow create: if ownsIncomingTeacherRecord();
+      allow read, delete: if ownsExistingTeacherRecord();
+      allow update: if ownsExistingTeacherRecord() && ownsIncomingTeacherRecord();
+    }
+
+    match /squads/{squadId} {
+      allow create: if ownsIncomingTeacherRecord();
+      allow read, delete: if ownsExistingTeacherRecord();
+      allow update: if ownsExistingTeacherRecord() && ownsIncomingTeacherRecord();
+    }
+
+    match /missions/{missionId} {
+      allow create: if ownsIncomingTeacherRecord();
+      allow read, delete: if ownsExistingTeacherRecord();
+      allow update: if ownsExistingTeacherRecord() && ownsIncomingTeacherRecord();
+    }
+
+    match /daily_notes/{noteId} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, delete: if signedIn() && resource.data.userId == request.auth.uid;
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /group_notes/{noteId} {
+      allow create: if ownsIncomingTeacherRecord();
+      allow read, delete: if ownsExistingTeacherRecord();
+      allow update: if ownsExistingTeacherRecord() && ownsIncomingTeacherRecord();
+    }
+
+    match /active_sessions/{teacherId} {
+      allow read, write: if signedIn() && teacherId == request.auth.uid;
+    }
+
+    match /sync_checks/{teacherId} {
+      allow read, delete: if signedIn() && teacherId == request.auth.uid;
+      allow create, update: if signedIn()
+        && teacherId == request.auth.uid
+        && request.resource.data.teacherId == request.auth.uid;
+    }
+
+    match /presenter_sessions/{sessionCode} {
+      allow create: if ownsIncomingTeacherRecord();
+      allow read, delete: if ownsExistingTeacherRecord();
+      allow update: if ownsExistingTeacherRecord() && ownsIncomingTeacherRecord();
+    }
+  }
+}
