@@ -24,4 +24,4 @@ jobs:
       - name: Build and run tests
         run: npm test
 
-# Verification branch trigger.
+# Verification rerun after restoring original executable file modes.
