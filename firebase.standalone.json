@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": "standalone-dist",
+    "ignore": [
+      "firebase.standalone.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
