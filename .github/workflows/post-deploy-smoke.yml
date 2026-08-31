@@ -1,0 +1,96 @@
+name: Post-deploy Firebase smoke
+
+on:
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and test corrected source
+        run: npm test
+
+      - name: Verify live Firebase deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://wrs-firebase.web.app'
+
+          curl -fsSL --retry 3 "$BASE/" -o /tmp/live-index.html
+          curl -fsSL --retry 3 "$BASE/__/firebase/init.json" -o /tmp/firebase-init.json
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('/tmp/firebase-init.json', 'utf8'));
+          if (config.projectId !== 'wrs-firebase') {
+            throw new Error(`Wrong Firebase project: ${config.projectId}`);
+          }
+          if (!config.apiKey) throw new Error('Firebase apiKey missing');
+          fs.writeFileSync('/tmp/firebase-api-key.txt', config.apiKey);
+          NODE
+
+          API_KEY="$(cat /tmp/firebase-api-key.txt)"
+          curl -fsSL --retry 3 "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getProjectConfig?key=${API_KEY}" -o /tmp/auth-config.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('/tmp/auth-config.json', 'utf8'));
+          const domains = config.authorizedDomains || [];
+          if (!domains.includes('wrs-firebase.web.app')) {
+            throw new Error(`Firebase Auth does not authorize wrs-firebase.web.app. Domains: ${domains.join(', ')}`);
+          }
+          NODE
+
+          FIRESTORE_STATUS="$(curl -sS -o /tmp/firestore-anon.json -w '%{http_code}' 'https://firestore.googleapis.com/v1/projects/wrs-firebase/databases/(default)/documents/students?pageSize=1')"
+          if [[ "$FIRESTORE_STATUS" != "401" && "$FIRESTORE_STATUS" != "403" ]]; then
+            echo "Anonymous Firestore read unexpectedly returned HTTP $FIRESTORE_STATUS"
+            cat /tmp/firestore-anon.json
+            exit 1
+          fi
+
+          JS_PATH="$(grep -oE 'src="[^"]+\.js"' /tmp/live-index.html | head -1 | cut -d'"' -f2)"
+          if [[ -z "$JS_PATH" ]]; then
+            echo 'Could not locate live JavaScript bundle.'
+            cat /tmp/live-index.html
+            exit 1
+          fi
+          curl -fsSL --retry 3 "$BASE$JS_PATH" -o /tmp/live-app.js
+
+          for expected in 'Group 3A' 'Group 3B' 'Group 4A' 'Elise' 'Eleanor' 'Juliana' 'Carolyn' 'Izzy' 'Levi' 'Nora' 'Charlotte' 'Bennett' 'Ben' 'Xavier' 'Uffarren'; do
+            grep -Fq "$expected" /tmp/live-app.js || { echo "Live bundle is missing expected corrected-roster value: $expected"; exit 1; }
+          done
+          for stale in 'Group 4B' 'Ellie' "K'lee"; do
+            if grep -Fq "$stale" /tmp/live-app.js; then
+              echo "Live bundle still contains stale roster value: $stale"
+              exit 1
+            fi
+          done
+
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [[ -z "$CHROME" ]]; then
+            echo 'No headless Chrome/Chromium found on runner.'
+            exit 1
+          fi
+          "$CHROME" --headless=new --disable-gpu --no-sandbox --virtual-time-budget=8000 --dump-dom "$BASE/" > /tmp/live-dom.html
+
+          grep -Fq 'Group 3A' /tmp/live-dom.html || { echo 'Rendered UI missing Group 3A'; exit 1; }
+          grep -Fq 'Group 3B' /tmp/live-dom.html || { echo 'Rendered UI missing Group 3B'; exit 1; }
+          grep -Fq 'Group 4A' /tmp/live-dom.html || { echo 'Rendered UI missing Group 4A'; exit 1; }
+          if grep -Fq 'Group 4B' /tmp/live-dom.html; then
+            echo 'Rendered UI still shows stale Group 4B.'
+            exit 1
+          fi
+
+          echo 'Live Firebase deployment passed corrected-roster, Auth-domain, security, and browser-render smoke checks.'
