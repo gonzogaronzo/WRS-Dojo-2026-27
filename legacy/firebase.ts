@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
@@ -19,7 +19,9 @@ let dbInstance;
 let authInstance;
 
 try {
-  dbInstance = getFirestore(app);
+  // App records intentionally use optional fields. Firestore rejects JavaScript
+  // `undefined` values by default, so omit them at the serialization boundary.
+  dbInstance = initializeFirestore(app, { ignoreUndefinedProperties: true });
   authInstance = getAuth(app);
 } catch (e) {
   console.error("Firebase services failed to initialize", e);
