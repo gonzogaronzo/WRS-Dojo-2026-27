@@ -6,6 +6,7 @@ import { lesson43 } from './step4-3';
 import { lesson44 } from './step4-4';
 import { lesson62 } from './step6-2';
 import { lesson6Assessment } from './step6-assessment';
+import { lesson82Release101 as lesson82 } from './step8-2-curriculum-release';
 import { lesson83 } from './step8-3';
 import { lesson85 } from './step8-5';
 import { lesson103 } from './step10-3';
@@ -27,6 +28,7 @@ export const MASTER_LESSONS = {
   lesson44,
   lesson62,
   lesson6Assessment,
+  lesson82,
   lesson83,
   lesson85,
   lesson103,
@@ -49,6 +51,7 @@ export const ALL_MASTER_LESSONS = [
   lesson44,
   lesson62,
   lesson6Assessment,
+  lesson82,
   lesson83,
   lesson85,
   lesson103,
