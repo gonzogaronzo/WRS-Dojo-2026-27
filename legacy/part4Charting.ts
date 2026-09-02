@@ -74,7 +74,8 @@ const hashText = (value: string) => {
 };
 
 const sourceFor = (lesson: Lesson, sourceIds: string[]): LessonSourceReference | null => {
-  const sources = lesson.runtimePlan?.sources || lesson.sourceMetadata || [];
+  const runtimeSources = lesson.runtimePlan?.sources || [];
+  const sources = runtimeSources.length ? runtimeSources : lesson.sourceMetadata || [];
   const eligible = sources.filter(source => source.kind === 'student-reader');
   if (!eligible.length) return null;
   const exact = eligible.find(source => sourceIds.includes(source.id));
@@ -103,8 +104,8 @@ const buildList = (
     sourceId: source.id,
     sourceLabel: source.label || source.id,
     sourceKind: 'student-reader',
-    edition: source.edition,
-    locator: source.locator
+    ...(source.edition ? { edition: source.edition } : {}),
+    ...(source.locator ? { locator: source.locator } : {})
   };
 };
 
@@ -248,8 +249,8 @@ export const buildPart4ChartingAttempt = (input: {
     sourceId: input.list.sourceId,
     sourceLabel: input.list.sourceLabel,
     sourceKind: 'student-reader',
-    sourceEdition: input.list.edition,
-    sourceLocator: input.list.locator,
+    ...(input.list.edition ? { sourceEdition: input.list.edition } : {}),
+    ...(input.list.locator ? { sourceLocator: input.list.locator } : {}),
     listId: input.list.listId,
     totalItems: ordered.length,
     correctCount,
