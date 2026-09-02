@@ -16,7 +16,7 @@ const lesson = (): Lesson => ({
   id: 'mock-part4-lesson',
   title: 'MOCK Part 4 Lesson',
   step: '3',
-  substep: '3.1',
+  substep: '1',
   conceptNotes: '',
   slides: [],
   quickDrill: [],
@@ -39,7 +39,7 @@ const lesson = (): Lesson => ({
     id: 'mock-part4-lesson',
     title: 'MOCK Part 4 Lesson',
     step: '3',
-    substep: '3.1',
+    substep: '1',
     focus: 'accuracy',
     sources: [{
       id: 'reader-3-mock',
@@ -81,6 +81,24 @@ test('Part 4 source resolver fails closed without Student Reader provenance', ()
   assert.equal(context.chartingLists.length, 0);
 });
 
+test('runtime Part 4 cannot borrow Student Reader provenance from another lesson part', () => {
+  const input = lesson();
+  input.runtimePlan!.sources.push({
+    id: 'step-3-mock',
+    label: 'MOCK Step Instruction 3.1',
+    kind: 'step-instruction',
+    edition: 'Fourth Edition',
+    locator: 'MOCK Step 3.1'
+  });
+  input.runtimePlan!.parts[3].sourceIds = ['step-3-mock'];
+  input.runtimePlan!.parts[8].sourceIds = ['reader-3-mock'];
+
+  const context = resolvePart4SourceContext(input);
+  assert.match(context.gap || '', /No Student Reader provenance is attached to Part 4/);
+  assert.equal(context.practiceLists.length, 0);
+  assert.equal(context.chartingLists.length, 0);
+});
+
 test('Part 4 attempt ID is deterministic for retry/double-save protection', () => {
   const first = createPart4AttemptId('session-123', 'student-mock', 'reader:list-a');
   const second = createPart4AttemptId('session-123', 'student-mock', 'reader:list-a');
@@ -115,6 +133,8 @@ test('completed attempt preserves item-level results, errors, provenance, and hi
   assert.equal(attempt.totalItems, 15);
   assert.equal(attempt.correctCount, 13);
   assert.equal(attempt.incorrectCount, 2);
+  assert.equal(attempt.step, '3');
+  assert.equal(attempt.substep, '1');
   assert.deepEqual(attempt.incorrectItems, ['chart-5', 'chart-12']);
   assert.equal(attempt.itemResults[4].errorNote, 'MOCK vowel substitution');
   assert.equal(attempt.sourceId, 'reader-3-mock');
@@ -122,6 +142,7 @@ test('completed attempt preserves item-level results, errors, provenance, and hi
 
   const entry = historyEntryFromPart4Attempt(attempt);
   assert.equal(entry.correctCount, 13);
+  assert.equal(entry.substep, '1');
   assert.deepEqual(entry.errors, ['chart-5', 'chart-12']);
   assert.match(entry.notes || '', /Source: MOCK Student Reader 3/);
   assert.match(entry.notes || '', /List:/);
