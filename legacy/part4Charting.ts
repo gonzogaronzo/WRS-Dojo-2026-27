@@ -74,12 +74,19 @@ const hashText = (value: string) => {
 };
 
 const sourceFor = (lesson: Lesson, sourceIds: string[]): LessonSourceReference | null => {
-  const runtimeSources = lesson.runtimePlan?.sources || [];
-  const sources = runtimeSources.length ? runtimeSources : lesson.sourceMetadata || [];
+  const sources = lesson.runtimePlan?.sources ?? lesson.sourceMetadata ?? [];
   const eligible = sources.filter(source => source.kind === 'student-reader');
   if (!eligible.length) return null;
   const exact = eligible.find(source => sourceIds.includes(source.id));
   if (exact) return exact;
+
+  // runtimePlan is authoritative: Part 4 must explicitly cite its Student Reader
+  // source. A Student Reader used elsewhere in the lesson (for example Part 9)
+  // is not enough provenance for Part 4 material.
+  if (lesson.runtimePlan) return null;
+
+  // Legacy lessons have no per-part source IDs. A single Student Reader source
+  // may therefore serve as the teacher-confirmable provenance fallback.
   return eligible.length === 1 ? eligible[0] : null;
 };
 
@@ -104,8 +111,8 @@ const buildList = (
     sourceId: source.id,
     sourceLabel: source.label || source.id,
     sourceKind: 'student-reader',
-    ...(source.edition ? { edition: source.edition } : {}),
-    ...(source.locator ? { locator: source.locator } : {})
+    edition: source.edition,
+    locator: source.locator
   };
 };
 
@@ -249,8 +256,8 @@ export const buildPart4ChartingAttempt = (input: {
     sourceId: input.list.sourceId,
     sourceLabel: input.list.sourceLabel,
     sourceKind: 'student-reader',
-    ...(input.list.edition ? { sourceEdition: input.list.edition } : {}),
-    ...(input.list.locator ? { sourceLocator: input.list.locator } : {}),
+    sourceEdition: input.list.edition,
+    sourceLocator: input.list.locator,
     listId: input.list.listId,
     totalItems: ordered.length,
     correctCount,
