@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, Layers3, Save } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Layers3, RefreshCw, Save, Sparkles } from 'lucide-react';
 import {
   createEmptyGroupInstructionalProfile,
   GroupInstructionalProfile,
@@ -11,6 +11,9 @@ import { classifyWordElements } from '../cumulativeWrsScope';
 interface GroupInstructionalProfileProps {
   group: GroupProfile;
   onSave: (profile: GroupInstructionalProfile) => Promise<boolean>;
+  onGenerate?: (profile: GroupInstructionalProfile) => Promise<void>;
+  compilerConfigured?: boolean;
+  generationSupported?: boolean;
 }
 
 interface ProfileDraft {
@@ -51,46 +54,95 @@ const toDraft = (profile?: GroupInstructionalProfile): ProfileDraft => {
   };
 };
 
-const GroupInstructionalProfilePanel: React.FC<GroupInstructionalProfileProps> = ({ group, onSave }) => {
+const GroupInstructionalProfilePanel: React.FC<GroupInstructionalProfileProps> = ({
+  group,
+  onSave,
+  onGenerate,
+  compilerConfigured = false,
+  generationSupported = false
+}) => {
   const [draft, setDraft] = useState<ProfileDraft>(() => toDraft(group.instructionalProfile));
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [generateMessage, setGenerateMessage] = useState('');
+  const [generateError, setGenerateError] = useState(false);
 
   useEffect(() => {
     setDraft(toDraft(group.instructionalProfile));
     setSaveState('idle');
+    setGenerateMessage('');
+    setGenerateError(false);
   }, [group.id, group.instructionalProfile]);
 
   const updateDraft = <K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) => {
     setDraft(current => ({ ...current, [key]: value }));
     setSaveState('idle');
+    setGenerateMessage('');
+    setGenerateError(false);
   };
+
+  const profileFromDraft = (): GroupInstructionalProfile => ({
+    schemaVersion: 1,
+    currentSubstep: draft.currentSubstep.trim(),
+    lessonFocus: draft.lessonFocus,
+    currentCardRepository: toItems(draft.currentCardRepository),
+    reviewCardRepository: toItems(draft.reviewCardRepository),
+    practicedWordElements: [...new Set([
+      ...toItems(draft.affixes),
+      ...toItems(draft.baseElements),
+      ...toItems(draft.otherWordElements)
+    ])],
+    highFrequencyWords: toItems(draft.highFrequencyWords),
+    troubleSpots: toItems(draft.troubleSpots),
+    conceptsToWeave: toItems(draft.conceptsToWeave),
+    nextLessonNotes: draft.nextLessonNotes.trim(),
+    ...(group.instructionalProfile?.curriculumScopeVersion === 3 ? { curriculumScopeVersion: 3 as const } :
+      group.instructionalProfile?.curriculumScopeVersion === 2 ? { curriculumScopeVersion: 2 as const } : {}),
+    updatedAt: new Date().toISOString()
+  });
 
   const saveProfile = async () => {
     setIsSaving(true);
     setSaveState('idle');
-    const saved = await onSave({
-      schemaVersion: 1,
-      currentSubstep: draft.currentSubstep.trim(),
-      lessonFocus: draft.lessonFocus,
-      currentCardRepository: toItems(draft.currentCardRepository),
-      reviewCardRepository: toItems(draft.reviewCardRepository),
-      practicedWordElements: [...new Set([
-        ...toItems(draft.affixes),
-        ...toItems(draft.baseElements),
-        ...toItems(draft.otherWordElements)
-      ])],
-      highFrequencyWords: toItems(draft.highFrequencyWords),
-      troubleSpots: toItems(draft.troubleSpots),
-      conceptsToWeave: toItems(draft.conceptsToWeave),
-      nextLessonNotes: draft.nextLessonNotes.trim(),
-      ...(group.instructionalProfile?.curriculumScopeVersion === 3 ? { curriculumScopeVersion: 3 as const } :
-        group.instructionalProfile?.curriculumScopeVersion === 2 ? { curriculumScopeVersion: 2 as const } : {}),
-      updatedAt: new Date().toISOString()
-    });
+    const saved = await onSave(profileFromDraft());
     setIsSaving(false);
     setSaveState(saved ? 'saved' : 'error');
   };
+
+  const generateLesson = async () => {
+    if (!onGenerate) return;
+    const profile = profileFromDraft();
+    if (!profile.lessonFocus || profile.lessonFocus === 'mixed') {
+      setGenerateError(true);
+      setGenerateMessage('Choose Introduction, Accuracy, or Automaticity / Fluency before generating.');
+      return;
+    }
+
+    setIsGenerating(true);
+    setGenerateError(false);
+    setGenerateMessage('Saving planning context…');
+    try {
+      const saved = await onSave(profile);
+      if (!saved) throw new Error('The Instructional Profile could not be saved. Generation was stopped.');
+      setSaveState('saved');
+      setGenerateMessage('Compiling source-controlled lesson…');
+      await onGenerate(profile);
+    } catch (error) {
+      setGenerateError(true);
+      setGenerateMessage(error instanceof Error ? error.message : 'Lesson generation failed.');
+      setIsGenerating(false);
+      return;
+    }
+    setIsGenerating(false);
+  };
+
+  const generateDisabled = isSaving || isGenerating || !onGenerate || !compilerConfigured || !generationSupported;
+  const generateHint = !compilerConfigured
+    ? 'Compiler not configured in this Dojo build.'
+    : !generationSupported
+      ? `Automatic fidelity generation is not enabled for Substep ${draft.currentSubstep || '(not set)'} yet. The Release 1.0.1 pilot is 8.2 only.`
+      : 'Saves this profile first, then opens the generated lesson in the editor for teacher review.';
 
   const textareaClass = 'min-h-24 w-full resize-y rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800 outline-none transition focus:border-red-800 focus:ring-4 focus:ring-red-800/10';
   const labelClass = 'mb-1.5 block text-[9px] font-black uppercase tracking-widest text-stone-500';
@@ -164,11 +216,26 @@ const GroupInstructionalProfilePanel: React.FC<GroupInstructionalProfileProps> =
         <textarea value={draft.nextLessonNotes} onChange={event => updateDraft('nextLessonNotes', event.target.value)} placeholder="What should the next generated or teacher-built lesson do?" className={textareaClass} />
       </label>
 
-      <div className="mt-5 flex items-center justify-between gap-3 border-t border-stone-100 pt-4">
-        <p className="text-[10px] leading-relaxed text-stone-400">Lessons remain independent snapshots. This panel is the durable planning memory for the group.</p>
-        <button type="button" onClick={saveProfile} disabled={isSaving} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-red-800 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition hover:bg-red-700 disabled:cursor-wait disabled:opacity-60">
-          <Save className="h-4 w-4" /> {isSaving ? 'Saving…' : 'Save Profile'}
-        </button>
+      <div className="mt-5 border-t border-stone-100 pt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[10px] leading-relaxed text-stone-400">{generateHint}</p>
+            {generateMessage && (
+              <p className={`mt-2 text-[10px] font-bold ${generateError ? 'text-red-700' : 'text-emerald-700'}`} role="status">
+                {generateMessage}
+              </p>
+            )}
+          </div>
+          <div className="flex shrink-0 flex-wrap justify-end gap-2">
+            <button type="button" onClick={saveProfile} disabled={isSaving || isGenerating} className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-stone-600 shadow-sm transition hover:border-red-200 hover:text-red-800 disabled:cursor-wait disabled:opacity-60">
+              <Save className="h-4 w-4" /> {isSaving ? 'Saving…' : 'Save Profile'}
+            </button>
+            <button type="button" onClick={generateLesson} disabled={generateDisabled} className="inline-flex items-center gap-2 rounded-xl bg-red-800 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-400 disabled:shadow-none">
+              {isGenerating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {isGenerating ? 'Generating…' : 'Generate Lesson'}
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );
