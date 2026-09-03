@@ -139,11 +139,19 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
   const drillItems = useMemo(() => {
     const lessonBase = Array.isArray(sounds) ? sounds : [];
     if (isReverse) {
-      const activePhonemes = Array.from(new Set(
-        learnedCorrespondences
-          .filter(c => c.graphemes.some(g => lessonBase.some(lb => lb.replace(/[\[\]]/g, '') === g)))
-          .map(c => c.phoneme)
-      ));
+      const explicitPhonemes = lessonBase.flatMap(item => {
+        const trimmed = item.trim();
+        const mapped = trimmed.match(/^\/([^/]+)\/\s*(?:→|->|=)/);
+        if (mapped?.[1]) return [mapped[1]];
+
+        const clean = trimmed.replace(/^\//, '').replace(/\/$/, '');
+        if (learnedCorrespondences.some(c => c.phoneme === clean)) return [clean];
+
+        return learnedCorrespondences
+          .filter(c => c.graphemes.some(g => g === clean.replace(/[\[\]]/g, '')))
+          .map(c => c.phoneme);
+      });
+      const activePhonemes = Array.from(new Set(explicitPhonemes));
       return activePhonemes.length > 0 ? activePhonemes : ["ă", "ĕ", "ĭ", "ŏ", "ŭ"];
     } else {
       const filtered = lessonBase.filter(s => !s.endsWith('-e'));
@@ -360,10 +368,10 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
               <button onClick={clearDrawing} className="p-2 rounded-lg text-stone-300 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
             </div>
           )}
-          <button
+          {!readOnly && <button
             onClick={() => { setShuffledItems([...drillItems].sort(() => Math.random() - 0.5)); setCurrentIndex(0); setRevealedCount(0); }}
             className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-stone-50 text-stone-400 rounded-xl transition-all font-bold text-[10px] uppercase border border-stone-100 active:scale-95 shadow-sm"
-          ><Shuffle className="w-3.5 h-3.5" />Shuffle</button>
+          ><Shuffle className="w-3.5 h-3.5" />Shuffle</button>}
         </div>
       </div>
 
@@ -373,22 +381,37 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
         ) : (
           <div className="relative w-full h-full flex flex-col p-6 gap-6 items-center">
 
+            {isReverse && !readOnly && (
+              <div data-testid="teacher-dictation-cue" className="w-full max-w-4xl flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 shadow-sm">
+                <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">Dictate</span>
+                <span className="text-2xl font-black font-serif text-stone-900">/{currentItem}/</span>
+              </div>
+            )}
+
             <div
-              onClick={!isHandwritingMode ? handleReveal : undefined}
-              className={`flex-[3] w-full max-w-5xl flex flex-col items-center justify-center relative ${!isHandwritingMode ? 'cursor-pointer group' : ''}`}
+              onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined}
+              className={`flex-[3] w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}
             >
               {!isHandwritingMode ? (
                 <>
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity">
+                  {!readOnly && <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity">
                     <Sparkles className="w-64 h-64 text-red-900" />
-                  </div>
+                  </div>}
 
-                  <div className="flex flex-col items-center justify-center transform group-active:scale-95 transition-all duration-200 w-full">
+                  <div className="flex flex-col items-center justify-center transform transition-all duration-200 w-full">
                     {isReverse ? (
-                      <div className="bg-white p-8 md:p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center animate-in zoom-in duration-500 max-w-full shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
-                         <div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Volume2 className="w-8 h-8 md:w-12 md:h-12" /></div>
-                         <span className="text-[144px] font-black font-serif text-stone-900 leading-none tracking-tighter">/{currentItem}/</span>
-                      </div>
+                      readOnly ? (
+                        <div className="bg-white p-8 md:p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center max-w-full shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                          <div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-8 h-8 md:w-12 md:h-12" /></div>
+                          <span className="text-3xl md:text-5xl font-black font-serif text-stone-300 leading-none tracking-tight">Listen</span>
+                        </div>
+                      ) : (
+                        <div className="bg-white p-8 md:p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center animate-in zoom-in duration-500 max-w-full shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                           <div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Volume2 className="w-8 h-8 md:w-12 md:h-12" /></div>
+                           <span className="text-[144px] font-black font-serif text-stone-900 leading-none tracking-tighter">/{currentItem}/</span>
+                        </div>
+                      )
                     ) : (
                       <div className="animate-in zoom-in duration-500 flex items-center justify-center">
                          {parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}
@@ -416,7 +439,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
                    />
 
                    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-md px-6 py-2 rounded-full border border-stone-100 z-30 pointer-events-none">
-                      <span className="text-stone-900 font-black text-2xl font-serif">/{currentItem}/</span>
+                      <span className="text-stone-900 font-black text-2xl font-serif">{isReverse && readOnly ? 'Listen' : `/${currentItem}/`}</span>
                    </div>
                 </div>
               )}
@@ -430,7 +453,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{currentIndex + 1} / {activeItems.length}</span>
-                    {isHandwritingMode && (
+                    {isHandwritingMode && !readOnly && (
                       <button onClick={handleReveal} className="bg-red-900 text-white px-4 py-1.5 rounded-full font-black uppercase text-[8px] tracking-widest hover:bg-red-800 transition-all active:scale-95">Verify</button>
                     )}
                   </div>
@@ -464,19 +487,19 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
         )}
       </div>
 
-      <button
+      {!readOnly && <button
         onClick={prevCard}
         className="absolute left-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white hover:bg-stone-50 text-stone-300 hover:text-stone-900 transition-all shadow-md hidden md:flex active:scale-90 z-50 group border border-stone-100"
       >
         <ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
-      </button>
+      </button>}
 
-      <button
+      {!readOnly && <button
         onClick={nextCard}
         className="absolute right-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white hover:bg-stone-50 text-stone-300 hover:text-stone-900 transition-all shadow-md hidden md:flex active:scale-90 z-50 group border border-stone-100"
       >
         <ChevronRight className="w-8 h-8 group-hover:translate-x-1 transition-transform" />
-      </button>
+      </button>}
     </div>
   );
 };
