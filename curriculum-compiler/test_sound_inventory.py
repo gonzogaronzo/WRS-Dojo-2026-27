@@ -33,18 +33,20 @@ class SoundInventoryTests(unittest.TestCase):
             """
         )
         rows = [
-            (1, "1", "1.1", "/ă/", "a", "Short Vowel", "Short Vowels"),
-            (2, "1", "1.1", "/m/", "m", "Single Consonant", "Consonants"),
-            (3, "2", "2.3", "/īnd/", "ind", "Other", "Syllable Exceptions"),
-            (4, "5", "5.1", "/ā/", "a", "Long Vowel", "Vowel Sounds Chart"),
+            (1, "1", "1.1", "/ă/", "a", "Short Vowel", "Yes", "Short Vowels"),
+            (2, "1", "1.1", "/m/", "m", "Single Consonant", "Yes", "Consonants"),
+            (3, "2", "2.3", "/īnd/", "ind", "Other", "Yes", "Syllable Exceptions"),
+            (4, "5", "5.1", "/ā/", "a", "Long Vowel", "Yes", "Vowel Sounds Chart"),
+            (5, "9", "9.2", "/ē/", "ee", "Long Vowel", "Not Established", "Vowel Sounds"),
         ]
-        for inventory_id, step, substep, phoneme, grapheme, kind, section in rows:
+        for inventory_id, step, substep, phoneme, grapheme, kind, notebook_entry, section in rows:
             fields = {
                 "Phoneme": phoneme,
                 "Grapheme": grapheme,
                 "Correspondence Type": kind,
-                "Student Notebook Entry": "Yes",
+                "Student Notebook Entry": notebook_entry,
                 "Student Notebook Page or Section": section,
+                "Source Citation": "test-source",
             }
             connection.execute(
                 "INSERT INTO inventory_records VALUES (?, 'clean', 'Phoneme Grapheme Correspondence', ?, ?, ?)",
@@ -75,6 +77,11 @@ class SoundInventoryTests(unittest.TestCase):
         provenance = runtime["parts"][5]["data"]["soundInventoryProvenance"]
         self.assertEqual(provenance["throughSubstep"], "5.1")
         self.assertTrue(provenance["ambiguousGraphemesFailClosed"])
+
+    def test_clean_inventory_row_is_not_dropped_when_notebook_entry_flag_is_unresolved(self):
+        runtime = _runtime(["ee"], step="9", substep="2")
+        apply_sound_inventory_fidelity(runtime, {"currentSubstep": "9.2"}, self.db)
+        self.assertEqual(runtime["parts"][5]["data"]["quickDrillReverse"], ["/ē/ → ee"])
 
 
 if __name__ == "__main__":
