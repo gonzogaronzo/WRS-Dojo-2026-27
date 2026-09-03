@@ -147,6 +147,9 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
     },
     hfwList: stringArray(lessonData.hfwList),
     affixPractice: normalizeAffixes(lessonData.affixPractice),
+    sourceMetadata: Array.isArray(data.sourceMetadata)
+      ? data.sourceMetadata as Lesson['sourceMetadata']
+      : projection?.sourceMetadata,
     runtimePlan: runtimePlan || undefined,
     wrsPlan: normalizeWrsLessonPlan(data.wrsPlan)
   } as Lesson;

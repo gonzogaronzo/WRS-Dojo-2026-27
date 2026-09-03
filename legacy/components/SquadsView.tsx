@@ -2,14 +2,18 @@ import React, { useMemo, useState } from 'react';
 import { GroupInstructionalProfile, GroupNote, GroupProfile, Lesson, StudentProfile } from '../types';
 import MissionCard from './MissionCard';
 import ConfirmModal from './ConfirmModal';
-import { 
-  Users, Plus, Trash2, Scroll, ArrowRight, X, Edit, 
-  ShieldCheck, BookOpen, Printer, UserPlus, Save, RefreshCw, Search, CalendarDays
+import {
+  Users, Plus, Trash2, ArrowRight, X, Edit,
+  ShieldCheck, BookOpen, Printer, UserPlus, Search, CalendarDays
 } from 'lucide-react';
 
-import { generateId } from '../utils';
 import GroupNotes from './GroupNotes';
 import GroupInstructionalProfilePanel from './GroupInstructionalProfile';
+import {
+  curriculumCompilerConfigured,
+  curriculumGenerationSupported,
+  generateLessonFromCurriculum
+} from '../curriculumCompilerClient';
 
 interface SquadsViewProps {
   groups: GroupProfile[];
@@ -55,7 +59,7 @@ const QuickRecruit: React.FC<{ onRecruit: (name: string) => void }> = ({ onRecru
           placeholder="Quick Recruit (Name + Enter)"
           className="w-full bg-white border-2 border-stone-100 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-red-800 transition-all pr-10"
         />
-        <button 
+        <button
           type="submit"
           aria-label="Add student"
           className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-stone-900 text-white rounded-lg hover:bg-red-800 transition-colors"
@@ -109,10 +113,10 @@ const SquadsView: React.FC<SquadsViewProps> = ({
   const toggleStudentInGroup = (studentId: string) => {
     if (!activeGroup) return;
     const isMember = activeGroup.studentIds.includes(studentId);
-    const updatedIds = isMember 
+    const updatedIds = isMember
       ? activeGroup.studentIds.filter(id => id !== studentId)
       : [...activeGroup.studentIds, studentId];
-    
+
     onUpdateGroups(groups.map(g => g.id === activeGroup.id ? { ...g, studentIds: updatedIds } : g));
   };
 
@@ -129,6 +133,12 @@ const SquadsView: React.FC<SquadsViewProps> = ({
     onUpdateGroups(groups.map(group => group.id === activeGroup.id ? updatedGroup : group));
     onSelectGroup(updatedGroup);
     return true;
+  };
+
+  const generateCurriculumLesson = async (instructionalProfile: GroupInstructionalProfile) => {
+    if (!activeGroup) throw new Error('Choose a group before generating a lesson.');
+    const lesson = await generateLessonFromCurriculum(activeGroup, instructionalProfile);
+    onEditLesson(lesson);
   };
 
   if (!activeGroup) {
@@ -204,9 +214,9 @@ const SquadsView: React.FC<SquadsViewProps> = ({
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
                 </div>
               </div>
-              <button 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   setConfirmConfig({
                     isOpen: true,
                     title: 'Delete Group',
@@ -245,7 +255,7 @@ const SquadsView: React.FC<SquadsViewProps> = ({
               return s ? (
                 <div key={sid} className="bg-white px-4 py-3 rounded-xl border-2 border-stone-100 flex justify-between items-center group/ninja">
                   <span className="font-bold text-xs text-stone-800 truncate">{s.name}</span>
-                  <button 
+                  <button
                     onClick={() => toggleStudentInGroup(sid)}
                     className="p-1 text-stone-200 hover:text-red-500 transition-colors"
                   >
@@ -255,14 +265,14 @@ const SquadsView: React.FC<SquadsViewProps> = ({
               ) : null;
             })}
           </div>
-          <button 
+          <button
             onClick={() => setView('students')}
             className="w-full mt-6 py-3 border-2 border-dashed border-stone-300 text-stone-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-red-800 hover:text-red-800 transition-all flex items-center justify-center gap-2"
           >
             <UserPlus className="w-4 h-4" /> Manage Students
           </button>
           {onQuickRecruit && <QuickRecruit onRecruit={onQuickRecruit} />}
-          <button 
+          <button
             onClick={() => setShowJournal(!showJournal)}
             className={`w-full mt-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm ${showJournal ? 'bg-red-800 text-white' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
           >
@@ -275,14 +285,20 @@ const SquadsView: React.FC<SquadsViewProps> = ({
           <GroupNotes group={activeGroup} notes={groupNotes} students={students} />
         ) : (
           <>
-            <GroupInstructionalProfilePanel group={activeGroup} onSave={saveInstructionalProfile} />
+            <GroupInstructionalProfilePanel
+              group={activeGroup}
+              onSave={saveInstructionalProfile}
+              onGenerate={generateCurriculumLesson}
+              compilerConfigured={curriculumCompilerConfigured()}
+              generationSupported={curriculumGenerationSupported(activeGroup.instructionalProfile?.currentSubstep || '')}
+            />
             <div className="flex justify-between items-center bg-stone-800/50 p-4 rounded-2xl border border-stone-700">
               <h3 className="font-black uppercase tracking-widest text-[10px] text-stone-500">Ancient Scrolls (Custom Lessons)</h3>
               <button onClick={onCreateLesson} className="px-6 py-2 bg-red-800 text-white rounded-xl font-black uppercase text-[10px] flex items-center gap-2 shadow-lg hover:bg-red-700 active:scale-95"><Plus className="w-4 h-4" /> Forge New Scroll</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedLessons.map(lesson => (
-                <MissionCard 
+                <MissionCard
                   key={lesson.id}
                   title={lesson.title}
                   badge={`Step ${lesson.step}.${lesson.substep}`}
@@ -333,7 +349,7 @@ const SquadsView: React.FC<SquadsViewProps> = ({
 
           </>
         )}
-      <ConfirmModal 
+      <ConfirmModal
         isOpen={confirmConfig.isOpen}
         onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
         onConfirm={confirmConfig.onConfirm}
