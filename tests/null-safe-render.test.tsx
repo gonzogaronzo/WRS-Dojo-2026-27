@@ -4,6 +4,8 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import Slideshow from '../legacy/components/modules/Slideshow';
 import TeachConcepts from '../legacy/components/modules/TeachConcepts';
+import QuickDrill from '../legacy/components/modules/QuickDrill';
+import Spelling from '../legacy/components/modules/Spelling';
 import { UnassignedLessonCompletion } from '../legacy/components/SessionDossier';
 import { normalizeLesson } from '../legacy/dataNormalization';
 
@@ -42,6 +44,41 @@ test('never renders teacher slide notes on the passive student display', () => {
   const html = renderToStaticMarkup(<Slideshow slides={slides} tool="cursor" readOnly currentIndex={0} />);
   assert.doesNotMatch(html, /Private teacher prompt/);
   assert.doesNotMatch(html, /Toggle Sensei Notes/);
+});
+
+test('keeps auditory Quick Drill dictation cues teacher-only', () => {
+  const teacherHtml = renderToStaticMarkup(
+    <QuickDrill sounds={['a']} isReverse step="1" substep="1" />
+  );
+  const studentHtml = renderToStaticMarkup(
+    <QuickDrill sounds={['a']} isReverse step="1" substep="1" readOnly />
+  );
+
+  assert.match(teacherHtml, /Teacher only/);
+  assert.match(teacherHtml, /Dictate/);
+  assert.doesNotMatch(studentHtml, /Teacher only/);
+  assert.match(studentHtml, /Listen/);
+  assert.doesNotMatch(studentHtml, /Shuffle/);
+});
+
+test('shows unrevealed written-work items to the teacher but not the student display', () => {
+  const data = {
+    sounds: ['/k/'],
+    realWords: ['spring'],
+    wordElements: [],
+    nonsenseWords: [],
+    phrases: [],
+    sentences: []
+  };
+  const teacherHtml = renderToStaticMarkup(<Spelling data={data} lessonStep="2" lessonSubstep="5" />);
+  const studentHtml = renderToStaticMarkup(<Spelling data={data} lessonStep="2" lessonSubstep="5" readOnly />);
+
+  assert.match(teacherHtml, /Teacher only/);
+  assert.match(teacherHtml, /\/k\//);
+  assert.doesNotMatch(studentHtml, /Teacher only/);
+  assert.doesNotMatch(studentHtml, /\/k\//);
+  assert.match(studentHtml, /Waiting for teacher/);
+  assert.doesNotMatch(studentHtml, /Reveal All/);
 });
 
 test('renders a recoverable completion screen when a lesson has no selected group', () => {
