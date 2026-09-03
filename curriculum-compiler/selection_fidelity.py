@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from compiler import CurriculumCompileError
@@ -9,6 +10,8 @@ from compiler import CurriculumCompileError
 # - Part 6 is selective, not exhaustive. It must deliberately mix vowel sounds with
 #   other taught sounds and must distinguish current/new material, cumulative review,
 #   and documented trouble spots when applicable.
+# - Part 6 phoneme prompts must preserve Wilson sound notation. In particular, short
+#   and long vowel prompts may not collapse to ambiguous bare /a/, /e/, /i/, /o/, /u/.
 # - Part 8 uses the standard written-work composition: 5 sounds, 5 word elements,
 #   5 real words, 3 nonsense words, 3 phrases, and 3 current-substep sentences.
 #   Sounds, word elements, real/nonsense words, and phrases must be selected across
@@ -27,6 +30,8 @@ PART8_REQUIRED_COUNTS = {
     "phrases": 3,
     "sentences": 3,
 }
+
+AMBIGUOUS_BARE_VOWEL_PROMPT = re.compile(r"^\s*/?[aeiou]/?\s*(?:(?:→|->|=).*)?$", re.IGNORECASE)
 
 
 def _part(runtime: dict[str, Any], number: int) -> dict[str, Any]:
@@ -52,8 +57,28 @@ def _require_composition_metadata(part: dict[str, Any], *, part_number: int) -> 
     return metadata
 
 
+def _validate_part6_notation(part: dict[str, Any]) -> None:
+    prompts = list((part.get("data") or {}).get("quickDrillReverse") or [])
+    if not prompts:
+        raise CurriculumCompileError(
+            "Part 6 contains no auditory prompts.",
+            status_code=409,
+            code="part6_prompt_empty",
+        )
+    for prompt in prompts:
+        text = str(prompt).strip()
+        if AMBIGUOUS_BARE_VOWEL_PROMPT.fullmatch(text):
+            raise CurriculumCompileError(
+                f"Part 6 contains ambiguous vowel prompt {text!r}. Preserve the exact Wilson phoneme notation "
+                "with the source-supported diacritic before generation can continue.",
+                status_code=409,
+                code="part6_vowel_diacritic_required",
+            )
+
+
 def _validate_part6(runtime: dict[str, Any], request: dict[str, Any]) -> None:
     part = _part(runtime, 6)
+    _validate_part6_notation(part)
     metadata = _require_composition_metadata(part, part_number=6)
 
     vowel_count = int(metadata.get("vowelCount") or 0)
