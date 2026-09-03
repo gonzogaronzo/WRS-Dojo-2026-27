@@ -12,6 +12,7 @@ from google.cloud import storage
 from pydantic import BaseModel, Field
 
 from compiler import CurriculumCompileError, CurriculumCompiler, EXPECTED_RELEASE_ID, SUPPORTED_SUBSTEPS
+from selection_fidelity import validate_selection_fidelity
 
 
 class CompileRequest(BaseModel):
@@ -58,7 +59,7 @@ compiler = CurriculumCompiler(
     expected_release_id=os.getenv("EXPECTED_RELEASE_ID", EXPECTED_RELEASE_ID),
 )
 
-app = FastAPI(title="WRS Curriculum Compiler", version="0.1.0")
+app = FastAPI(title="WRS Curriculum Compiler", version="0.2.0")
 allowed_origins = [
     item.strip()
     for item in os.getenv("ALLOWED_ORIGINS", "https://wrs-firebase.web.app").split(",")
@@ -95,18 +96,22 @@ def healthz():
         "ok": True,
         "releaseId": compiler.expected_release_id,
         "supportedSubsteps": sorted(SUPPORTED_SUBSTEPS),
+        "selectionFidelityGate": "required",
     }
 
 
 @app.post("/v1/lessons/compile")
 async def compile_lesson(payload: CompileRequest, authorization: str | None = Header(default=None)):
     decoded = await _verify_teacher(authorization)
-    runtime = compiler.compile(payload.model_dump())
+    request = payload.model_dump()
+    runtime = compiler.compile(request)
+    validate_selection_fidelity(runtime, request)
     return {
         "runtimePlan": runtime,
         "compiler": {
-            "version": "0.1.0",
+            "version": "0.2.0",
             "teacherUid": decoded.get("uid"),
             "releaseId": compiler.expected_release_id,
+            "selectionFidelityGate": "passed",
         },
     }
