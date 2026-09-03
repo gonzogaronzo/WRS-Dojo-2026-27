@@ -20,7 +20,7 @@ jobs:
       - name: Install compiler dependencies
         run: python -m pip install -r curriculum-compiler/requirements.txt
       - name: Compile Python sources
-        run: python -m py_compile curriculum-compiler/compiler.py curriculum-compiler/main.py
+        run: python -m py_compile curriculum-compiler/compiler.py curriculum-compiler/selection_fidelity.py curriculum-compiler/main.py
       - name: Run fail-closed compiler tests
         working-directory: curriculum-compiler
-        run: python -m unittest -v test_compiler.py
+        run: python -m unittest -v test_compiler.py test_selection_fidelity.py
