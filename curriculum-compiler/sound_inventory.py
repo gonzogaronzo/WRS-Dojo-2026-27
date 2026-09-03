@@ -9,7 +9,6 @@ from typing import Any
 from compiler import CurriculumCompileError
 
 
-VOWEL_GRAPHEMES = {"a", "e", "i", "o", "u", "y"}
 SHORT_LONG_TYPES = {"Short Vowel", "Long Vowel"}
 MARKED_VOWEL_CHARS = set("ăĕĭŏŭāēīōūüȯ")
 
@@ -18,7 +17,7 @@ def _substep_key(value: str) -> tuple[int, int]:
     match = re.fullmatch(r"\s*(\d+)\.(\d+)\s*", value or "")
     if not match:
         raise CurriculumCompileError(
-            f"Cannot resolve cumulative sound inventory for Substep {value or '(not set)' }.",
+            f"Cannot resolve cumulative sound inventory for Substep {value or '(not set)'}.",
             status_code=409,
             code="sound_inventory_substep_invalid",
         )
@@ -68,8 +67,6 @@ def _load_cumulative_correspondences(database_path: str | Path, substep: str) ->
         except CurriculumCompileError:
             continue
         fields = json.loads(row["fields_json"])
-        if str(fields.get("Student Notebook Entry") or "").strip().lower() != "yes":
-            continue
         phoneme = _clean_phoneme(str(fields.get("Phoneme") or ""))
         grapheme = str(fields.get("Grapheme") or "").strip()
         if not phoneme or not grapheme:
@@ -80,12 +77,14 @@ def _load_cumulative_correspondences(database_path: str | Path, substep: str) ->
                 "grapheme": grapheme,
                 "type": str(fields.get("Correspondence Type") or "").strip(),
                 "introduced": introduced,
+                "notebookEntry": str(fields.get("Student Notebook Entry") or "").strip(),
                 "notebookSection": str(fields.get("Student Notebook Page or Section") or "").strip(),
+                "sourceCitation": str(fields.get("Source Citation") or "").strip(),
             }
         )
     if not correspondences:
         raise CurriculumCompileError(
-            f"No cumulative Student Notebook sound-spelling correspondences resolved through Substep {substep}.",
+            f"No cumulative sound-spelling correspondences resolved through Substep {substep}.",
             status_code=409,
             code="sound_inventory_empty",
         )
@@ -98,7 +97,7 @@ def _assert_marked_vowel(correspondence: dict[str, str]) -> None:
     body = correspondence["phoneme"].strip("/")
     if not any(char in MARKED_VOWEL_CHARS for char in body):
         raise CurriculumCompileError(
-            f"Student Notebook inventory resolved an ambiguous {correspondence['type'].lower()} phoneme "
+            f"The sound inventory resolved an ambiguous {correspondence['type'].lower()} phoneme "
             f"{correspondence['phoneme']} for grapheme {correspondence['grapheme']}. Refusing to guess vowel length.",
             status_code=409,
             code="sound_inventory_vowel_diacritic_missing",
@@ -114,7 +113,7 @@ def _resolve_existing_item(item: str, pool: list[dict[str, str]]) -> list[dict[s
         matches = [row for row in pool if row["phoneme"] == phoneme and row["grapheme"] in requested]
         if not matches or {row["grapheme"] for row in matches} != set(requested):
             raise CurriculumCompileError(
-                f"Part 6 prompt {text!r} is not verified by the cumulative Student Notebook inventory.",
+                f"Part 6 prompt {text!r} is not verified by the cumulative sound inventory through this Substep.",
                 status_code=409,
                 code="sound_inventory_prompt_unverified",
             )
@@ -125,7 +124,7 @@ def _resolve_existing_item(item: str, pool: list[dict[str, str]]) -> list[dict[s
         matches = [row for row in pool if row["phoneme"] == phoneme_text]
         if not matches:
             raise CurriculumCompileError(
-                f"Part 6 phoneme {phoneme_text} is not in the cumulative Student Notebook inventory.",
+                f"Part 6 phoneme {phoneme_text} is not in the cumulative sound inventory through this Substep.",
                 status_code=409,
                 code="sound_inventory_phoneme_unverified",
             )
@@ -135,7 +134,7 @@ def _resolve_existing_item(item: str, pool: list[dict[str, str]]) -> list[dict[s
     matches = [row for row in pool if row["grapheme"] == grapheme]
     if not matches:
         raise CurriculumCompileError(
-            f"Part 6 grapheme {grapheme!r} is not in the cumulative Student Notebook inventory.",
+            f"Part 6 grapheme {grapheme!r} is not in the cumulative sound inventory through this Substep.",
             status_code=409,
             code="sound_inventory_grapheme_unverified",
         )
@@ -173,11 +172,12 @@ def apply_sound_inventory_fidelity(
     request: dict[str, Any],
     database_path: str | Path,
 ) -> None:
-    """Rewrite/verify Part 6 prompts against the cumulative Student Notebook-indexed inventory.
+    """Rewrite/verify Part 6 prompts against the cumulative notebook-indexed sound inventory.
 
-    The release stores this inventory as cleaned structured records with Student Notebook references.
-    It is a machine-readable cross-reference, not a replacement for the canonical notebook visuals.
-    Ambiguous graphemes and missing vowel diacritics fail closed.
+    Release 1.0.1 stores the sound-spelling inventory as cleaned structured phoneme-grapheme
+    records with Substep, Student Notebook references, and source citations. Those records are the
+    machine-readable cross-reference. The canonical Student Notebook Answer Key remains the visual
+    authority for exact source markings. Ambiguous graphemes and missing vowel diacritics fail closed.
     """
     substep = str(request.get("currentSubstep") or runtime.get("substep") or "").strip()
     if "." not in substep:
@@ -190,7 +190,7 @@ def apply_sound_inventory_fidelity(
     existing = list(data.get("quickDrillReverse") or [])
     if not existing:
         raise CurriculumCompileError(
-            "Part 6 has no selected sounds to cross-reference against the cumulative Student Notebook inventory.",
+            "Part 6 has no selected sounds to cross-reference against the cumulative sound inventory.",
             status_code=409,
             code="sound_inventory_part6_empty",
         )
@@ -203,7 +203,7 @@ def apply_sound_inventory_fidelity(
 
     data["quickDrillReverse"] = prompts
     data["soundInventoryProvenance"] = {
-        "authority": "Student Notebook / Student Notebook Answer Key",
+        "canonicalAuthority": "Student Notebook / Student Notebook Answer Key",
         "machineReadableCrossReference": "Release 1.0.1 CLEAN-INVENTORIES · Phoneme Grapheme Correspondence",
         "throughSubstep": substep,
         "preservesSourcePhonemeNotation": True,
