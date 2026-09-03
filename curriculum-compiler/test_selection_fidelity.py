@@ -7,7 +7,7 @@ from selection_fidelity import validate_selection_fidelity
 def base_runtime():
     parts = [{"part": n, "data": {}} for n in range(1, 11)]
     parts[5]["data"] = {
-        "quickDrillReverse": ["/a/", "/m/", "/sh/"],
+        "quickDrillReverse": ["/ă/ → a", "/m/ → m", "/sh/ → sh"],
         "selectionComposition": {
             "vowelCount": 1,
             "otherSoundCount": 2,
@@ -40,6 +40,13 @@ def base_runtime():
 class SelectionFidelityTests(unittest.TestCase):
     def test_valid_mixed_composition_passes(self):
         validate_selection_fidelity(base_runtime(), {"troubleSpots": ["vowel confusion"]})
+
+    def test_part6_bare_vowel_fails_closed(self):
+        runtime = base_runtime()
+        runtime["parts"][5]["data"]["quickDrillReverse"][0] = "/a/ → a"
+        with self.assertRaises(CurriculumCompileError) as context:
+            validate_selection_fidelity(runtime, {"troubleSpots": []})
+        self.assertEqual(context.exception.code, "part6_vowel_diacritic_required")
 
     def test_part8_wrong_count_fails_closed(self):
         runtime = base_runtime()
