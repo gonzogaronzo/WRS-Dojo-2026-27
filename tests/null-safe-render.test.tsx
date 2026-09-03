@@ -4,6 +4,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import Slideshow from '../legacy/components/modules/Slideshow';
 import TeachConcepts from '../legacy/components/modules/TeachConcepts';
+import { UnassignedLessonCompletion } from '../legacy/components/SessionDossier';
 import { normalizeLesson } from '../legacy/dataNormalization';
 
 const lesson = normalizeLesson({
@@ -41,4 +42,10 @@ test('never renders teacher slide notes on the passive student display', () => {
   const html = renderToStaticMarkup(<Slideshow slides={slides} tool="cursor" readOnly currentIndex={0} />);
   assert.doesNotMatch(html, /Private teacher prompt/);
   assert.doesNotMatch(html, /Toggle Sensei Notes/);
+});
+
+test('renders a recoverable completion screen when a lesson has no selected group', () => {
+  const html = renderToStaticMarkup(<UnassignedLessonCompletion />);
+  assert.match(html, /Select a Group to Finish/);
+  assert.match(html, /Return to Briefing/);
 });
