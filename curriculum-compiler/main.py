@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from compiler import CurriculumCompileError, CurriculumCompiler, EXPECTED_RELEASE_ID, SUPPORTED_SUBSTEPS
 from selection_fidelity import validate_selection_fidelity
+from sound_inventory import apply_sound_inventory_fidelity
 
 
 class CompileRequest(BaseModel):
@@ -59,7 +60,7 @@ compiler = CurriculumCompiler(
     expected_release_id=os.getenv("EXPECTED_RELEASE_ID", EXPECTED_RELEASE_ID),
 )
 
-app = FastAPI(title="WRS Curriculum Compiler", version="0.2.0")
+app = FastAPI(title="WRS Curriculum Compiler", version="0.2.1")
 allowed_origins = [
     item.strip()
     for item in os.getenv("ALLOWED_ORIGINS", "https://wrs-firebase.web.app").split(",")
@@ -97,6 +98,7 @@ def healthz():
         "releaseId": compiler.expected_release_id,
         "supportedSubsteps": sorted(SUPPORTED_SUBSTEPS),
         "selectionFidelityGate": "required",
+        "soundInventoryGate": "student-notebook-indexed",
     }
 
 
@@ -105,13 +107,15 @@ async def compile_lesson(payload: CompileRequest, authorization: str | None = He
     decoded = await _verify_teacher(authorization)
     request = payload.model_dump()
     runtime = compiler.compile(request)
+    apply_sound_inventory_fidelity(runtime, request, compiler.database_path)
     validate_selection_fidelity(runtime, request)
     return {
         "runtimePlan": runtime,
         "compiler": {
-            "version": "0.2.0",
+            "version": "0.2.1",
             "teacherUid": decoded.get("uid"),
             "releaseId": compiler.expected_release_id,
             "selectionFidelityGate": "passed",
+            "soundInventoryGate": "student-notebook-indexed",
         },
     }
