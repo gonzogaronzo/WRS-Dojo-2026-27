@@ -3,6 +3,7 @@ import test from 'node:test';
 import { normalizeLesson } from '../legacy/dataNormalization';
 import { createEmptyWrsLessonPlan, getWrsLessonReadiness, normalizeWrsLessonPlan } from '../legacy/wrsLessonPlan';
 import { Lesson, RuntimeLessonPart, WRSRuntimeLessonPlan } from '../legacy/types';
+import { lesson73 } from '../legacy/lessons/step7-3';
 
 const runtimePart = (part: RuntimeLessonPart['part'], data: RuntimeLessonPart['data']): RuntimeLessonPart => ({
   part,
@@ -130,4 +131,9 @@ test('runtime planning context completes readiness without duplicating legacy wr
   assert.deepEqual(getWrsLessonReadiness(lesson).missing, []);
   assert.equal(lesson.wrsPlan?.lessonFocus, '');
   assert.deepEqual(lesson.wrsPlan?.wordTypesToChart, []);
+});
+
+test('Substep 7.3 auditory choices stay within the verified Step 7 source', () => {
+  assert.ok(lesson73.dictation.sounds.includes('/s/ (s, c, ce)'));
+  assert.equal(lesson73.dictation.sounds.some(sound => /\bci\b/.test(sound)), false);
 });

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import LessonForm from './components/LessonForm';
 import Layout from './components/Layout';
 import GroupDashboard from './components/GroupDashboard';
-import SessionDossier from './components/SessionDossier';
+import SessionDossier, { UnassignedLessonCompletion } from './components/SessionDossier';
 import PresenterSetupDialog from './components/PresenterSetupDialog';
 import StudentScreenJoinDialog from './components/StudentScreenJoinDialog';
 import { Lesson, LessonPart, GroupProfile, StudentProfile, WordCard } from './types';
@@ -856,10 +856,13 @@ const App: React.FC = () => {
             </div>
           );
         }
+        if (!activeGroup) {
+          return <UnassignedLessonCompletion onReturn={() => setCurrentPart(LessonPart.Briefing)} />;
+        }
         return (
           <SessionDossier 
             lesson={currentLesson} 
-            activeGroup={activeGroup!} 
+            activeGroup={activeGroup}
             students={students} 
             sessionStudentIds={sessionStudentIds} 
             sessionScores={sessionScores}
