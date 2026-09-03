@@ -11,6 +11,22 @@ Server-side bridge between WRS Dojo and **WRS Curriculum Release 1.0.1**.
 - Part 10 remains teacher-selected by design.
 - Student advancement is never performed by this service.
 
+## Wilson lesson-selection fidelity gate
+
+Source provenance alone is not enough for a faithful lesson. Generated item sets must also satisfy the Wilson cumulative-selection principles used in lesson planning.
+
+The compiler therefore fails closed unless it can verify all of the following:
+
+- **Part 6, Quick Drill in Reverse:** a selective mixture of vowel sounds and other taught sounds; cumulative review is represented; current/new sounds are represented when the Substep actually introduces them; documented trouble spots are deliberately targeted when present.
+- **Part 8, Written Work Dictation:** exactly **5 sounds, 5 word elements, 5 real words, 3 nonsense words, 3 phrases, and 3 sentences**.
+- Part 8 sounds, word elements, real words, nonsense words, and phrases must deliberately combine **current-substep material with previously taught material**, rather than becoming a single-concept specimen list.
+- Part 8 sentences come from the **current Substep**.
+- Documented trouble spots must inform item selection when present.
+
+The verified Instructor Manual wording for Part 6 says to use **some vowel sounds and several other sounds**. No exact vowel/consonant ratio has yet been verified from the supplied Wilson sources, so the software must **not invent one**. Instead, generated records must carry machine-checkable `selectionComposition` metadata proving that the required mixture was intentionally constructed.
+
+This gate is intentionally stricter than the original Release 1.0.1 structural/provenance fixture. If a fixture has correct sources but does not contain the required Wilson item counts or composition metadata, automatic generation is blocked until the curriculum release/fixture is repaired and revalidated.
+
 ## Configuration
 
 The service accepts either:
@@ -30,4 +46,4 @@ Cloud Run should allow unauthenticated network invocation so browser CORS/prefli
 - `GET /healthz`
 - `POST /v1/lessons/compile`
 
-The POST body is planning context from one Dojo Group Instructional Profile. The response contains a source-provenanced `wrs-runtime-v1` `runtimePlan` suitable for Dojo's existing compatibility adapter.
+The POST body is planning context from one Dojo Group Instructional Profile. The response contains a source-provenanced `wrs-runtime-v1` `runtimePlan` suitable for Dojo's existing compatibility adapter, but only after the selection-fidelity gate passes.
