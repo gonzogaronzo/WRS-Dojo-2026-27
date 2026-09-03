@@ -120,8 +120,8 @@ const MissionBriefing: React.FC<MissionBriefingProps> = ({
   };
 
   return (
-    <div className="min-h-full w-full bg-[#fdf6e3] flex flex-col items-center md:justify-center justify-start p-4 md:p-8 font-sans text-stone-900">
-      <div className="max-w-6xl w-full bg-white shadow-2xl border-4 border-stone-800 rounded-3xl overflow-hidden flex flex-col md:flex-row my-4">
+    <div className="h-full w-full overflow-y-auto bg-[#fdf6e3] flex flex-col items-center p-4 md:p-8 font-sans text-stone-900 custom-scrollbar">
+      <div className="max-w-6xl w-full shrink-0 bg-white shadow-2xl border-4 border-stone-800 rounded-3xl overflow-hidden flex flex-col md:flex-row my-auto">
         
         {/* ATTENDANCE PANEL */}
         <div className="md:w-5/12 bg-stone-900 p-10 text-white relative border-r-4 border-stone-800">
