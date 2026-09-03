@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeLesson } from '../legacy/dataNormalization';
+import { runtimeLessonToLegacyLesson } from '../legacy/runtimeLesson';
 import { createEmptyWrsLessonPlan, getWrsLessonReadiness, normalizeWrsLessonPlan } from '../legacy/wrsLessonPlan';
 import { Lesson, RuntimeLessonPart, WRSRuntimeLessonPlan } from '../legacy/types';
 
@@ -130,4 +131,21 @@ test('runtime planning context completes readiness without duplicating legacy wr
   assert.deepEqual(getWrsLessonReadiness(lesson).missing, []);
   assert.equal(lesson.wrsPlan?.lessonFocus, '');
   assert.deepEqual(lesson.wrsPlan?.wordTypesToChart, []);
+});
+
+test('preserves saved curriculum provenance through a full JSON reload', () => {
+  const runtimePlan = createRuntimePlan();
+  const saved = {
+    ...runtimeLessonToLegacyLesson(runtimePlan),
+    sourceMetadata: runtimePlan.sources.map(source => ({
+      ...source,
+      notes: 'Curriculum release: WRS-CURRICULUM-1.0.1-2026-09-02'
+    }))
+  };
+
+  const lesson = normalizeLesson(JSON.parse(JSON.stringify(saved)));
+
+  assert.ok(lesson);
+  assert.deepEqual(lesson.sourceMetadata, saved.sourceMetadata);
+  assert.equal(lesson.runtimePlan?.sources[0].label, 'Step Instruction');
 });
