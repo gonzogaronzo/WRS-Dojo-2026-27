@@ -18,9 +18,9 @@ export const uniqueWordCards = (cards: WordCard[]): WordCard[] => {
   });
 };
 
-export const targetWordCount = (cards: WordCard[]): number => (
-  cards.length === 0 ? 15 : Math.min(Math.max(15, cards.length), 50)
-);
+// Part 4 charting is always 15 words per student. The card pool may be much larger
+// so each student can receive a different 15-word list without repeats across students.
+export const targetWordCount = (_cards: WordCard[]): number => 15;
 
 export const normalizeWordDistribution = (value: unknown): WordInstance[][] => {
   if (!Array.isArray(value)) return [];
