@@ -1,0 +1,23 @@
+name: Part 4 regression verification
+
+on:
+  pull_request:
+    branches:
+      - independent-hosting
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - name: Install dependencies
+        run: npm run install:ci
+      - name: Run verified build and regression suite
+        run: npm test
