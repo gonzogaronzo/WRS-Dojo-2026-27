@@ -1,0 +1,155 @@
+name: Apply fail-closed Firebase auth patch
+
+on:
+  push:
+    branches:
+      - fix/auth-and-sheets-2026-09-07
+    paths:
+      - .github/workflows/apply-auth-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/auth-and-sheets-2026-09-07
+          fetch-depth: 0
+
+      - name: Remove silent guest fallback
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('legacy/useMasterData.ts')
+          text = path.read_text()
+          text = text.replace("import { db, auth } from './firebase';", "import { db, auth, authPersistenceReady } from './firebase';")
+
+          old = '''  // 1. Handle Authentication
+          useEffect(() => {
+            const enterGuestMode = () => {
+              setUser({ uid: 'guest-sensei', displayName: 'Guest Sensei' } as User);
+              setGroups(normalizeStoredGroups(readLocalCollection<unknown>('wrs_dojo_groups', MASTER_SQUADS), MASTER_SQUADS));
+              setStudents(normalizeStoredStudents(readLocalCollection<unknown>('wrs_dojo_students', MASTER_NINJAS), MASTER_NINJAS));
+              setGroupNotes(normalizeStoredGroupNotes(readLocalCollection<unknown>('wrs_dojo_group_notes', [])));
+              setCloudStatus('offline');
+              setCloudError(null);
+              setHasLocalData(localDataExists());
+              setIsInitializing(false);
+            };
+
+            const safetyTimer = window.setTimeout(() => {
+              console.warn('Firebase Auth timed out. Entering Guest Mode.');
+              enterGuestMode();
+            }, 5000);
+
+            try {
+              const unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
+                window.clearTimeout(safetyTimer);
+                if (authenticatedUser) {
+                  setUser(authenticatedUser);
+                  setCloudError(null);
+                  setHasLocalData(localDataExists());
+                } else {
+                  enterGuestMode();
+                }
+              });
+              return () => {
+                unsubscribe();
+                window.clearTimeout(safetyTimer);
+              };
+            } catch (error) {
+              window.clearTimeout(safetyTimer);
+              console.error('Auth initialization failed', error);
+              enterGuestMode();
+            }
+          }, []);
+          '''
+          new = '''  // 1. Handle Authentication. Real classroom sessions fail closed:
+          // Firebase may take time to restore a persisted login, but a delay must
+          // never be reinterpreted as permission to run an anonymous local lesson.
+          useEffect(() => {
+            let cancelled = false;
+            let unsubscribe = () => {};
+
+            const requireSignIn = (error = null) => {
+              if (cancelled) return;
+              setUser(null);
+              setGroups([]);
+              setStudents([]);
+              setGroupNotes([]);
+              setActiveSession(null);
+              setCloudStatus('unauthenticated');
+              setCloudError(error ? errorMessage('Firebase authentication failed', error) : null);
+              setHasLocalData(localDataExists());
+              setIsInitializing(false);
+            };
+
+            void authPersistenceReady.then(() => {
+              if (cancelled) return;
+              unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
+                if (cancelled) return;
+                if (!authenticatedUser) {
+                  requireSignIn();
+                  return;
+                }
+                setUser(authenticatedUser);
+                setCloudStatus('syncing');
+                setCloudError(null);
+                setHasLocalData(localDataExists());
+                setIsInitializing(false);
+              }, requireSignIn);
+            }).catch(requireSignIn);
+
+            return () => {
+              cancelled = true;
+              unsubscribe();
+            };
+          }, []);
+          '''
+          if old not in text:
+              raise SystemExit('Expected authentication block was not found; refusing a partial patch.')
+          text = text.replace(old, new)
+
+          old_session = '''    if (!user || user.uid === 'guest-sensei') {
+              setActiveSession(session);
+              return true;
+            }
+          '''
+          new_session = '''    if (!user || user.uid === 'guest-sensei') {
+              setCloudStatus('unauthenticated');
+              setCloudError('A signed-in Firebase teacher session is required before a lesson can be saved.');
+              return false;
+            }
+          '''
+          if old_session not in text:
+              raise SystemExit('Expected updateSession fallback was not found; refusing a partial patch.')
+          text = text.replace(old_session, new_session, 1)
+          path.write_text(text)
+
+          app = Path('legacy/App.tsx')
+          app_text = app.read_text()
+          if "teacherId={user?.uid || 'guest-sensei'}" not in app_text:
+              raise SystemExit('Expected SessionDossier teacher fallback was not found.')
+          app.write_text(app_text.replace("teacherId={user?.uid || 'guest-sensei'}", "teacherId={user?.uid || ''}"))
+
+          dashboard = Path('legacy/components/GroupDashboard.tsx')
+          dashboard_text = dashboard.read_text()
+          dashboard_text = dashboard_text.replace("<DailyNotes userId={user?.uid || 'guest-sensei'} />", "<DailyNotes userId={user?.uid || ''} />")
+          dashboard_text = dashboard_text.replace("teacherId={user?.uid || 'guest-sensei'}", "teacherId={user?.uid || ''}")
+          dashboard.write_text(dashboard_text)
+          PY
+
+      - name: Commit auth patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add legacy/firebase.ts legacy/useMasterData.ts legacy/App.tsx legacy/components/GroupDashboard.tsx
+          git commit -m "Fail closed when Firebase teacher auth is unavailable" || exit 0
+          git push origin HEAD:fix/auth-and-sheets-2026-09-07
