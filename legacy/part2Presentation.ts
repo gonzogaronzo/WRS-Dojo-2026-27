@@ -164,10 +164,10 @@ const normalizeTiles = (value: unknown): Part2PresentationTile[] | null => {
   const tiles: Part2PresentationTile[] = [];
   for (const candidate of value) {
     const record = asRecord(candidate);
-    const text = nonEmptyText(record?.text);
+    const tileText = nonEmptyText(record?.text);
     const role = record?.role as Part2TileRole | undefined;
-    if (!record || !text || !role || !TILE_ROLES.has(role)) return null;
-    tiles.push({ text, role });
+    if (!record || !tileText || !role || !TILE_ROLES.has(role)) return null;
+    tiles.push({ text: tileText, role });
   }
   return tiles;
 };
@@ -177,10 +177,10 @@ const normalizeElements = (value: unknown): Part2WordElement[] | null => {
   const elements: Part2WordElement[] = [];
   for (const candidate of value) {
     const record = asRecord(candidate);
-    const text = nonEmptyText(record?.text);
+    const elementText = nonEmptyText(record?.text);
     const role = record?.role as Part2WordElement['role'] | undefined;
-    if (!record || !text || !role || !ELEMENT_ROLES.has(role)) return null;
-    elements.push({ text, role });
+    if (!record || !elementText || !role || !ELEMENT_ROLES.has(role)) return null;
+    elements.push({ text: elementText, role });
   }
   return elements;
 };
@@ -190,7 +190,7 @@ const normalizeFrame = (value: unknown, index: number): Part2PresentationFrame =
   if (!record) return invalidFrame(`invalid-${index + 1}`, 'Frame must be an object.');
 
   const base = normalizeBase(record, index);
-  if (base.kind === 'invalid') return base;
+  if ('kind' in base && base.kind === 'invalid') return base;
 
   switch (record.kind) {
     case 'tile-row': {
@@ -223,13 +223,15 @@ const normalizeFrame = (value: unknown, index: number): Part2PresentationFrame =
         : invalidFrame(base.id, 'contrast requires explicit left and right tiles.');
     }
     case 'explanation': {
-      const text = nonEmptyText(record.text);
-      return text ? { ...base, kind: 'explanation', text } : invalidFrame(base.id, 'explanation requires supplied text.');
+      const explanationText = nonEmptyText(record.text);
+      return explanationText
+        ? { ...base, kind: 'explanation', text: explanationText }
+        : invalidFrame(base.id, 'explanation requires supplied text.');
     }
     case 'notebook': {
-      const text = nonEmptyText(record.text);
-      return text
-        ? { ...base, kind: 'notebook', text, section: optionalText(record.section) }
+      const notebookText = nonEmptyText(record.text);
+      return notebookText
+        ? { ...base, kind: 'notebook', text: notebookText, section: optionalText(record.section) }
         : invalidFrame(base.id, 'notebook requires supplied text.');
     }
     default:
@@ -268,8 +270,8 @@ export const normalizePart2Presentation = (value: unknown): Part2PresentationV1 
   };
 };
 
-const semanticUnit = (role: string, text: string) => (
-  `|§p2:${role}:${encodeURIComponent(text)}|`
+const semanticUnit = (role: string, value: string) => (
+  `|§p2:${role}:${encodeURIComponent(value)}|`
 );
 
 const encodeTile = (tile: Part2PresentationTile) => semanticUnit(tile.role, tile.text);
