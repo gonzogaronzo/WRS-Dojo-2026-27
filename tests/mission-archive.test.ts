@@ -44,6 +44,7 @@ const mission = buildMissionRecord({
 });
 
 test('builds a complete exact word-by-word mission record', () => {
+  assert.equal(mission.status, 'completed');
   assert.equal(mission.date, '2026-08-19');
   assert.equal(mission.lessonId, lesson.id);
   assert.equal(mission.lessonStep, '4.2');

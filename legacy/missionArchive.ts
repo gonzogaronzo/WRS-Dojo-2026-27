@@ -23,6 +23,7 @@ export const todayAsInputDate = (date = new Date()) => {
 
 interface BuildMissionRecordInput {
   id: string;
+  status?: 'started' | 'completed';
   teacherId: string;
   date?: string;
   lesson: Lesson;
@@ -35,6 +36,7 @@ interface BuildMissionRecordInput {
 
 export const buildMissionRecord = ({
   id,
+  status = 'completed',
   teacherId,
   date,
   lesson,
@@ -81,6 +83,7 @@ export const buildMissionRecord = ({
 
   return {
     id,
+    status,
     teacherId,
     squadId: group.id,
     squadName: group.name,

@@ -386,6 +386,7 @@ export interface GroupProfile {
 
 export interface MissionRecord {
   id: string;
+  status?: 'started' | 'completed';
   teacherId: string;
   squadId: string;
   squadName: string;
