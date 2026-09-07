@@ -10,6 +10,7 @@ import {
   RuntimePlanningContext,
   WRSRuntimeLessonPlan
 } from './types';
+import { part2PresentationToSlides } from './part2Presentation';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -156,6 +157,7 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
   const part8 = byPart(runtime, 8);
   const part9 = byPart(runtime, 9);
   const part10 = byPart(runtime, 10);
+  const semanticPart2Slides = part2PresentationToSlides(part2?.data);
 
   return {
     schemaVersion: 2,
@@ -165,7 +167,7 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
     substep: runtime.substep,
     conceptNotes: part2?.data.conceptNotes || part2?.teacherDirections.join('\n') || '',
     conceptNotes7: part7?.data.conceptNotes || part7?.teacherDirections.join('\n') || '',
-    slides: part2?.data.slides || [],
+    slides: semanticPart2Slides ?? part2?.data.slides ?? [],
     quickDrill: part1?.data.quickDrill || [],
     quickDrillReverse: part6?.data.quickDrillReverse || part6?.data.quickDrill || [],
     wordCards: part3?.data.wordCards || [],
