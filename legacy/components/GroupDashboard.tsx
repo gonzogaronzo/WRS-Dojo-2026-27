@@ -707,10 +707,10 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({
             />
 
             {subView === 'daily' ? (
-              <DailyNotes userId={user?.uid || 'guest-sensei'} />
+              <DailyNotes userId={user?.uid || ''} />
             ) : subView === 'missions' ? (
               <MissionLogs 
-                teacherId={user?.uid || 'guest-sensei'} 
+                teacherId={user?.uid || ''} 
                 groups={[...groups, ...archivedGroups]}
                 students={[...students, ...archivedStudents]}
               />

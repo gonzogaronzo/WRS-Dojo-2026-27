@@ -853,7 +853,7 @@ const App: React.FC = () => {
             sessionNotes={sessionNotes}
             sessionId={sessionId}
             sessionDate={sessionDate}
-            teacherId={user?.uid || 'guest-sensei'}
+            teacherId={user?.uid || ''}
             onArchiveMission={archiveMission}
             onComplete={() => { 
               setMode('dashboard'); 

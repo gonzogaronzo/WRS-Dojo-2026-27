@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GroupProfile, StudentProfile, DojoMasterData, MissionRecord, GroupNote } from './types';
-import { db, auth } from './firebase';
+import { db, auth, authPersistenceReady } from './firebase';
 import {
   collection, deleteDoc, doc, getDoc, onSnapshot, query, serverTimestamp,
   setDoc, where, writeBatch
@@ -114,46 +114,47 @@ export const useMasterData = () => {
     return message;
   }, []);
 
-  // 1. Handle Authentication
+  // 1. Handle Authentication. Real classroom sessions fail closed:
+  // Firebase may take time to restore a persisted login, but a delay must
+  // never be reinterpreted as permission to run an anonymous local lesson.
   useEffect(() => {
-    const enterGuestMode = () => {
-      setUser({ uid: 'guest-sensei', displayName: 'Guest Sensei' } as User);
-      setGroups(normalizeStoredGroups(readLocalCollection<unknown>('wrs_dojo_groups', MASTER_SQUADS), MASTER_SQUADS));
-      setStudents(normalizeStoredStudents(readLocalCollection<unknown>('wrs_dojo_students', MASTER_NINJAS), MASTER_NINJAS));
-      setGroupNotes(normalizeStoredGroupNotes(readLocalCollection<unknown>('wrs_dojo_group_notes', [])));
-      setCloudStatus('offline');
-      setCloudError(null);
+    let cancelled = false;
+    let unsubscribe = () => {};
+
+    const requireSignIn = (error: unknown = null) => {
+      if (cancelled) return;
+      setUser(null);
+      setGroups([]);
+      setStudents([]);
+      setGroupNotes([]);
+      setActiveSession(null);
+      setCloudStatus('unauthenticated');
+      setCloudError(error ? errorMessage('Firebase authentication failed', error) : null);
       setHasLocalData(localDataExists());
       setIsInitializing(false);
     };
 
-    const safetyTimer = window.setTimeout(() => {
-      console.warn('Firebase Auth timed out. Entering Guest Mode.');
-      enterGuestMode();
-    }, 5000);
-
-    try {
-      const unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
-        window.clearTimeout(safetyTimer);
-        if (authenticatedUser) {
-          setUser(authenticatedUser);
-          setCloudError(null);
-          setHasLocalData(localDataExists());
-        } else {
-          enterGuestMode();
+    void authPersistenceReady.then(() => {
+      if (cancelled) return;
+      unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
+        if (cancelled) return;
+        if (!authenticatedUser) {
+          requireSignIn();
+          return;
         }
-      });
-      return () => {
-        unsubscribe();
-        window.clearTimeout(safetyTimer);
-      };
-    } catch (error) {
-      window.clearTimeout(safetyTimer);
-      console.error('Auth initialization failed', error);
-      enterGuestMode();
-    }
-  }, []);
+        setUser(authenticatedUser);
+        setCloudStatus('syncing');
+        setCloudError(null);
+        setHasLocalData(localDataExists());
+        setIsInitializing(false);
+      }, requireSignIn);
+    }).catch(requireSignIn);
 
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, []);
   // 2. Real-time Firestore listeners
   useEffect(() => {
     if (!user || user.uid === 'guest-sensei') return;
@@ -218,8 +219,9 @@ export const useMasterData = () => {
   // 3. Writes to Firestore or localStorage
   const updateSession = useCallback(async (session: DojoMasterData['activeSession'] | null): Promise<boolean> => {
     if (!user || user.uid === 'guest-sensei') {
-      setActiveSession(session);
-      return true;
+      setCloudStatus('unauthenticated');
+      setCloudError('A signed-in Firebase teacher session is required before a lesson can be saved.');
+      return false;
     }
 
     setCloudStatus('syncing');
