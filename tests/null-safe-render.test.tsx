@@ -8,6 +8,8 @@ import QuickDrill from '../legacy/components/modules/QuickDrill';
 import Spelling from '../legacy/components/modules/Spelling';
 import { UnassignedLessonCompletion } from '../legacy/components/SessionDossier';
 import { normalizeLesson } from '../legacy/dataNormalization';
+import { part2PresentationToSlides } from '../legacy/part2Presentation';
+import { runtimeLessonToLegacyLesson } from '../legacy/runtimeLesson';
 
 const lesson = normalizeLesson({
   id: 'lesson-1',
@@ -85,4 +87,124 @@ test('renders a recoverable completion screen when a lesson has no selected grou
   const html = renderToStaticMarkup(<UnassignedLessonCompletion />);
   assert.match(html, /Select a Group to Finish/);
   assert.match(html, /Return to Briefing/);
+});
+
+test('renders a supplied multi-letter Part 2 tile as one semantic card without arbitrary positioning', () => {
+  const slides = part2PresentationToSlides({
+    part2Presentation: {
+      version: 1,
+      focus: 'introduction',
+      frames: [{
+        id: 'ph-card',
+        kind: 'tile-row',
+        title: 'Supplied heading',
+        tiles: [{ text: 'ph', role: 'consonant-digraph' }],
+        annotation: 'Supplied student annotation.',
+        teacherCue: 'Private teacher move.'
+      }]
+    }
+  });
+
+  assert.ok(slides);
+  assert.equal(slides.length, 1);
+  assert.equal(slides[0].type, 'template');
+  assert.equal(slides[0].elements?.[0]?.x, undefined);
+  assert.equal(slides[0].elements?.[0]?.y, undefined);
+
+  const studentHtml = renderToStaticMarkup(<Slideshow slides={slides} tool="cursor" readOnly currentIndex={0} />);
+  const teacherHtml = renderToStaticMarkup(<Slideshow slides={slides} tool="cursor" currentIndex={0} />);
+  assert.equal((studentHtml.match(/data-part2-role="consonant-digraph"/g) || []).length, 1);
+  assert.match(studentHtml, />ph</);
+  assert.match(studentHtml, /Supplied student annotation/);
+  assert.doesNotMatch(studentHtml, /Private teacher move/);
+  assert.match(teacherHtml, /Private teacher move/);
+});
+
+test('uses only supplied Part 2 syllable divisions and preserves Greek combining-form units', () => {
+  const slides = part2PresentationToSlides({
+    part2Presentation: {
+      version: 1,
+      frames: [
+        { id: 'syllables', kind: 'syllable-row', syllables: ['nap', 'kin'] },
+        {
+          id: 'elements',
+          kind: 'word-elements',
+          elements: [
+            { text: 'micro-', role: 'greek-combining-form' },
+            { text: '-scope', role: 'greek-combining-form' }
+          ]
+        }
+      ]
+    }
+  });
+
+  assert.ok(slides);
+  const syllableHtml = renderToStaticMarkup(<Slideshow slides={slides} tool="cursor" readOnly currentIndex={0} />);
+  assert.equal((syllableHtml.match(/data-part2-role="syllable"/g) || []).length, 2);
+  assert.match(syllableHtml, />nap</);
+  assert.match(syllableHtml, />kin</);
+
+  const elementsHtml = renderToStaticMarkup(<Slideshow slides={slides} tool="cursor" readOnly currentIndex={1} />);
+  assert.equal((elementsHtml.match(/data-part2-role="greek-combining-form"/g) || []).length, 2);
+  assert.match(elementsHtml, /micro-/);
+  assert.match(elementsHtml, /-scope/);
+});
+
+test('fails closed when a semantic Part 2 frame is malformed', () => {
+  const slides = part2PresentationToSlides({
+    part2Presentation: {
+      version: 1,
+      frames: [{ id: 'bad-frame', kind: 'mystery-kind', text: 'Do not leak this malformed content.' }]
+    }
+  });
+
+  assert.ok(slides);
+  const studentHtml = renderToStaticMarkup(<Slideshow slides={slides} tool="cursor" readOnly currentIndex={0} />);
+  const teacherHtml = renderToStaticMarkup(<Slideshow slides={slides} tool="cursor" currentIndex={0} />);
+  assert.match(studentHtml, /Instructional display unavailable/);
+  assert.doesNotMatch(studentHtml, /Do not leak this malformed content/);
+  assert.doesNotMatch(studentHtml, /Unknown Part 2 frame kind/);
+  assert.match(teacherHtml, /Part 2 frame unavailable/);
+  assert.match(teacherHtml, /Unknown Part 2 frame kind/);
+});
+
+test('projects semantic Part 2 runtime data into the existing synchronized Teach Concepts slide path', () => {
+  const runtime = {
+    schemaVersion: 'wrs-runtime-v1',
+    id: 'semantic-part2-runtime',
+    title: 'Semantic Part 2 Runtime',
+    step: '7',
+    substep: '3',
+    focus: 'introduction',
+    sources: [],
+    parts: Array.from({ length: 10 }, (_, index) => ({
+      part: index + 1,
+      title: `Part ${index + 1}`,
+      teacherDirections: [],
+      sourceIds: [],
+      data: index === 1 ? {
+        slides: [{ id: 'legacy-should-not-win', type: 'text', title: 'Legacy', content: 'Legacy slide' }],
+        part2Presentation: {
+          version: 1,
+          frames: [{
+            id: 'semantic-wins',
+            kind: 'explanation',
+            text: 'Supplied semantic explanation.'
+          }]
+        }
+      } : {}
+    }))
+  } as any;
+
+  const projected = runtimeLessonToLegacyLesson(runtime);
+  assert.equal(projected.slides.length, 1);
+  assert.equal(projected.slides[0].id, 'part2-semantic-wins');
+  assert.equal(projected.slides[0].type, 'template');
+
+  const html = renderToStaticMarkup(
+    <TeachConcepts lesson={projected} mode="slides" slideIndex={0} readOnly />
+  );
+  assert.match(html, /Supplied semantic explanation/);
+  assert.doesNotMatch(html, /Legacy slide/);
+  assert.match(html, /data-part2-role="statement"/);
 });
