@@ -1,0 +1,53 @@
+name: Export live sheet function source
+
+on:
+  push:
+    branches:
+      - fix/auth-and-sheets-2026-09-07
+    paths:
+      - .github/workflows/export-live-sheet-function.yml
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Prepare Firebase credentials
+        shell: bash
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE }}
+        run: |
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          chmod 600 "$RUNNER_TEMP/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
+
+      - name: Authenticate gcloud
+        shell: bash
+        run: |
+          gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS" >/dev/null
+          gcloud config set project wrs-firebase >/dev/null
+
+      - name: Download deployed source archive
+        shell: bash
+        run: |
+          gcloud storage cp \
+            gs://gcf-v2-sources-680748133806-us-central1/syncCompletedMissionToSheet/function-source.zip \
+            "$RUNNER_TEMP/function-source.zip"
+          mkdir -p "$RUNNER_TEMP/function-source"
+          unzip -q "$RUNNER_TEMP/function-source.zip" -d "$RUNNER_TEMP/function-source"
+          find "$RUNNER_TEMP/function-source" -maxdepth 3 -type f -print
+
+      - name: Upload deployed function source
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-syncCompletedMissionToSheet-source
+          path: ${{ runner.temp }}/function-source
+          if-no-files-found: error
+          retention-days: 1
