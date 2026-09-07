@@ -25,7 +25,6 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
           path = Path('legacy/useMasterData.ts')
           text = path.read_text()
@@ -36,53 +35,54 @@ jobs:
           if auth_start < 0 or auth_end < 0 or auth_end <= auth_start:
               raise SystemExit('Authentication section markers were not found; refusing a partial patch.')
 
-          new_auth = '''  // 1. Handle Authentication. Real classroom sessions fail closed:
-  // Firebase may take time to restore a persisted login, but a delay must
-  // never be reinterpreted as permission to run an anonymous local lesson.
-  useEffect(() => {
-    let cancelled = false;
-    let unsubscribe = () => {};
-
-    const requireSignIn = (error: unknown = null) => {
-      if (cancelled) return;
-      setUser(null);
-      setGroups([]);
-      setStudents([]);
-      setGroupNotes([]);
-      setActiveSession(null);
-      setCloudStatus('unauthenticated');
-      setCloudError(error ? errorMessage('Firebase authentication failed', error) : null);
-      setHasLocalData(localDataExists());
-      setIsInitializing(false);
-    };
-
-    void authPersistenceReady.then(() => {
-      if (cancelled) return;
-      unsubscribe = onAuthStateChanged(auth, authenticatedUser => {
-        if (cancelled) return;
-        if (!authenticatedUser) {
-          requireSignIn();
-          return;
-        }
-        setUser(authenticatedUser);
-        setCloudStatus('syncing');
-        setCloudError(null);
-        setHasLocalData(localDataExists());
-        setIsInitializing(false);
-      }, requireSignIn);
-    }).catch(requireSignIn);
-
-    return () => {
-      cancelled = true;
-      unsubscribe();
-    };
-  }, []);
-
-'''
+          new_auth = '\n'.join([
+              '  // 1. Handle Authentication. Real classroom sessions fail closed:',
+              '  // Firebase may take time to restore a persisted login, but a delay must',
+              '  // never be reinterpreted as permission to run an anonymous local lesson.',
+              '  useEffect(() => {',
+              '    let cancelled = false;',
+              '    let unsubscribe = () => {};',
+              '',
+              '    const requireSignIn = (error: unknown = null) => {',
+              '      if (cancelled) return;',
+              '      setUser(null);',
+              '      setGroups([]);',
+              '      setStudents([]);',
+              '      setGroupNotes([]);',
+              '      setActiveSession(null);',
+              "      setCloudStatus('unauthenticated');",
+              "      setCloudError(error ? errorMessage('Firebase authentication failed', error) : null);",
+              '      setHasLocalData(localDataExists());',
+              '      setIsInitializing(false);',
+              '    };',
+              '',
+              '    void authPersistenceReady.then(() => {',
+              '      if (cancelled) return;',
+              '      unsubscribe = onAuthStateChanged(auth, authenticatedUser => {',
+              '        if (cancelled) return;',
+              '        if (!authenticatedUser) {',
+              '          requireSignIn();',
+              '          return;',
+              '        }',
+              '        setUser(authenticatedUser);',
+              "        setCloudStatus('syncing');",
+              '        setCloudError(null);',
+              '        setHasLocalData(localDataExists());',
+              '        setIsInitializing(false);',
+              '      }, requireSignIn);',
+              '    }).catch(requireSignIn);',
+              '',
+              '    return () => {',
+              '      cancelled = true;',
+              '      unsubscribe();',
+              '    };',
+              '  }, []);',
+              '',
+          ])
           text = text[:auth_start] + new_auth + text[auth_end:]
 
-          old_session = """    if (!user || user.uid === 'guest-sensei') {\n      setActiveSession(session);\n      return true;\n    }"""
-          new_session = """    if (!user || user.uid === 'guest-sensei') {\n      setCloudStatus('unauthenticated');\n      setCloudError('A signed-in Firebase teacher session is required before a lesson can be saved.');\n      return false;\n    }"""
+          old_session = "    if (!user || user.uid === 'guest-sensei') {\n      setActiveSession(session);\n      return true;\n    }"
+          new_session = "    if (!user || user.uid === 'guest-sensei') {\n      setCloudStatus('unauthenticated');\n      setCloudError('A signed-in Firebase teacher session is required before a lesson can be saved.');\n      return false;\n    }"
           if old_session not in text:
               raise SystemExit('Expected updateSession fallback was not found; refusing a partial patch.')
           text = text.replace(old_session, new_session, 1)
