@@ -1,4 +1,4 @@
-import { WordCard } from './types';
+import { Lesson, WordCard } from './types';
 import { generateId, shuffleArray } from './utils';
 
 export interface WordInstance extends WordCard {
@@ -21,6 +21,38 @@ export const uniqueWordCards = (cards: WordCard[]): WordCard[] => {
 // Part 4 charting is always 15 words per student. The card pool may be much larger
 // so each student can receive a different 15-word list without repeats across students.
 export const targetWordCount = (_cards: WordCard[]): number => 15;
+
+export const chartingWordCardsForLesson = (lesson: Lesson): WordCard[] => {
+  const explicitChartingPool = (lesson.wordListCharting || []).map((text, index) => ({
+    id: `charting-${index}`,
+    text,
+    type: 'regular' as const
+  }));
+  if (explicitChartingPool.length > 0) return explicitChartingPool;
+
+  const wordCardPool = (lesson.wordCards || []).filter((card): card is WordCard => Boolean(card?.id));
+  const manualPool = (lesson.wordListReading || []).map((text, index) => ({
+    id: `custom-${index}`,
+    text,
+    type: 'regular' as const
+  }));
+
+  if ((lesson.wordListReadingAuto ?? true) && wordCardPool.length > 0) return wordCardPool;
+  if (manualPool.length > 0) return manualPool;
+
+  const dictationPool: WordCard[] = [];
+  (lesson.dictation?.realWords || []).forEach((text, index) => {
+    dictationPool.push({ id: `dict-real-${index}`, text, type: 'regular' });
+  });
+  (lesson.dictation?.nonsenseWords || []).forEach((text, index) => {
+    dictationPool.push({ id: `dict-non-${index}`, text, type: 'nonsense' });
+  });
+  (lesson.dictation?.wordElements || []).forEach((text, index) => {
+    dictationPool.push({ id: `dict-elem-${index}`, text, type: 'regular' });
+  });
+
+  return dictationPool.length > 0 ? dictationPool : wordCardPool;
+};
 
 export const normalizeWordDistribution = (value: unknown): WordInstance[][] => {
   if (!Array.isArray(value)) return [];
