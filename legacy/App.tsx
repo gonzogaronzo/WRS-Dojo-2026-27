@@ -565,6 +565,7 @@ const App: React.FC = () => {
         try {
           await archiveMission(buildMissionRecord({
             id: sessionIdentity.sessionId,
+            status: 'started',
             teacherId: user?.uid || 'guest-sensei',
             date: data.date,
             lesson: currentLesson,
