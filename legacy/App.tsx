@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import LessonForm from './components/LessonForm';
 import Layout from './components/Layout';
 import GroupDashboard from './components/GroupDashboard';
-import SessionDossier from './components/SessionDossier';
+import SessionDossier, { UnassignedLessonCompletion } from './components/SessionDossier';
 import PresenterSetupDialog from './components/PresenterSetupDialog';
 import StudentScreenJoinDialog from './components/StudentScreenJoinDialog';
 import { Lesson, LessonPart, GroupProfile, StudentProfile, WordCard } from './types';
@@ -55,7 +55,7 @@ import {
 import { useCloudPresenter } from './useCloudPresenter';
 import { DrawingStroke, updateDrawingSurface } from './drawingSync';
 import { clearSafeBootMode, isSafeBootMode } from './safeBoot';
-import { buildWordDistribution, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
+import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
 
 const App: React.FC = () => {
   const { 
@@ -459,23 +459,7 @@ const App: React.FC = () => {
 
   const baseReadingCards = useMemo(() => {
     if (!currentLesson) return [];
-    const autoPool = (currentLesson.wordCards || []).filter(card => Boolean(card?.id));
-    const manualPool = (currentLesson.wordListReading || []).map((text, i) => ({ id: `custom-${i}`, text, type: 'regular' as const }));
-    
-    // Exhaustive fallback: try wordCards, then wordListReading, then all fields from dictation
-    if ((currentLesson.wordListReadingAuto ?? true) && autoPool.length > 0) return autoPool;
-    if (manualPool.length > 0) return manualPool;
-    
-    const dictationPool: WordCard[] = [];
-    if (currentLesson.dictation) {
-      const d = currentLesson.dictation;
-      (d.realWords || []).forEach((text, i) => dictationPool.push({ id: `dict-real-${i}`, text, type: 'regular' }));
-      (d.nonsenseWords || []).forEach((text, i) => dictationPool.push({ id: `dict-non-${i}`, text, type: 'nonsense' }));
-      (d.wordElements || []).forEach((text, i) => dictationPool.push({ id: `dict-elem-${i}`, text, type: 'regular' }));
-    }
-    
-    if (dictationPool.length > 0) return dictationPool;
-    return autoPool; // Fallback to empty array if all else fails
+    return chartingWordCardsForLesson(currentLesson);
   }, [currentLesson]);
 
   const changeLessonPart = useCallback((nextPart: LessonPart) => {
@@ -856,10 +840,13 @@ const App: React.FC = () => {
             </div>
           );
         }
+        if (!activeGroup) {
+          return <UnassignedLessonCompletion onReturn={() => setCurrentPart(LessonPart.Briefing)} />;
+        }
         return (
           <SessionDossier 
             lesson={currentLesson} 
-            activeGroup={activeGroup!} 
+            activeGroup={activeGroup}
             students={students} 
             sessionStudentIds={sessionStudentIds} 
             sessionScores={sessionScores}

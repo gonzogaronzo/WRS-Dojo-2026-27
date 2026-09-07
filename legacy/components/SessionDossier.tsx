@@ -20,6 +20,24 @@ interface SessionDossierProps {
   gasUrl: string; // Deprecated but kept for type compatibility
 }
 
+export const UnassignedLessonCompletion: React.FC<{ onReturn?: () => void }> = ({ onReturn }) => (
+  <div className="h-full flex flex-col items-center justify-center p-10 bg-stone-950 text-white text-center">
+    <AlertTriangle className="w-14 h-14 text-amber-400 mb-6" />
+    <h2 className="text-4xl font-black font-serif uppercase tracking-widest">Select a Group to Finish</h2>
+    <p className="mt-4 max-w-xl text-sm font-bold text-stone-400">
+      This lesson was opened without a group, so there is no student record to save.
+      Return to the briefing and select the group before completing the lesson.
+    </p>
+    <button
+      type="button"
+      onClick={onReturn}
+      className="mt-8 rounded-2xl bg-white px-8 py-4 text-xs font-black uppercase tracking-widest text-stone-950 hover:bg-stone-200"
+    >
+      Return to Briefing
+    </button>
+  </div>
+);
+
 const SessionDossier: React.FC<SessionDossierProps> = ({ 
   lesson, activeGroup, students, sessionStudentIds, sessionScores, sessionNotes = '', 
   sessionId = '', sessionDate = '', teacherId, onArchiveMission, onComplete, onUpdateGroup

@@ -61,7 +61,7 @@ export const lesson73: Lesson = {
     "The telecast of the game was seen all over the hemisphere."
   ],
   dictation: {
-    sounds: ["/f/ (f, ph)", "/ch/ (ch, tch)", "/j/ (j, g, dge)", "/s/ (s, c, ce, ci)", "/k/ (c, k, ck, ch)"],
+    sounds: ["/f/ (f, ph)", "/ch/ (ch, tch)", "/j/ (j, g, dge)", "/s/ (s, c, ce)", "/k/ (c, k, ck, ch)"],
     realWords: ["physical", "catch", "switch", "microscope", "dolphin"],
     wordElements: ["micro-", "tele-", "-phone", "-graph", "-scope"],
     nonsenseWords: [],

@@ -29,17 +29,18 @@ const CurriculumView: React.FC<CurriculumViewProps> = ({
           <p className="text-stone-500 text-[10px] font-bold uppercase tracking-widest mt-1">The complete WRS curriculum scrolls</p>
         </div>
         
-        <div className="flex items-center gap-3 bg-stone-900/50 p-2 rounded-2xl border border-stone-700">
-          <Users className="w-4 h-4 text-stone-500" />
+        <div className="flex items-center gap-3 bg-stone-950 p-3 rounded-2xl border border-stone-600 shadow-sm">
+          <Users className="w-4 h-4 text-white" />
           <div className="flex flex-col">
-            <span className="text-[7px] font-black text-stone-500 uppercase tracking-widest ml-1 mb-0.5">Target Group</span>
+            <label htmlFor="target-group" className="text-[10px] font-black text-amber-300 uppercase tracking-widest ml-1 mb-1">Target Group</label>
             <select 
+              id="target-group"
               value={activeGroup?.id || ''} 
               onChange={(e) => {
                 const g = groups.find(group => group.id === e.target.value);
                 onSelectGroup(g || null);
               }}
-              className="bg-transparent text-[10px] font-black uppercase tracking-widest text-white outline-none cursor-pointer pr-4"
+              className="bg-transparent text-xs font-black uppercase tracking-widest text-white outline-none cursor-pointer pr-4"
             >
               <option value="" className="bg-stone-900">No Group Selected</option>
               {groups.map(g => (

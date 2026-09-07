@@ -332,6 +332,8 @@ const Spelling: React.FC<SpellingProps> = ({
 
   const currentSection = sections[activeTab];
   const SectionIcon = currentSection.icon;
+  const nextUnrevealedIndex = currentSection.data.findIndex((_, idx) => !revealedItems[`${activeTab}-${idx}`]);
+  const nextDictationItem = nextUnrevealedIndex >= 0 ? currentSection.data[nextUnrevealedIndex] : null;
 
   const getSoundRevealText = (text: string) => {
     const step = parseInt(lessonStep, 10);
@@ -399,11 +401,33 @@ const Spelling: React.FC<SpellingProps> = ({
         <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm px-4 overflow-x-auto scrollbar-hide border-b border-stone-100">
           <div className="flex gap-1 min-w-max mx-auto max-w-5xl">
             {sections.map((sec, idx) => (
-              <button key={idx} onClick={() => setActiveTab(idx)} className={`flex items-center gap-2 px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === idx ? 'border-red-800 bg-white text-stone-900 shadow-sm' : 'border-transparent text-stone-300 hover:text-stone-900'}`}>
+              <button
+                key={idx}
+                onClick={!readOnly ? () => setActiveTab(idx) : undefined}
+                className={`flex items-center gap-2 px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === idx ? 'border-red-800 bg-white text-stone-900 shadow-sm' : 'border-transparent text-stone-300'} ${readOnly ? 'cursor-default' : 'hover:text-stone-900'}`}
+              >
                 <sec.icon className="w-3 h-3" />
                 {sec.title}
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {!readOnly && viewMode !== 'cipher' && nextDictationItem && (
+        <div data-testid="teacher-dictation-cue" className="flex-shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-3 shadow-sm z-20">
+          <div className="mx-auto flex max-w-5xl items-center gap-4">
+            <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700">Dictate next • {currentSection.title}</div>
+              <div className="truncate text-2xl font-black font-serif text-stone-900">{nextDictationItem}</div>
+            </div>
+            <button
+              onClick={() => setRevealedItems(prev => ({ ...prev, [`${activeTab}-${nextUnrevealedIndex}`]: true }))}
+              className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-[9px] font-black uppercase tracking-widest text-amber-900 shadow-sm hover:bg-amber-100"
+            >
+              {viewMode === 'list' ? 'Reveal & next' : 'Done & next'}
+            </button>
           </div>
         </div>
       )}
@@ -425,7 +449,7 @@ const Spelling: React.FC<SpellingProps> = ({
                      <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-stone-300">Registry Data • Mission Dictation</p>
                   </div>
                </div>
-               <button
+               {!readOnly && <button
                  onClick={() => {
                    const allRevealed = currentSection.data.every((_, i) => revealedItems[`${activeTab}-${i}`]);
                    const next = { ...revealedItems };
@@ -436,7 +460,7 @@ const Spelling: React.FC<SpellingProps> = ({
                >
                  {currentSection.data.every((_, i) => revealedItems[`${activeTab}-${i}`]) ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                  {currentSection.data.every((_, i) => revealedItems[`${activeTab}-${i}`]) ? 'Hide All' : 'Reveal All'}
-               </button>
+               </button>}
             </div>
             <div className="space-y-3">
               {currentSection.data.map((text, idx) => (
@@ -444,14 +468,14 @@ const Spelling: React.FC<SpellingProps> = ({
                   key={idx}
                   className={`flex items-center p-6 rounded-2xl border transition-all ${
                     !revealedItems[`${activeTab}-${idx}`]
-                      ? 'bg-stone-50/50 border-stone-100 border-dashed cursor-pointer hover:bg-white hover:border-stone-200'
+                      ? `bg-stone-50/50 border-stone-100 border-dashed ${readOnly ? '' : 'cursor-pointer hover:bg-white hover:border-stone-200'}`
                       : 'bg-white border-stone-100 hover:border-red-800/20 hover:shadow-xl'
                   } group`}
-                  onClick={() => {
+                  onClick={!readOnly ? () => {
                     setRevealedItems(prev => ({ ...prev, [`${activeTab}-${idx}`]: !prev[`${activeTab}-${idx}`] }));
-                  }}
+                  } : undefined}
                 >
-                  <button
+                  {!readOnly && <button
                     onClick={(e) => {
                       e.stopPropagation();
                       speakWord(text);
@@ -459,7 +483,7 @@ const Spelling: React.FC<SpellingProps> = ({
                     className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-red-800 text-white hover:bg-red-900 flex items-center justify-center mr-4 md:mr-8 shadow-md transition-all active:scale-95"
                   >
                     <Play className="w-4 h-4 md:w-5 md:h-5 ml-1" />
-                  </button>
+                  </button>}
 
                   {revealedItems[`${activeTab}-${idx}`] ? (
                     <div className="flex-1 animate-in fade-in slide-in-from-left-4 duration-300">
@@ -477,19 +501,19 @@ const Spelling: React.FC<SpellingProps> = ({
                         </span>
                       )}
                     </div>
+                  ) : !readOnly ? (
+                    <div className="flex flex-1 items-center gap-4">
+                      <div className="rounded-lg bg-amber-100 px-2 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-amber-800">Teacher cue</div>
+                      <span className="text-xl md:text-2xl font-black font-serif text-stone-700">{text}</span>
+                    </div>
                   ) : (
                     <div className="flex items-center gap-4 text-stone-200">
                       <HelpCircle className="w-8 h-8 opacity-40" />
-                      <span className="text-xl font-serif italic opacity-40">
-                        {activeTab === 0 ? 'Click to reveal sound picture...' :
-                         activeTab === 5 ? 'Click to reveal sentence...' :
-                         activeTab === 4 ? 'Click to reveal phrase...' :
-                         'Click to reveal word...'}
-                      </span>
+                      <span className="text-xl font-serif italic opacity-40">Waiting for teacher...</span>
                     </div>
                   )}
 
-                  {activeTab !== 0 && (
+                  {!readOnly && activeTab !== 0 && (
                     <button onClick={(e) => { e.stopPropagation(); initCipherGame(text); }} className="ml-auto opacity-0 group-hover:opacity-100 bg-white border border-stone-100 text-stone-300 px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-sm transition-all hover:text-stone-900 hover:border-stone-200 flex items-center gap-2">
                       <Gamepad2 className="w-3.5 h-3.5" />
                       {activeTab === 6 ? 'Start' : 'Cipher'}
@@ -522,8 +546,8 @@ const Spelling: React.FC<SpellingProps> = ({
                     <div className="text-right">
                        <span className="block text-stone-200 font-black uppercase text-[8px] tracking-[0.4em] mb-3">Dojo Scroll Page</span>
                        <div className="flex gap-2">
-                          <button onClick={() => setGridPage(1)} className={`w-10 h-10 rounded-2xl font-black flex items-center justify-center border transition-all ${gridPage === 1 ? 'bg-stone-900 text-white border-stone-900 shadow-lg' : 'bg-white text-stone-300 border-stone-100 hover:border-stone-400'}`}>1</button>
-                          <button onClick={() => setGridPage(2)} className={`w-10 h-10 rounded-2xl font-black flex items-center justify-center border transition-all ${gridPage === 2 ? 'bg-stone-900 text-white border-stone-900 shadow-lg' : 'bg-white text-stone-300 border-stone-100 hover:border-stone-400'}`}>2</button>
+                          <button onClick={!readOnly ? () => setGridPage(1) : undefined} className={`w-10 h-10 rounded-2xl font-black flex items-center justify-center border transition-all ${gridPage === 1 ? 'bg-stone-900 text-white border-stone-900 shadow-lg' : 'bg-white text-stone-300 border-stone-100 hover:border-stone-400'}`}>1</button>
+                          <button onClick={!readOnly ? () => setGridPage(2) : undefined} className={`w-10 h-10 rounded-2xl font-black flex items-center justify-center border transition-all ${gridPage === 2 ? 'bg-stone-900 text-white border-stone-900 shadow-lg' : 'bg-white text-stone-300 border-stone-100 hover:border-stone-400'}`}>2</button>
                        </div>
                     </div>
                  </div>
@@ -576,7 +600,7 @@ const Spelling: React.FC<SpellingProps> = ({
                   <Sparkles className="absolute -top-4 -right-4 w-10 h-10 text-purple-400" />
                 </div>
                 <p className="font-serif italic text-stone-400 text-3xl text-center">Select a word to start the Phonetic Cipher...</p>
-                <button onClick={() => setViewMode('list')} className="mt-8 text-stone-400 font-black uppercase text-xs tracking-widest hover:text-red-800 transition-colors">&larr; Return to Master List</button>
+                {!readOnly && <button onClick={() => setViewMode('list')} className="mt-8 text-stone-400 font-black uppercase text-xs tracking-widest hover:text-red-800 transition-colors">&larr; Return to Master List</button>}
               </div>
             ) : (
               <div className="w-full flex flex-col items-center gap-16 py-12 animate-in zoom-in-95 duration-500">
@@ -584,7 +608,7 @@ const Spelling: React.FC<SpellingProps> = ({
                     <h3 className="text-stone-400 font-black uppercase tracking-[0.4em] text-xs">Mission Cipher Objective</h3>
                     <h4 className="text-5xl font-black font-serif text-stone-900">Spelling for /{displayTiles.find(t => t.isCipher)?.phoneme}/</h4>
 
-                    <div className="absolute -right-12 top-0 flex flex-col gap-2">
+                    {!readOnly && <div className="absolute -right-12 top-0 flex flex-col gap-2">
                        <button
                           onClick={() => setIsSyllabicated(!isSyllabicated)}
                           className={`p-3 rounded-xl border-2 transition-all shadow-sm ${isSyllabicated ? 'bg-red-800 border-red-900 text-white shadow-red-900/20' : 'bg-white border-stone-200 text-stone-400 hover:border-stone-300'}`}
@@ -592,7 +616,7 @@ const Spelling: React.FC<SpellingProps> = ({
                        >
                           <Columns className="w-5 h-5" />
                        </button>
-                    </div>
+                    </div>}
                  </div>
 
                   <div className={`flex flex-wrap ${isSyllabicated ? 'items-stretch' : 'items-end'} justify-center gap-4`}>
@@ -612,7 +636,7 @@ const Spelling: React.FC<SpellingProps> = ({
                                         </div>
                                         <div className="relative">
                                           <button
-                                            onClick={() => setOpenDropdownIdx(openDropdownIdx === idx ? null : idx)}
+                                            onClick={!readOnly ? () => setOpenDropdownIdx(openDropdownIdx === idx ? null : idx) : undefined}
                                             className={`relative min-w-[5rem] h-20 rounded-xl border-x border-t border-b-4 flex flex-col items-center justify-center transition-all group/slot
                                               ${checkResult === 'correct' ? 'border-emerald-500 bg-emerald-50 shadow-lg' :
                                                 checkResult === 'incorrect' ? 'border-red-500 bg-red-50' :
@@ -631,7 +655,7 @@ const Spelling: React.FC<SpellingProps> = ({
                                              {checkResult === 'incorrect' && <div className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-1 shadow-lg border-2 border-white"><X className="w-3 h-3" /></div>}
                                           </button>
 
-                                          {openDropdownIdx === idx && (
+                                          {!readOnly && openDropdownIdx === idx && (
                                             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 bg-white border-2 border-stone-200 rounded-2xl shadow-2xl z-[60] min-w-[120px] overflow-hidden animate-in fade-in zoom-in duration-200">
                                               <div className="p-1.5 bg-stone-50 border-b border-stone-100 text-center">
                                                 <span className="text-[7px] font-black uppercase tracking-widest text-stone-400">Spelling Options</span>
@@ -677,7 +701,7 @@ const Spelling: React.FC<SpellingProps> = ({
                                 </div>
                                 <div className="relative">
                                   <button
-                                    onClick={() => setOpenDropdownIdx(openDropdownIdx === idx ? null : idx)}
+                                    onClick={!readOnly ? () => setOpenDropdownIdx(openDropdownIdx === idx ? null : idx) : undefined}
                                     className={`relative min-w-[5rem] h-20 rounded-xl border-x border-t border-b-4 flex flex-col items-center justify-center transition-all group/slot
                                       ${checkResult === 'correct' ? 'border-emerald-500 bg-emerald-50 shadow-lg' :
                                         checkResult === 'incorrect' ? 'border-red-500 bg-red-50' :
@@ -696,7 +720,7 @@ const Spelling: React.FC<SpellingProps> = ({
                                      {checkResult === 'incorrect' && <div className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-1 shadow-lg border-2 border-white"><X className="w-3 h-3" /></div>}
                                   </button>
 
-                                  {openDropdownIdx === idx && (
+                                  {!readOnly && openDropdownIdx === idx && (
                                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 bg-white border-2 border-stone-200 rounded-2xl shadow-2xl z-[60] min-w-[120px] overflow-hidden animate-in fade-in zoom-in duration-200">
                                       <div className="p-1.5 bg-stone-50 border-b border-stone-100 text-center">
                                         <span className="text-[7px] font-black uppercase tracking-widest text-stone-400">Spelling Options</span>
@@ -731,20 +755,20 @@ const Spelling: React.FC<SpellingProps> = ({
 
                  <div className="w-full max-w-3xl relative z-10">
                     <div className="flex justify-center gap-4">
-                       <button onClick={() => initCipherGame(cipherWord)} className="px-8 py-4 text-[10px] font-black uppercase text-stone-500 hover:text-white transition-colors">Reset Cipher</button>
-                       {Object.keys(cipherResults).length === displayTiles.filter(t => t.isCipher).length && !checkResult && (
+                       {!readOnly && <button onClick={() => initCipherGame(cipherWord)} className="px-8 py-4 text-[10px] font-black uppercase text-stone-500 hover:text-white transition-colors">Reset Cipher</button>}
+                       {!readOnly && Object.keys(cipherResults).length === displayTiles.filter(t => t.isCipher).length && !checkResult && (
                          <button onClick={checkAnswer} className="px-16 py-5 bg-red-800 text-white rounded-2xl font-black uppercase text-sm tracking-[0.3em] shadow-2xl hover:bg-red-700 transition-all animate-in zoom-in active:scale-95">Verify Spelling</button>
                        )}
                        {checkResult === 'correct' && (
                          <div className="flex flex-col items-center gap-6 animate-in zoom-in-95">
                             <div className="text-emerald-400 font-black uppercase tracking-[0.2em] flex items-center gap-3 text-xl"><CheckCircle2 className="w-10 h-10" /> Mastery Locked</div>
-                            <button onClick={() => setCipherWord(null)} className="px-12 py-4 bg-[#fdf6e3] text-stone-900 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-white transition-all">Return to Mission</button>
+                            {!readOnly && <button onClick={() => setCipherWord(null)} className="px-12 py-4 bg-[#fdf6e3] text-stone-900 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-white transition-all">Return to Mission</button>}
                          </div>
                        )}
                        {checkResult === 'incorrect' && (
                          <div className="flex flex-col items-center gap-6 animate-in shake">
                             <div className="text-red-500 font-black uppercase tracking-[0.2em] flex items-center gap-3 text-xl"><X className="w-10 h-10" /> Phonetic Conflict</div>
-                            <button onClick={() => { setCipherResults({}); initCipherGame(cipherWord); }} className="px-12 py-4 bg-red-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-red-800">Recalibrate</button>
+                            {!readOnly && <button onClick={() => { setCipherResults({}); initCipherGame(cipherWord); }} className="px-12 py-4 bg-red-900 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-red-800">Recalibrate</button>}
                          </div>
                        )}
                     </div>

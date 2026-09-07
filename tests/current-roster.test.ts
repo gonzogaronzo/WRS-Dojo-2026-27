@@ -7,10 +7,13 @@ import { classifyWordElements } from '../legacy/cumulativeWrsScope';
 test('defines the complete active 2026-27 roster without duplicate students', () => {
   const studentNames = MASTER_NINJAS.map(student => student.name);
   assert.equal(CURRENT_SCHOOL_YEAR, '2026-27');
-  assert.equal(MASTER_SQUADS.length, 7);
-  assert.equal(studentNames.length, 19);
+  assert.equal(MASTER_SQUADS.length, 6);
+  assert.equal(studentNames.length, 18);
   assert.equal(new Set(studentNames).size, studentNames.length);
   assert.ok(MASTER_NINJAS.every(student => student.active && student.schoolYear === CURRENT_SCHOOL_YEAR));
+  assert.ok(studentNames.includes('Elise'));
+  assert.ok(!studentNames.includes('Ellie'));
+  assert.ok(!studentNames.includes("K'lee"));
 });
 
 test('assigns every current student to exactly one requested group', () => {
@@ -24,20 +27,21 @@ test('assigns every current student to exactly one requested group', () => {
     'Group 5B': ['Oliver', 'Ethan'],
     'Group 5A': ['Alex', 'Finn', 'Maya'],
     'Group 2': ['Enrique'],
-    'Group 3A': ['Levi', 'Nora', 'Izzy'],
-    'Group 3B': ['Eleanor', 'Ellie', 'Carolyn', 'Juliana'],
-    'Group 4A': ['Charlotte', 'Bennett', 'Ben', 'Xavier', 'Uffarren'],
-    'Group 4B': ["K'lee"]
+    'Group 3A': ['Elise', 'Eleanor', 'Juliana', 'Carolyn'],
+    'Group 3B': ['Izzy', 'Levi', 'Nora'],
+    'Group 4A': ['Charlotte', 'Bennett', 'Ben', 'Xavier', 'Uffarren']
   });
   assert.ok(assignments.every(assignment => assignment.student));
   assert.equal(new Set(assignments.map(assignment => assignment.student)).size, MASTER_NINJAS.length);
 });
 
-test('omits an unconfirmed group schedule from Firestore roster writes', () => {
+test('keeps only the confirmed current fourth-grade group and preserves schedule helper behavior', () => {
+  const group4A = MASTER_SQUADS.find(group => group.name === 'Group 4A');
   const group4B = MASTER_SQUADS.find(group => group.name === 'Group 4B');
-  assert.ok(group4B);
-  assert.equal(group4B.schedule, undefined);
-  assert.deepEqual(scheduleField(group4B.schedule), {});
+  assert.ok(group4A);
+  assert.equal(group4A.schedule, '2:05–2:50');
+  assert.equal(group4B, undefined);
+  assert.deepEqual(scheduleField(undefined), {});
   assert.deepEqual(scheduleField('2:05–2:50'), { schedule: '2:05–2:50' });
 });
 

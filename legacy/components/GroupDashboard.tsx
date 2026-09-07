@@ -68,6 +68,8 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({
   const [reportStudentId, setReportStudentId] = useState<string | null>(null);
   const [showStudentScreenJoin, setShowStudentScreenJoin] = useState(false);
   const [pastGroupId, setPastGroupId] = useState<string | null>(null);
+  const [showAddGroup, setShowAddGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
 
   const formatTimestamp = (value?: string | null) => value
     ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
@@ -138,19 +140,26 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({
   };
 
   const handleAddGroup = () => {
-    const name = prompt("Enter Group Name:");
-    if (name) {
-      const newGroup: GroupProfile = {
-        id: generateId(),
-        name,
-        studentIds: [],
-        savedLessons: [],
-        lastLessonDate: '',
-        inventory: { learnedSounds: [], learnedHFW: [] },
-        history: []
-      };
-      onUpdateGroups([...groups, newGroup]);
-    }
+    setNewGroupName('');
+    setShowAddGroup(true);
+  };
+
+  const createGroup = () => {
+    const name = newGroupName.trim();
+    if (!name) return;
+    const newGroup: GroupProfile = {
+      id: generateId(),
+      name,
+      studentIds: [],
+      savedLessons: [],
+      lastLessonDate: '',
+      inventory: { learnedSounds: [], learnedHFW: [] },
+      history: []
+    };
+    onUpdateGroups([...groups, newGroup]);
+    onSelectGroup(newGroup);
+    setShowAddGroup(false);
+    setNewGroupName('');
   };
 
   const handleAddStudent = (name?: string) => {
@@ -460,6 +469,41 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({
             </div>
           </div>
         </section>
+      )}
+
+      {showAddGroup && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-stone-950/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-group-title">
+          <form
+            className="w-full max-w-md rounded-3xl border border-stone-200 bg-white p-7 shadow-2xl"
+            onSubmit={(event) => {
+              event.preventDefault();
+              createGroup();
+            }}
+          >
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-700">Roster setup</p>
+                <h2 id="add-group-title" className="mt-1 font-serif text-2xl font-black text-stone-900">Create a new group</h2>
+              </div>
+              <button type="button" onClick={() => setShowAddGroup(false)} className="rounded-xl p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900" aria-label="Close create group dialog">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <label htmlFor="new-group-name" className="mb-2 block text-xs font-black uppercase tracking-widest text-stone-700">Group name</label>
+            <input
+              id="new-group-name"
+              autoFocus
+              value={newGroupName}
+              onChange={(event) => setNewGroupName(event.target.value)}
+              placeholder="Example: Charting Test"
+              className="w-full rounded-2xl border-2 border-stone-300 bg-white px-4 py-3 text-base font-bold text-stone-900 outline-none transition focus:border-red-700 focus:ring-4 focus:ring-red-100"
+            />
+            <div className="mt-6 flex justify-end gap-3">
+              <button type="button" onClick={() => setShowAddGroup(false)} className="rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest text-stone-600 hover:bg-stone-100">Cancel</button>
+              <button type="submit" disabled={!newGroupName.trim()} className="rounded-xl bg-red-800 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40">Create Group</button>
+            </div>
+          </form>
+        </div>
       )}
 
       {/* Sync Debug Modal */}
