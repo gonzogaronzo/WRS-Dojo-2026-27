@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { initializeFirestore } from "firebase/firestore";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { browserLocalPersistence, getAuth, GoogleAuthProvider, setPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCFrIPEViRG1RvezuhU-uh1MgGxmpvk67U",
@@ -17,18 +17,23 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 let dbInstance;
 let authInstance;
+let persistenceReady: Promise<void> = Promise.resolve();
 
 try {
   // App records intentionally use optional fields. Firestore rejects JavaScript
   // `undefined` values by default, so omit them at the serialization boundary.
   dbInstance = initializeFirestore(app, { ignoreUndefinedProperties: true });
   authInstance = getAuth(app);
+  // Teacher authentication must survive reloads and transient network delays.
+  // Never substitute an anonymous/local session when Firebase is merely slow.
+  persistenceReady = setPersistence(authInstance, browserLocalPersistence);
 } catch (e) {
   console.error("Firebase services failed to initialize", e);
 }
 
 export const db = dbInstance!;
 export const auth = authInstance!;
+export const authPersistenceReady = persistenceReady;
 export const googleProvider = new GoogleAuthProvider();
 
 googleProvider.setCustomParameters({
