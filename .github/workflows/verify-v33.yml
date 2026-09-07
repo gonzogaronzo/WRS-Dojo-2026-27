@@ -7,7 +7,7 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -18,8 +18,14 @@ jobs:
           node-version: '22.13.0'
           cache: npm
 
-      - name: Install dependencies
+      - name: Install app dependencies
         run: npm ci
+
+      - name: Install Firebase Functions dependencies
+        run: npm ci --prefix functions
 
       - name: Build and run tests
         run: npm test
+
+      - name: Validate Firebase Functions source
+        run: node --check functions/index.js
