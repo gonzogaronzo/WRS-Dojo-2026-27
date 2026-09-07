@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   buildWordDistribution,
+  chartingWordCardsForLesson,
   hasCompleteWordDistribution,
   normalizeWordDistribution,
   targetWordCount,
@@ -36,6 +37,32 @@ test('gives each student 15 unique words when at least 15 are available', () => 
     assert.equal(studentWords.length, 15);
     assert.equal(new Set(studentWords.map(card => card.text.toLocaleLowerCase())).size, 15);
   });
+});
+
+test('always charts exactly 15 words even when the source pool is larger', () => {
+  assert.equal(targetWordCount(cards(50)), 15);
+  assert.equal(buildWordDistribution(cards(50), 1, targetWordCount(cards(50)), identityShuffle, sequentialIds())[0].length, 15);
+});
+
+test('uses an imported lesson explicit charting list instead of its larger word-card deck', () => {
+  const selected = chartingWordCardsForLesson({
+    id: 'runtime-3-1',
+    title: '3.1 charting',
+    step: '3',
+    substep: '1',
+    conceptNotes: '',
+    slides: [],
+    quickDrill: [],
+    wordCards: cards(30),
+    wordListCharting: Array.from({ length: 15 }, (_, index) => `chart-${index + 1}`),
+    wordListReadingAuto: true,
+    sentences: [],
+    dictation: { sounds: [], realWords: [], wordElements: [], nonsenseWords: [], phrases: [], sentences: [] },
+    hfwList: [],
+    affixPractice: []
+  });
+
+  assert.deepEqual(selected.map(card => card.text), Array.from({ length: 15 }, (_, index) => `chart-${index + 1}`));
 });
 
 test('staggered students begin at different positions', () => {
