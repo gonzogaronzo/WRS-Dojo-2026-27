@@ -13,7 +13,7 @@ concurrency:
 jobs:
   verify-build-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: read
 
@@ -27,14 +27,33 @@ jobs:
           node-version: '22.13.0'
           cache: npm
 
-      - name: Install dependencies
+      - name: Install app dependencies
         run: npm ci
+
+      - name: Install Firebase Functions dependencies
+        run: npm ci --prefix functions
 
       - name: Run verification suite
         run: npm test
 
+      - name: Validate Firebase Functions source
+        run: node --check functions/index.js
+
       - name: Build standalone Firebase app
         run: npm run build:standalone
+
+      - name: Prepare Firebase deploy credentials
+        shell: bash
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE }}
+        run: |
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          chmod 600 "$RUNNER_TEMP/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
+
+      - name: Deploy Firestore rules and data-mirror Functions
+        run: npx --yes firebase-tools@14.15.2 deploy --only firestore:rules,functions --project wrs-firebase --non-interactive
 
       - name: Deploy Hosting live channel
         uses: FirebaseExtended/action-hosting-deploy@v0
