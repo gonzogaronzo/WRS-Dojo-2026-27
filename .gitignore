@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/functions/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -23,12 +24,14 @@
 
 # debug
 npm-debug.log*
+firebase-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!functions/.env.wrs-firebase
 
 # vercel
 .vercel
