@@ -7,7 +7,7 @@ export const WRS_TILE_VISUALS = {
   fontFamily: 'system-ui, sans-serif',
   fontWeight: 700,
   fontSize: 19,
-  affixWidth: 76,
+  affixWidth: 49,
   affixFontSize: 21,
   colors: {
     consonantIvory: '#f4edcf',
