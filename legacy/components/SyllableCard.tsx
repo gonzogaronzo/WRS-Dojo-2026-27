@@ -1,4 +1,5 @@
 import React from 'react';
+import { WRS_NEUTRAL_CARD_VISUALS } from '../wrsVisualTokens';
 
 interface SyllableCardProps {
   text: string;
@@ -6,22 +7,19 @@ interface SyllableCardProps {
 
 const SyllableCard: React.FC<SyllableCardProps> = ({ text }) => {
   return (
-    <div className="
-      bg-[#FFF8E7] 
-      border-2 border-[#E6DFC0]
-      rounded-[2.5rem]
-      px-12 py-10
-      min-w-[180px] 
-      flex items-center justify-center 
-      shadow-2xl
-      border-b-[12px]
-      relative
-      transform hover:-translate-y-2 transition-transform duration-500
-    ">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')] opacity-10 pointer-events-none rounded-[2.5rem]"></div>
-      <span className="text-8xl md:text-9xl font-black text-stone-900 font-serif tracking-tighter leading-none relative z-10">
-        {text}
-      </span>
+    <div
+      data-wrs-visual="syllable-card"
+      className="h-[112px] min-w-[210px] px-10 flex items-center justify-center shrink-0 select-none"
+      style={{
+        background: WRS_NEUTRAL_CARD_VISUALS.white,
+        color: WRS_NEUTRAL_CARD_VISUALS.text,
+        border: `2px solid ${WRS_NEUTRAL_CARD_VISUALS.border}`,
+        borderRadius: WRS_NEUTRAL_CARD_VISUALS.radius,
+        boxShadow: WRS_NEUTRAL_CARD_VISUALS.shadow,
+        fontFamily: 'Arial, Helvetica, sans-serif'
+      }}
+    >
+      <span className="text-[56px] font-semibold leading-none whitespace-nowrap">{text}</span>
     </div>
   );
 };
