@@ -14,7 +14,11 @@ import {
 } from './sheetRows.js';
 
 initializeApp();
-setGlobalOptions({ region: 'us-central1', maxInstances: 3 });
+setGlobalOptions({
+  region: 'us-central1',
+  maxInstances: 3,
+  serviceAccount: 'wrs-firebase@appspot.gserviceaccount.com'
+});
 
 const DATA_LOG_SPREADSHEET_ID = process.env.WRS_DATA_LOG_SPREADSHEET_ID;
 const DATA_LOG_SHEET_NAME = process.env.WRS_DATA_LOG_SHEET_NAME || 'Data Log';
