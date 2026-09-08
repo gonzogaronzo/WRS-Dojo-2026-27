@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "focus": "introduction",
+  "frames": [
+    {
+      "id": "review",
+      "kind": "word-row",
+      "title": "Quick Review",
+      "words": ["bridge", "hinge", "fence", "judge"],
+      "provenance": "teacher-created",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Have the student read the four previous-substep words. Tap or scoop only as needed, then briefly review the 7.2 concepts."
+    },
+    {
+      "id": "ph-intro",
+      "kind": "tile-row",
+      "title": "What sound does ph make?",
+      "tiles": [{ "text": "ph", "role": "consonant-digraph" }],
+      "annotation": "/f/",
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Present the ph Letter-Sound Card. Practice ph-phone-/f/."
+    },
+    {
+      "id": "ph-words",
+      "kind": "word-row",
+      "title": "Read words with ph",
+      "words": ["phone", "phase", "graph", "trophy", "dolphin"],
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Build/read the source-provided ph examples one at a time. Tap only as needed."
+    },
+    {
+      "id": "dge-review",
+      "kind": "tile-row",
+      "title": "Remember dge?",
+      "tiles": [{ "text": "dge", "role": "consonant-trigraph" }],
+      "annotation": "three letters, one sound",
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Use fudge to review dge as a trigraph."
+    },
+    {
+      "id": "tch-intro",
+      "kind": "tile-row",
+      "title": "Meet tch",
+      "tiles": [{ "text": "tch", "role": "consonant-trigraph" }],
+      "annotation": "/ch/ · trigraph",
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Present the tch Letter-Sound Card. Practice tch-catch-/ch/. Build catch and tap the three sounds."
+    },
+    {
+      "id": "tch-rule",
+      "kind": "explanation",
+      "title": "When do we use tch?",
+      "text": "tch is used directly after a short vowel.",
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Ask whether the vowel in catch is long or short. Read stretch and scratch and discuss why tch is used rather than ch."
+    },
+    {
+      "id": "notebook-ph",
+      "kind": "notebook",
+      "title": "Student Notebook",
+      "section": "Sounds",
+      "text": "Add ph to the Digraphs page with the keyword phone. Practice marking ph in phone.",
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Complete the Sounds-section notebook entry for ph exactly as directed in the 7.3 source."
+    },
+    {
+      "id": "notebook-tch",
+      "kind": "notebook",
+      "title": "Student Notebook",
+      "section": "Sounds",
+      "text": "Add tch to the Trigraphs page with the keyword catch. Practice marking tch in catch.",
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Complete the Sounds-section notebook entry for tch exactly as directed in the 7.3 source."
+    },
+    {
+      "id": "affix-build",
+      "kind": "word-build",
+      "title": "Build it bigger",
+      "steps": [
+        {
+          "label": "Base word",
+          "units": [
+            { "text": "l", "role": "consonant" },
+            { "text": "a", "role": "vowel" },
+            { "text": "tch", "role": "consonant-trigraph" }
+          ]
+        },
+        {
+          "label": "Add -ed",
+          "units": [
+            { "text": "l", "role": "consonant" },
+            { "text": "a", "role": "vowel" },
+            { "text": "tch", "role": "consonant-trigraph" },
+            { "text": "-ed", "role": "suffix" }
+          ]
+        },
+        {
+          "label": "Add un-",
+          "units": [
+            { "text": "un-", "role": "prefix" },
+            { "text": "l", "role": "consonant" },
+            { "text": "a", "role": "vowel" },
+            { "text": "tch", "role": "consonant-trigraph" }
+          ]
+        },
+        {
+          "label": "Prefix + base + suffix",
+          "units": [
+            { "text": "un-", "role": "prefix" },
+            { "text": "l", "role": "consonant" },
+            { "text": "a", "role": "vowel" },
+            { "text": "tch", "role": "consonant-trigraph" },
+            { "text": "-ed", "role": "suffix" }
+          ]
+        }
+      ],
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Build latch with Letter-Sound Cards, add -ed, then add un-. Have the student read the base word first and then the whole word."
+    },
+    {
+      "id": "affix-more",
+      "kind": "word-row",
+      "title": "More ph/tch + affixes",
+      "words": ["stitching", "rephrase", "graphing"],
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Use the source-provided examples with taught affixes."
+    },
+    {
+      "id": "greek-preview",
+      "kind": "word-elements",
+      "title": "Coming next in 7.3",
+      "elements": [
+        { "text": "micro-", "role": "greek-combining-form" },
+        { "text": "-scope", "role": "greek-combining-form" }
+      ],
+      "annotation": "microscope",
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-07"],
+      "teacherCue": "Do not teach this frame in the first lesson unless the lesson sequence has reached the Greek combining-form introduction."
+    }
+  ]
+}
