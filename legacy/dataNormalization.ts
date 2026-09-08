@@ -113,7 +113,9 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
   const id = nonEmptyString(data.id);
   if (!id) return null;
 
-  const runtimePlan = normalizeRuntimeLessonPlan(data.runtimePlan);
+  const runtimePlan = normalizeRuntimeLessonPlan(
+    data.schemaVersion === 'wrs-runtime-v1' ? data : data.runtimePlan
+  );
   const projection = runtimePlan ? runtimeLessonToLegacyLesson(runtimePlan) : null;
   const lessonData: UnknownRecord = projection ? { ...data, ...projection, id } : data;
   const dictation = asRecord(lessonData.dictation) || {};
