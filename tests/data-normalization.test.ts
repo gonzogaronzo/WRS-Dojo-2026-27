@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   normalizeActiveSession,
   normalizeGroupProfile,
+  normalizeLesson,
   normalizeStoredStudents
 } from '../legacy/dataNormalization';
 
@@ -25,6 +26,54 @@ test('drops null nested records while preserving the usable group data', () => {
   assert.deepEqual(group.savedLessons[0].wordCards.map(card => card.id), ['card-1']);
   assert.equal(group.instructionalProfile?.currentSubstep, '');
   assert.deepEqual(group.instructionalProfile?.currentCardRepository, []);
+});
+
+test('projects semantic Part 2 slides when a runtime lesson is imported at the top level', () => {
+  const parts = Array.from({ length: 10 }, (_, index) => ({
+    part: index + 1,
+    title: `Part ${index + 1}`,
+    teacherDirections: [],
+    sourceIds: [],
+    data: index === 1 ? {
+      part2Presentation: {
+        version: 1,
+        focus: 'introduction',
+        frames: [
+          {
+            id: 'ph-intro',
+            kind: 'tile-row',
+            title: 'What sound does ph make?',
+            tiles: [{ text: 'ph', role: 'consonant-digraph' }],
+            annotation: 'ph → /f/',
+            teacherCue: 'Teacher-only cue.',
+            provenance: 'source-paraphrase',
+            sourceIds: ['SI-07']
+          }
+        ]
+      }
+    } : {}
+  }));
+
+  const lesson = normalizeLesson({
+    schemaVersion: 'wrs-runtime-v1',
+    id: 'runtime-7-3',
+    title: '7.3 semantic import',
+    step: '7',
+    substep: '3',
+    focus: 'introduction',
+    lessonPath: 'full',
+    plannedParts: [1,2,3,4,5,6,7,8,9,10],
+    sources: [],
+    parts
+  });
+
+  assert.ok(lesson);
+  assert.equal(lesson.slides.length, 1);
+  assert.equal(lesson.slides[0].id, 'part2-ph-intro');
+  assert.equal(lesson.slides[0].type, 'template');
+  assert.match(lesson.slides[0].content, /§p2:consonant-digraph:ph/);
+  assert.equal(lesson.slides[0].notes, 'Teacher-only cue.');
+  assert.equal(lesson.runtimePlan?.schemaVersion, 'wrs-runtime-v1');
 });
 
 test('preserves the group instructional profile while rejecting malformed profile values', () => {
