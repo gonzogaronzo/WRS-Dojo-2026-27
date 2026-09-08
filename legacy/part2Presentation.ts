@@ -11,6 +11,7 @@ export type Part2TileRole =
   | 'consonant'
   | 'vowel'
   | 'consonant-digraph'
+  | 'consonant-trigraph'
   | 'vowel-team'
   | 'welded'
   | 'r-controlled'
@@ -27,6 +28,18 @@ export interface Part2PresentationTile {
 export interface Part2WordElement {
   text: string;
   role: 'prefix' | 'suffix' | 'base-element' | 'greek-combining-form';
+}
+
+export type Part2BuildUnitRole = Part2TileRole | 'word' | 'syllable';
+
+export interface Part2BuildUnit {
+  text: string;
+  role: Part2BuildUnitRole;
+}
+
+export interface Part2BuildStep {
+  label?: string;
+  units: Part2BuildUnit[];
 }
 
 interface Part2FrameBase {
@@ -48,6 +61,11 @@ export interface Part2SyllableRowFrame extends Part2FrameBase {
   syllables: string[];
 }
 
+export interface Part2WordRowFrame extends Part2FrameBase {
+  kind: 'word-row';
+  words: string[];
+}
+
 export interface Part2WordElementsFrame extends Part2FrameBase {
   kind: 'word-elements';
   elements: Part2WordElement[];
@@ -57,6 +75,11 @@ export interface Part2WordChangeFrame extends Part2FrameBase {
   kind: 'word-change';
   before: Part2PresentationTile[];
   after: Part2PresentationTile[];
+}
+
+export interface Part2WordBuildFrame extends Part2FrameBase {
+  kind: 'word-build';
+  steps: Part2BuildStep[];
 }
 
 export interface Part2ContrastFrame extends Part2FrameBase {
@@ -84,8 +107,10 @@ export interface Part2InvalidFrame extends Part2FrameBase {
 export type Part2PresentationFrame =
   | Part2TileRowFrame
   | Part2SyllableRowFrame
+  | Part2WordRowFrame
   | Part2WordElementsFrame
   | Part2WordChangeFrame
+  | Part2WordBuildFrame
   | Part2ContrastFrame
   | Part2ExplanationFrame
   | Part2NotebookFrame
@@ -98,12 +123,18 @@ export interface Part2PresentationV1 {
 }
 
 const TILE_ROLES = new Set<Part2TileRole>([
-  'consonant', 'vowel', 'consonant-digraph', 'vowel-team', 'welded',
+  'consonant', 'vowel', 'consonant-digraph', 'consonant-trigraph', 'vowel-team', 'welded',
   'r-controlled', 'prefix', 'suffix', 'base-element', 'greek-combining-form'
 ]);
 
 const ELEMENT_ROLES = new Set<Part2WordElement['role']>([
   'prefix', 'suffix', 'base-element', 'greek-combining-form'
+]);
+
+const BUILD_UNIT_ROLES = new Set<Part2BuildUnitRole>([
+  ...TILE_ROLES,
+  'word',
+  'syllable'
 ]);
 
 const PROVENANCE_VALUES = new Set<Part2PresentationProvenance>([
@@ -127,6 +158,12 @@ const nonEmptyText = (value: unknown): string | null => (
 const optionalText = (value: unknown): string | undefined => (
   typeof value === 'string' && value.trim().length > 0 ? value : undefined
 );
+
+const normalizeTextArray = (value: unknown): string[] | null => {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  if (value.some(item => typeof item !== 'string' || item.trim().length === 0)) return null;
+  return value as string[];
+};
 
 const invalidFrame = (id: string, reason: string): Part2InvalidFrame => ({
   id,
@@ -185,6 +222,31 @@ const normalizeElements = (value: unknown): Part2WordElement[] | null => {
   return elements;
 };
 
+const normalizeBuildUnits = (value: unknown): Part2BuildUnit[] | null => {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const units: Part2BuildUnit[] = [];
+  for (const candidate of value) {
+    const record = asRecord(candidate);
+    const text = nonEmptyText(record?.text);
+    const role = record?.role as Part2BuildUnitRole | undefined;
+    if (!record || !text || !role || !BUILD_UNIT_ROLES.has(role)) return null;
+    units.push({ text, role });
+  }
+  return units;
+};
+
+const normalizeBuildSteps = (value: unknown): Part2BuildStep[] | null => {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const steps: Part2BuildStep[] = [];
+  for (const candidate of value) {
+    const record = asRecord(candidate);
+    const units = normalizeBuildUnits(record?.units);
+    if (!record || !units) return null;
+    steps.push({ label: optionalText(record.label), units });
+  }
+  return steps;
+};
+
 const normalizeFrame = (value: unknown, index: number): Part2PresentationFrame => {
   const record = asRecord(value);
   if (!record) return invalidFrame(`invalid-${index + 1}`, 'Frame must be an object.');
@@ -198,11 +260,16 @@ const normalizeFrame = (value: unknown, index: number): Part2PresentationFrame =
       return tiles ? { ...base, kind: 'tile-row', tiles } : invalidFrame(base.id, 'tile-row requires explicit tiles.');
     }
     case 'syllable-row': {
-      if (!Array.isArray(record.syllables) || record.syllables.length === 0 ||
-          record.syllables.some(value => typeof value !== 'string' || value.trim().length === 0)) {
-        return invalidFrame(base.id, 'syllable-row requires explicit syllables.');
-      }
-      return { ...base, kind: 'syllable-row', syllables: record.syllables as string[] };
+      const syllables = normalizeTextArray(record.syllables);
+      return syllables
+        ? { ...base, kind: 'syllable-row', syllables }
+        : invalidFrame(base.id, 'syllable-row requires explicit syllables.');
+    }
+    case 'word-row': {
+      const words = normalizeTextArray(record.words);
+      return words
+        ? { ...base, kind: 'word-row', words }
+        : invalidFrame(base.id, 'word-row requires explicit words.');
     }
     case 'word-elements': {
       const elements = normalizeElements(record.elements);
@@ -214,6 +281,12 @@ const normalizeFrame = (value: unknown, index: number): Part2PresentationFrame =
       return before && after
         ? { ...base, kind: 'word-change', before, after }
         : invalidFrame(base.id, 'word-change requires explicit before and after tiles.');
+    }
+    case 'word-build': {
+      const steps = normalizeBuildSteps(record.steps);
+      return steps
+        ? { ...base, kind: 'word-build', steps }
+        : invalidFrame(base.id, 'word-build requires explicit steps and units.');
     }
     case 'contrast': {
       const left = normalizeTiles(record.left);
@@ -276,9 +349,7 @@ const semanticUnit = (role: string, value: string) => (
 
 const encodeTile = (tile: Part2PresentationTile) => semanticUnit(tile.role, tile.text);
 const encodeTiles = (tiles: Part2PresentationTile[]) => tiles.map(encodeTile).join(' ');
-const annotationElements = (frame: Part2FrameBase): Slide['elements'] => frame.annotation
-  ? [{ id: `${frame.id}-annotation`, type: 'text', content: frame.annotation }]
-  : [];
+const encodeAnnotation = (annotation?: string) => annotation ? ` ${semanticUnit('annotation', annotation)}` : '';
 
 const safeUnavailableSlide = (frame: Part2InvalidFrame): Slide => ({
   id: `part2-${frame.id}`,
@@ -302,11 +373,21 @@ const frameToSlide = (frame: Part2PresentationFrame): Slide => {
     case 'syllable-row':
       content = frame.syllables.map(syllable => semanticUnit('syllable', syllable)).join(' ');
       break;
+    case 'word-row':
+      content = frame.words.map(word => semanticUnit('word', word)).join(' ');
+      break;
     case 'word-elements':
       content = frame.elements.map(element => semanticUnit(element.role, element.text)).join(' ');
       break;
     case 'word-change':
       content = `${encodeTiles(frame.before)} ${semanticUnit('symbol', '→')} ${encodeTiles(frame.after)}`;
+      break;
+    case 'word-build':
+      content = frame.steps.map(step => {
+        const label = step.label ? `${semanticUnit('step-label', step.label)} ` : '';
+        const units = step.units.map(unit => semanticUnit(unit.role, unit.text)).join(' ');
+        return `${label}${units} ${semanticUnit('row-break', '')}`;
+      }).join(' ');
       break;
     case 'contrast':
       content = `${encodeTiles(frame.left)} ${semanticUnit('divider', '')} ${encodeTiles(frame.right)}`;
@@ -320,12 +401,14 @@ const frameToSlide = (frame: Part2PresentationFrame): Slide => {
       break;
   }
 
+  content += encodeAnnotation(frame.annotation);
+
   return {
     id: `part2-${frame.id}`,
     type: 'template',
     title,
     content,
-    elements: annotationElements(frame),
+    elements: [],
     notes: frame.teacherCue
   };
 };

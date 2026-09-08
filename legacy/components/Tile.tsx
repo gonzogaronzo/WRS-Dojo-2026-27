@@ -1,5 +1,11 @@
 import React, { memo } from 'react';
 import { TileData, getTileColor } from '../utils';
+import {
+  getWrsSemanticCardVisual,
+  WRS_NEUTRAL_CARD_VISUALS,
+  WRS_TILE_VISUALS,
+  type WrsSemanticVisualRole
+} from '../wrsVisualTokens';
 
 interface TileProps {
   data: TileData;
@@ -13,6 +19,20 @@ interface EncodedPart2Tile {
 }
 
 const PART2_PREFIX = '§p2:';
+
+const SEMANTIC_CARD_ROLES = new Set<WrsSemanticVisualRole>([
+  'consonant',
+  'consonant-digraph',
+  'consonant-trigraph',
+  'vowel',
+  'vowel-team',
+  'r-controlled',
+  'welded',
+  'prefix',
+  'suffix',
+  'base-element',
+  'greek-combining-form'
+]);
 
 const decodePart2Tile = (data: TileData): EncodedPart2Tile | null => {
   if (data.type !== 'syllable' || !data.text.startsWith(PART2_PREFIX)) return null;
@@ -30,28 +50,92 @@ const decodePart2Tile = (data: TileData): EncodedPart2Tile | null => {
   }
 };
 
-const part2Color = (role: string) => {
-  switch (role) {
-    case 'vowel':
-    case 'vowel-team':
-    case 'r-controlled':
-      return 'bg-[#f4a291] border-[#d88272]';
-    case 'welded':
-      return 'bg-[#b8dfb5] border-[#8cbd89]';
-    case 'prefix':
-    case 'suffix':
-      return 'bg-[#fff0a8] border-[#dccb76]';
-    case 'base-element':
-    case 'greek-combining-form':
-      return 'bg-stone-200 border-stone-400';
-    case 'syllable':
-      return 'bg-[#fffaf0] border-stone-300';
-    case 'consonant':
-    case 'consonant-digraph':
-    default:
-      return 'bg-[#fff4cc] border-[#e2d19a]';
+const sizeScale = (size: TileProps['size']) => {
+  switch (size) {
+    case 'sm': return 0.85;
+    case 'md': return 1.25;
+    case 'lg': return 1.85;
+    case 'xl': return 2.45;
+    case '2xl': return 3.1;
+    default: return 1.25;
   }
 };
+
+const SemanticWilsonCard: React.FC<{
+  role: WrsSemanticVisualRole;
+  text: string;
+  size: NonNullable<TileProps['size']>;
+}> = ({ role, text, size }) => {
+  const visual = getWrsSemanticCardVisual(role);
+  const scale = sizeScale(size);
+  const baseWidth = visual.kind === 'affix' || visual.kind === 'word-element'
+    ? WRS_TILE_VISUALS.affixWidth
+    : WRS_TILE_VISUALS.width;
+  const fontSize = (visual.kind === 'affix' ? WRS_TILE_VISUALS.affixFontSize : WRS_TILE_VISUALS.fontSize) * scale;
+  const contentWidth = visual.kind === 'word-element'
+    ? Math.max(baseWidth * scale, text.length * fontSize * 0.62 + 32 * scale)
+    : baseWidth * scale;
+
+  return (
+    <div
+      data-part2-role={role}
+      data-wrs-visual={visual.kind === 'tile' ? 'tileboard' : visual.kind}
+      className="flex items-center justify-center select-none shrink-0"
+      style={{
+        width: contentWidth,
+        height: WRS_TILE_VISUALS.height * scale,
+        borderRadius: WRS_TILE_VISUALS.borderRadius * scale,
+        border: WRS_TILE_VISUALS.border,
+        boxShadow: WRS_TILE_VISUALS.shadow,
+        background: visual.background,
+        color: visual.color,
+        fontFamily: WRS_TILE_VISUALS.fontFamily,
+        fontWeight: WRS_TILE_VISUALS.fontWeight,
+        fontSize,
+        lineHeight: 1,
+        paddingInline: visual.kind === 'word-element' ? 16 * scale : 4 * scale
+      }}
+    >
+      <span className="whitespace-nowrap leading-none">{text}</span>
+    </div>
+  );
+};
+
+const SemanticWholeWord: React.FC<{ text: string }> = ({ text }) => (
+  <div
+    data-part2-role="word"
+    data-wrs-visual="word-card"
+    className="h-[118px] min-w-[250px] max-w-[430px] px-10 flex items-center justify-center shrink-0 select-none"
+    style={{
+      background: WRS_NEUTRAL_CARD_VISUALS.white,
+      color: WRS_NEUTRAL_CARD_VISUALS.text,
+      border: `2px solid ${WRS_NEUTRAL_CARD_VISUALS.border}`,
+      borderRadius: WRS_NEUTRAL_CARD_VISUALS.radius,
+      boxShadow: WRS_NEUTRAL_CARD_VISUALS.shadow,
+      fontFamily: 'Arial, Helvetica, sans-serif'
+    }}
+  >
+    <span className="text-[52px] font-semibold leading-none whitespace-nowrap">{text}</span>
+  </div>
+);
+
+const SemanticSyllableCard: React.FC<{ text: string }> = ({ text }) => (
+  <div
+    data-part2-role="syllable"
+    data-wrs-visual="syllable-card"
+    className="h-[112px] min-w-[210px] px-10 flex items-center justify-center shrink-0 select-none"
+    style={{
+      background: WRS_NEUTRAL_CARD_VISUALS.white,
+      color: WRS_NEUTRAL_CARD_VISUALS.text,
+      border: `2px solid ${WRS_NEUTRAL_CARD_VISUALS.border}`,
+      borderRadius: WRS_NEUTRAL_CARD_VISUALS.radius,
+      boxShadow: WRS_NEUTRAL_CARD_VISUALS.shadow,
+      fontFamily: 'Arial, Helvetica, sans-serif'
+    }}
+  >
+    <span className="text-[56px] font-semibold leading-none whitespace-nowrap">{text}</span>
+  </div>
+);
 
 const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all' }) => {
   if (data.type === 'space') {
@@ -86,6 +170,22 @@ const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all' }) => {
     return <div data-part2-role="divider" className="h-24 w-px bg-stone-300 mx-8 shrink-0" />;
   }
 
+  if (part2Tile?.role === 'row-break') {
+    return <div data-part2-role="row-break" className="basis-full w-full h-0" />;
+  }
+
+  if (part2Tile?.role === 'step-label') {
+    return (
+      <div
+        data-part2-role="step-label"
+        className="basis-full w-full mb-1 mt-3 text-center text-[20px] leading-none font-bold uppercase tracking-[0.18em] text-stone-400 select-none"
+        style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+      >
+        {part2Tile.text}
+      </div>
+    );
+  }
+
   if (part2Tile?.role === 'symbol') {
     const symbolSizes = {
       sm: 'text-sm px-1',
@@ -104,27 +204,70 @@ const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all' }) => {
     );
   }
 
-  if (part2Tile?.role === 'statement' || part2Tile?.role === 'notebook') {
-    const notebook = part2Tile.role === 'notebook';
+  if (part2Tile?.role === 'word') return <SemanticWholeWord text={part2Tile.text} />;
+  if (part2Tile?.role === 'syllable') return <SemanticSyllableCard text={part2Tile.text} />;
+
+  if (part2Tile?.role === 'annotation') {
     return (
       <div
-        data-part2-role={part2Tile.role}
-        className={`
-          w-[1200px] max-w-[1200px] min-h-[190px] px-16 py-12
-          flex items-center justify-center text-center
-          rounded-2xl border-2 shadow-sm
-          ${notebook ? 'bg-[#fffaf0] border-[#dfd2b5]' : 'bg-white/80 border-stone-200'}
-        `}
-        style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
+        data-part2-role="annotation"
+        className="basis-full w-[1000px] max-w-[1000px] mt-7 text-center text-[34px] leading-tight font-semibold text-stone-600 select-none"
+        style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
       >
-        <span className="text-5xl font-bold leading-tight text-stone-900 whitespace-pre-wrap break-words max-w-[1080px]">
+        {part2Tile.text}
+      </div>
+    );
+  }
+
+  if (part2Tile?.role === 'statement') {
+    return (
+      <div
+        data-part2-role="statement"
+        className="w-[1120px] max-w-[1120px] px-8 py-5 text-center select-none"
+        style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+      >
+        <span className="text-[48px] font-semibold leading-tight text-stone-900 whitespace-pre-wrap break-words">
           {part2Tile.text}
         </span>
       </div>
     );
   }
 
-  const displayText = part2Tile?.text ?? data.text;
+  if (part2Tile?.role === 'notebook') {
+    return (
+      <div
+        data-part2-role="notebook"
+        data-wrs-visual="notebook-entry"
+        className="w-[980px] max-w-[980px] min-h-[210px] px-14 py-10 flex items-center justify-center text-center select-none"
+        style={{
+          background: WRS_NEUTRAL_CARD_VISUALS.ivoryPaper,
+          color: WRS_NEUTRAL_CARD_VISUALS.text,
+          border: `2px solid ${WRS_NEUTRAL_CARD_VISUALS.border}`,
+          borderRadius: 6,
+          boxShadow: WRS_NEUTRAL_CARD_VISUALS.shadow,
+          fontFamily: 'Arial, Helvetica, sans-serif'
+        }}
+      >
+        <span className="text-[42px] font-semibold leading-snug whitespace-pre-wrap break-words max-w-[880px]">
+          {part2Tile.text}
+        </span>
+      </div>
+    );
+  }
+
+  if (part2Tile && SEMANTIC_CARD_ROLES.has(part2Tile.role as WrsSemanticVisualRole)) {
+    return <SemanticWilsonCard role={part2Tile.role as WrsSemanticVisualRole} text={part2Tile.text} size={size} />;
+  }
+
+  if (part2Tile) {
+    return (
+      <div data-part2-role="invalid-visual-role" className="px-8 py-5 border-2 border-red-300 bg-red-50 text-red-900 text-2xl font-bold">
+        Instructional display unavailable.
+      </div>
+    );
+  }
+
+  const displayText = data.text;
 
   const getStandardWidth = (text: string, currentSize: string) => {
     const len = text.length;
@@ -173,29 +316,17 @@ const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all' }) => {
 
   return (
     <div
-      data-part2-role={part2Tile?.role}
       className={`
         ${sizeClasses[size]}
         ${getStandardWidth(displayText, size)}
-        ${part2Tile ? part2Color(part2Tile.role) : getTileColor(data.type)}
-        relative
-        flex items-center justify-center
-        font-black
-        text-stone-900
-        border-r border-l border-t
-        ${roundingClasses[rounding]}
-        shadow-sm
-        select-none
-        cursor-default
-        transition-all
+        ${getTileColor(data.type)}
+        relative flex items-center justify-center font-black text-stone-900
+        border-r border-l border-t ${roundingClasses[rounding]} shadow-sm
+        select-none cursor-default transition-all
       `}
-      style={{
-        fontFamily: '"Inter", system-ui, sans-serif'
-      }}
+      style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
     >
-      {!part2Tile && (
-        <div className={`absolute inset-0 bg-white/10 pointer-events-none ${roundingClasses[rounding]} opacity-0 hover:opacity-100 transition-opacity`}></div>
-      )}
+      <div className={`absolute inset-0 bg-white/10 pointer-events-none ${roundingClasses[rounding]} opacity-0 hover:opacity-100 transition-opacity`} />
       <span className="z-10 leading-none whitespace-nowrap overflow-visible px-2">{displayText}</span>
     </div>
   );
