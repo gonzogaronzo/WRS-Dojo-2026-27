@@ -170,6 +170,22 @@ const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all' }) => {
     return <div data-part2-role="divider" className="h-24 w-px bg-stone-300 mx-8 shrink-0" />;
   }
 
+  if (part2Tile?.role === 'row-break') {
+    return <div data-part2-role="row-break" className="basis-full w-full h-0" />;
+  }
+
+  if (part2Tile?.role === 'step-label') {
+    return (
+      <div
+        data-part2-role="step-label"
+        className="basis-full w-full mb-1 mt-3 text-center text-[20px] leading-none font-bold uppercase tracking-[0.18em] text-stone-400 select-none"
+        style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+      >
+        {part2Tile.text}
+      </div>
+    );
+  }
+
   if (part2Tile?.role === 'symbol') {
     const symbolSizes = {
       sm: 'text-sm px-1',
