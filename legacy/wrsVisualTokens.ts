@@ -51,7 +51,13 @@ export type WrsSemanticVisualRole =
   | 'base-element'
   | 'greek-combining-form';
 
-export const getWrsSemanticCardVisual = (role: WrsSemanticVisualRole) => {
+export interface WrsSemanticCardVisual {
+  background: string;
+  color: string;
+  kind: 'tile' | 'affix' | 'word-element';
+}
+
+export const getWrsSemanticCardVisual = (role: WrsSemanticVisualRole): WrsSemanticCardVisual => {
   switch (role) {
     case 'consonant':
     case 'consonant-digraph':
@@ -59,7 +65,7 @@ export const getWrsSemanticCardVisual = (role: WrsSemanticVisualRole) => {
       return {
         background: WRS_TILE_VISUALS.colors.consonantIvory,
         color: WRS_TILE_VISUALS.colors.consonantText,
-        kind: 'tile' as const
+        kind: 'tile'
       };
     case 'vowel':
     case 'vowel-team':
@@ -67,32 +73,36 @@ export const getWrsSemanticCardVisual = (role: WrsSemanticVisualRole) => {
       return {
         background: WRS_TILE_VISUALS.colors.vowelSalmon,
         color: WRS_TILE_VISUALS.colors.vowelText,
-        kind: 'tile' as const
+        kind: 'tile'
       };
     case 'welded':
       return {
         background: WRS_TILE_VISUALS.colors.weldedGreen,
         color: WRS_TILE_VISUALS.colors.weldedText,
-        kind: 'tile' as const
+        kind: 'tile'
       };
     case 'prefix':
     case 'suffix':
       return {
         background: WRS_TILE_VISUALS.colors.affixYellow,
         color: WRS_TILE_VISUALS.colors.affixText,
-        kind: 'affix' as const
+        kind: 'affix'
       };
     case 'base-element':
       return {
         background: WRS_NEUTRAL_CARD_VISUALS.white,
         color: WRS_NEUTRAL_CARD_VISUALS.text,
-        kind: 'word-element' as const
+        kind: 'word-element'
       };
     case 'greek-combining-form':
       return {
         background: WRS_NEUTRAL_CARD_VISUALS.greekGray,
         color: WRS_NEUTRAL_CARD_VISUALS.text,
-        kind: 'word-element' as const
+        kind: 'word-element'
       };
+    default: {
+      const exhaustiveRole: never = role;
+      throw new Error(`Unsupported WRS semantic visual role: ${String(exhaustiveRole)}`);
+    }
   }
 };
