@@ -1,9 +1,11 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface DraggableProps {
   children: React.ReactNode;
   initialPos?: { x: number; y: number };
+  /** Emits the live position while a card is moving; existing callers may ignore it. */
+  onDrag?: (pos: { x: number; y: number }) => void;
   onDragEnd?: (pos: { x: number; y: number }) => void;
   className?: string;
   disabled?: boolean;
@@ -14,6 +16,7 @@ interface DraggableProps {
 const Draggable: React.FC<DraggableProps> = ({ 
   children, 
   initialPos = { x: 0, y: 0 }, 
+  onDrag,
   onDragEnd, 
   className = '',
   disabled = false,
@@ -21,6 +24,7 @@ const Draggable: React.FC<DraggableProps> = ({
   viewportScale = 1
 }) => {
   const [pos, setPos] = useState(initialPos);
+  const posRef = useRef(initialPos);
   const [isDragging, setIsDragging] = useState(false);
   
   // High-fidelity tracking refs
@@ -29,13 +33,6 @@ const Draggable: React.FC<DraggableProps> = ({
   const hasMovedRef = useRef(false);
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  // Sync state if external position changes
-  useEffect(() => {
-    if (!isDragging) {
-      setPos(initialPos);
-    }
-  }, [initialPos.x, initialPos.y, isDragging]);
-
   const onPointerDown = (e: React.PointerEvent) => {
     if (disabled || e.button !== 0) return;
     
@@ -43,8 +40,11 @@ const Draggable: React.FC<DraggableProps> = ({
     hasMovedRef.current = false;
     
     // Remember EXACT starting points
+    const startingPos = initialPos;
+    posRef.current = startingPos;
+    setPos(startingPos);
     startMousePos.current = { x: e.clientX, y: e.clientY };
-    startElemPos.current = { x: pos.x, y: pos.y };
+    startElemPos.current = startingPos;
     
     if (nodeRef.current) {
       nodeRef.current.setPointerCapture(e.pointerId);
@@ -68,25 +68,31 @@ const Draggable: React.FC<DraggableProps> = ({
     if (hasMovedRef.current) {
       // Apply the delta to the initial position
       // This is "Absolute Delta" positioning - immune to layout jumps
-      setPos({
+      const nextPos = {
         x: startElemPos.current.x + dx,
         y: startElemPos.current.y + dy
-      });
+      };
+      posRef.current = nextPos;
+      setPos(nextPos);
+      onDrag?.(nextPos);
     }
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
     if (!isDragging) return;
-    setIsDragging(false);
-    
     if (nodeRef.current) {
       nodeRef.current.releasePointerCapture(e.pointerId);
     }
     
     if (hasMovedRef.current && onDragEnd) {
-      onDragEnd(pos);
+      onDragEnd(posRef.current);
     }
+    setIsDragging(false);
   };
+
+  // Outside a drag, the caller remains the source of truth. This lets
+  // synchronized presenter positions update without a setState effect.
+  const displayPos = isDragging ? pos : initialPos;
 
   const handleClick = (e: React.MouseEvent) => {
     if (hasMovedRef.current) {
@@ -106,8 +112,8 @@ const Draggable: React.FC<DraggableProps> = ({
       style={{
         ...style,
         position: style?.position || 'absolute',
-        left: `${pos.x}px`,
-        top: `${pos.y}px`,
+        left: `${displayPos.x}px`,
+        top: `${displayPos.y}px`,
         // Transitions are disabled during drag to prevent lag/rubber-banding
         transition: isDragging ? 'none' : 'transform 0.15s ease-out, left 0.1s, top 0.1s',
         zIndex: isDragging ? 9999 : (style?.zIndex || 10),

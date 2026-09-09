@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "focus": "introduction",
+  "frames": [
+    {
+      "id": "market-reference",
+      "kind": "syllable-row",
+      "syllables": ["mar", "ket"],
+      "provenance": "source-paraphrase",
+      "sourceIds": ["SI-08.2"]
+    }
+  ],
+  "interactiveSteps": [
+    {
+      "id": "market-syllable-build",
+      "provenance": "source-paraphrase",
+      "actionType": "BUILD_WORD",
+      "displayType": "SYLLABLE_CARDS",
+      "teacherCue": "Build the source-supplied market word with the supplied syllable cards.",
+      "teacherDirections": ["Pull mar and then ket from the ordered stack, combine the syllables, and read the completed word."],
+      "studentPrompt": "Build and read market.",
+      "objects": [
+        { "id": "mar", "text": "mar", "role": "syllable", "stagingOrder": 1 },
+        { "id": "ket", "text": "ket", "role": "syllable", "stagingOrder": 2 }
+      ],
+      "sourceRef": { "sourceIds": ["SI-08.2"], "locator": "Substep 8.2, Part 2, pp. 186–187" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "latin-base-word-elements",
+      "provenance": "source-paraphrase",
+      "actionType": "WORD_ELEMENT_BUILD",
+      "displayType": "WORD_ELEMENT_CARDS",
+      "teacherCue": "Introduce the supplied Latin base-element cards in source order under the project pacing convention.",
+      "teacherDirections": ["Pull each supplied Word Element Card from the stack and use the source-provided words for the next build."],
+      "studentPrompt": "Read the Latin base elements.",
+      "objects": [
+        { "id": "form", "text": "-form-", "role": "base-element", "stagingOrder": 1 },
+        { "id": "part", "text": "-part-", "role": "base-element", "stagingOrder": 2 },
+        { "id": "port", "text": "-port-", "role": "base-element", "stagingOrder": 3 }
+      ],
+      "sourceRef": { "sourceIds": ["SI-08.2"], "locator": "Substep 8.2, Subsequent Lessons, pp. 188–189" },
+      "sourceSection": "subsequent-lessons",
+      "projectPacingRule": "include-subsequent-in-introduction"
+    }
+  ]
+}

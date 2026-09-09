@@ -60,6 +60,8 @@ export interface ListeningComprehensionPlan {
 export interface RuntimeLessonPartData {
   quickDrill?: string[];
   conceptNotes?: string;
+  /** Source-controlled Part 2 semantic/interactive presentation payload. */
+  part2Presentation?: unknown;
   slides?: Slide[];
   wordCards?: WordCard[];
   hfwList?: string[];

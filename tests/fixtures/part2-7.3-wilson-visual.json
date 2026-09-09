@@ -137,7 +137,7 @@
     {
       "id": "greek-preview",
       "kind": "word-elements",
-      "title": "Coming next in 7.3",
+      "title": "Greek combining-form build",
       "elements": [
         { "text": "micro-", "role": "greek-combining-form" },
         { "text": "-scope", "role": "greek-combining-form" }
@@ -145,7 +145,223 @@
       "annotation": "microscope",
       "provenance": "source-paraphrase",
       "sourceIds": ["SI-07"],
-      "teacherCue": "Do not teach this frame in the first lesson unless the lesson sequence has reached the Greek combining-form introduction."
+      "teacherCue": "Use the 2026–27 project pacing convention to introduce this source-ordered Greek combining-form move during Introduction."
+    }
+  ],
+  "interactiveSteps": [
+    {
+      "id": "previous-substep-review",
+      "provenance": "teacher-created",
+      "actionType": "TEACH_CARD",
+      "displayType": "WRITTEN_WORD",
+      "teacherCue": "Read the supplied review words and briefly reconnect the previous concepts.",
+      "teacherDirections": ["Present the supplied previous-substep words one at a time and use only the needed review prompt."],
+      "studentPrompt": "Read each review word.",
+      "objects": [
+        { "id": "bridge", "text": "bridge", "role": "word" },
+        { "id": "hinge", "text": "hinge", "role": "word" },
+        { "id": "fence", "text": "fence", "role": "word" },
+        { "id": "judge", "text": "judge", "role": "word" }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "known-digraph-review",
+      "provenance": "source-paraphrase",
+      "actionType": "TEACH_CARD",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Name the supplied known digraph cards before introducing ph.",
+      "teacherDirections": ["Display the source-listed known digraph cards and allow the Student Notebook as a reference when needed."],
+      "studentPrompt": "Name each known digraph.",
+      "objects": [
+        { "id": "wh", "text": "wh", "role": "consonant-digraph" },
+        { "id": "ch", "text": "ch", "role": "consonant-digraph" },
+        { "id": "sh", "text": "sh", "role": "consonant-digraph" },
+        { "id": "th", "text": "th", "role": "consonant-digraph" },
+        { "id": "ck", "text": "ck", "role": "consonant-digraph" }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 128" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "ph-card",
+      "provenance": "source-paraphrase",
+      "actionType": "TEACH_CARD",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Present the supplied ph Letter-Sound Card and practice its keyword connection.",
+      "teacherDirections": ["Use the source-supplied ph card and keyword practice before moving to the examples."],
+      "studentPrompt": "Say the sound for ph.",
+      "objects": [{ "id": "ph", "text": "ph", "role": "consonant-digraph" }],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "phone-build",
+      "provenance": "source-paraphrase",
+      "actionType": "BUILD_WORD",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Build the supplied phone example in source order and tap it.",
+      "teacherDirections": ["Pull the supplied Letter-Sound Tiles in order, build phone, and review the ph sound while the student taps the word."],
+      "studentPrompt": "Build and read phone.",
+      "objects": [
+        { "id": "ph", "text": "ph", "role": "consonant-digraph", "stagingOrder": 1 },
+        { "id": "o", "text": "o", "role": "vowel", "stagingOrder": 2 },
+        { "id": "n", "text": "n", "role": "consonant", "stagingOrder": 3 },
+        { "id": "e", "text": "e", "role": "vowel", "stagingOrder": 4 }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 128" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "ph-reading-practice",
+      "provenance": "source-paraphrase",
+      "actionType": "TEACH_CARD",
+      "displayType": "WRITTEN_WORD",
+      "teacherCue": "Read the source-supplied ph examples using the supplied materials as needed.",
+      "teacherDirections": ["Present the source-listed ph examples in order and use only the source-supplied Letter-Sound or Syllable Cards needed for each word."],
+      "studentPrompt": "Read the ph words.",
+      "objects": [
+        { "id": "phase", "text": "phase", "role": "word" },
+        { "id": "graph", "text": "graph", "role": "word" },
+        { "id": "trophy", "text": "trophy", "role": "word" },
+        { "id": "dolphin", "text": "dolphin", "role": "word" }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 128" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "dge-review-card",
+      "provenance": "source-paraphrase",
+      "actionType": "TEACH_CARD",
+      "displayType": "MIXED_SOURCE_CARDS",
+      "teacherCue": "Use the supplied dge card with fudge to recall the known trigraph before introducing tch.",
+      "teacherDirections": ["Make the source-supplied fudge example with the dge card, then prompt the student to name the trigraph and notice the short vowel context."],
+      "studentPrompt": "Read fudge and name dge.",
+      "objects": [
+        { "id": "dge", "text": "dge", "role": "consonant-trigraph" },
+        { "id": "fudge", "text": "fudge", "role": "word" }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "tch-card",
+      "provenance": "source-paraphrase",
+      "actionType": "TEACH_CARD",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Present the supplied tch Letter-Sound Card with its keyword connection.",
+      "teacherDirections": ["Use the source-supplied tch card and keyword practice before the word work."],
+      "studentPrompt": "Say the sound for tch.",
+      "objects": [{ "id": "tch", "text": "tch", "role": "consonant-trigraph" }],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "catch-build",
+      "provenance": "source-paraphrase",
+      "actionType": "BUILD_WORD",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Build the supplied catch example in source order, then tap its three sounds.",
+      "teacherDirections": ["Pull each supplied Letter-Sound Tile from the ordered stack, build catch, and prompt the student to identify the short vowel and the tch trigraph."],
+      "studentPrompt": "Build and read catch.",
+      "objects": [
+        { "id": "c", "text": "c", "role": "consonant", "stagingOrder": 1 },
+        { "id": "a", "text": "a", "role": "vowel", "stagingOrder": 2 },
+        { "id": "tch", "text": "tch", "role": "consonant-trigraph", "stagingOrder": 3 }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
+      "sourceSection": "introductory-and-ongoing",
+      "saveHints": { "troubleSpotPrompt": "Record any difficulty hearing or reading the tch pattern." }
+    },
+    {
+      "id": "tch-reading-practice",
+      "provenance": "source-paraphrase",
+      "actionType": "TEACH_CARD",
+      "displayType": "WRITTEN_WORD",
+      "teacherCue": "Read the source-supplied tch examples and discuss why tch appears.",
+      "teacherDirections": ["Present the source-listed tch examples and prompt the student to compare tch with ch after a short vowel."],
+      "studentPrompt": "Read the tch words.",
+      "objects": [
+        { "id": "stretch", "text": "stretch", "role": "word" },
+        { "id": "scratch", "text": "scratch", "role": "word" }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "tch-short-vowel-check",
+      "provenance": "source-paraphrase",
+      "actionType": "MARK_WORDS",
+      "displayType": "WRITTEN_WORD",
+      "teacherCue": "Mark the supplied ph and tch examples as directed.",
+      "teacherDirections": ["Write the source-supplied examples and have the student underline the digraph and trigraph."],
+      "studentPrompt": "Read the words and mark ph or tch.",
+      "objects": [
+        { "id": "phase-word", "text": "phase", "role": "word" },
+        { "id": "match-word", "text": "match", "role": "word" }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "ph-notebook",
+      "provenance": "source-paraphrase",
+      "actionType": "NOTEBOOK",
+      "displayType": "NOTEBOOK",
+      "teacherCue": "Complete the supplied ph notebook entry.",
+      "teacherDirections": ["Guide the student through the source-directed Sounds-section notebook entry for ph."],
+      "studentPrompt": "Add the ph notebook entry.",
+      "objects": [{ "id": "ph-notebook-entry", "text": "ph · phone", "role": "notebook" }],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "tch-notebook",
+      "provenance": "source-paraphrase",
+      "actionType": "NOTEBOOK",
+      "displayType": "NOTEBOOK",
+      "teacherCue": "Complete the supplied tch notebook entry.",
+      "teacherDirections": ["Guide the student through the source-directed Trigraphs-section notebook entry for tch."],
+      "studentPrompt": "Add the tch notebook entry.",
+      "objects": [{ "id": "tch-notebook-entry", "text": "tch · catch", "role": "notebook" }],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "latch-affix-manipulation",
+      "provenance": "source-paraphrase",
+      "actionType": "AFFIX_MANIPULATION",
+      "displayType": "PREFIX_SUFFIX_CARDS",
+      "teacherCue": "Build the supplied latch base, then manipulate the supplied prefix and suffix cards.",
+      "teacherDirections": ["Pull the source-supplied cards in order, read the base word, and then read each resulting whole word."],
+      "studentPrompt": "Build, change, and read the word.",
+      "objects": [
+        { "id": "l", "text": "l", "role": "consonant", "stagingOrder": 1 },
+        { "id": "a", "text": "a", "role": "vowel", "stagingOrder": 2 },
+        { "id": "tch", "text": "tch", "role": "consonant-trigraph", "stagingOrder": 3 },
+        { "id": "-ed", "text": "-ed", "role": "suffix", "stagingOrder": 4 },
+        { "id": "un-", "text": "un-", "role": "prefix", "stagingOrder": 5 }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
+      "sourceSection": "introductory-and-ongoing",
+      "saveHints": { "notePrompt": "Record the word-building response or next instructional move." }
+    },
+    {
+      "id": "greek-word-element-build",
+      "provenance": "source-paraphrase",
+      "actionType": "WORD_ELEMENT_BUILD",
+      "displayType": "WORD_ELEMENT_CARDS",
+      "teacherCue": "Introduce the source-ordered Greek combining-form cards under the 2026–27 pacing convention.",
+      "teacherDirections": ["Pull the supplied Greek combining-form cards in source order and read the resulting word."],
+      "studentPrompt": "Build and read microscope.",
+      "objects": [
+        { "id": "micro", "text": "micro-", "role": "greek-combining-form", "stagingOrder": 1 },
+        { "id": "scope", "text": "-scope", "role": "greek-combining-form", "stagingOrder": 2 }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Subsequent Lessons, Part 2" },
+      "sourceSection": "subsequent-lessons",
+      "projectPacingRule": "include-subsequent-in-introduction"
     }
   ]
 }

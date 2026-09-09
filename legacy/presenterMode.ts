@@ -1,5 +1,6 @@
 import { GroupProfile, Lesson, LessonPart, StudentProfile } from './types';
 import { createInitialLessonSession, LessonSessionState } from './useLessonSession';
+import { sanitizePart2PresentationForStudent } from './part2Presentation';
 
 export const PRESENTER_CHANNEL = 'wrs-dojo-presenter-v1';
 export const PRESENTER_STATE_KEY = 'wrs_dojo_presenter_state_v1';
@@ -206,6 +207,34 @@ export const sanitizePresenterLesson = (
     compact.googleSlidesUrl = lesson.googleSlidesUrl;
     compact.cipherWords = lesson.cipherWords;
     compact.cipherDistractors = lesson.cipherDistractors;
+
+    // Keep the passive display on the same source-owned Part 2 move while
+    // deliberately excluding every private cue, direction, source reference,
+    // save hint, and all other runtime lesson content.
+    if (currentPart === LessonPart.Part2 && lesson.runtimePlan) {
+      const part2 = lesson.runtimePlan.parts.find(part => part.part === 2);
+      const studentPart2Presentation = sanitizePart2PresentationForStudent(part2?.data.part2Presentation);
+      if (studentPart2Presentation !== undefined) {
+        compact.runtimePlan = {
+          schemaVersion: lesson.runtimePlan.schemaVersion,
+          id: lesson.runtimePlan.id,
+          title: lesson.runtimePlan.title,
+          step: lesson.runtimePlan.step,
+          substep: lesson.runtimePlan.substep,
+          focus: lesson.runtimePlan.focus,
+          lessonPath: lesson.runtimePlan.lessonPath,
+          plannedParts: lesson.runtimePlan.plannedParts,
+          sources: [],
+          parts: lesson.runtimePlan.parts.map(part => ({
+            part: part.part,
+            title: '',
+            teacherDirections: [],
+            sourceIds: [],
+            data: part.part === 2 ? { part2Presentation: studentPart2Presentation } : {}
+          }))
+        };
+      }
+    }
   } else if (currentPart === LessonPart.Part3 || currentPart === LessonPart.Part4) {
     compact.wordCards = lesson.wordCards;
     compact.wordListReading = lesson.wordListReading;
