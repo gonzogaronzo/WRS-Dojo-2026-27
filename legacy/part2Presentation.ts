@@ -53,6 +53,7 @@ export type Part2ActionType =
   | 'TEACH_CARD'
   | 'BUILD_WORD'
   | 'PRACTICE_BUILD'
+  | 'READ_WORDS'
   | 'MARK_WORDS'
   | 'NOTEBOOK'
   | 'AFFIX_MANIPULATION'
@@ -75,6 +76,26 @@ export interface Part2InstructionObject {
   role: Part2InstructionObjectRole;
   /** Required for build/manipulation moves; source order begins at 1. */
   stagingOrder?: number;
+}
+
+/**
+ * The compiler/source owns this classification. It lets the runner reject a
+ * raw-word fallback instead of trying to infer syllables or morphology.
+ */
+export type Part2CardRepresentation =
+  | 'single-syllable'
+  | 'multisyllabic'
+  | 'morphological'
+  | 'greek-latin';
+
+/** Private, source-owned context for a Student Notebook move. */
+export interface Part2NotebookContext {
+  /** Section/page/location only when the source explicitly verifies it. */
+  location?: string;
+  /** The source-supplied visual/form of the entry. */
+  entryAppearance?: string;
+  /** Why the entry is being added at this point in the lesson. */
+  purpose?: string;
 }
 
 export type Part2SourceSection = 'introductory-and-ongoing' | 'subsequent-lessons';
@@ -101,6 +122,10 @@ export interface Part2InstructionStep {
   teacherDirections: string[];
   studentPrompt?: string;
   objects: Part2InstructionObject[];
+  /** Required for source-controlled Part 2 build/read/manipulation moves. */
+  cardRepresentation?: Part2CardRepresentation;
+  /** Kept private; stripped before a passive student projection is created. */
+  notebookContext?: Part2NotebookContext;
   expectedStudentAction?: string;
   teachingPoint?: string;
   sourceRef: Part2StepSourceReference;
@@ -236,7 +261,7 @@ const FOCUS_VALUES = new Set<LessonFocus>([
 
 const ACTION_TYPES = new Set<Part2ActionType>([
   'REVIEW_BUILD', 'TEACH_CARD', 'BUILD_WORD', 'PRACTICE_BUILD',
-  'MARK_WORDS', 'NOTEBOOK', 'AFFIX_MANIPULATION', 'WORD_ELEMENT_BUILD'
+  'READ_WORDS', 'MARK_WORDS', 'NOTEBOOK', 'AFFIX_MANIPULATION', 'WORD_ELEMENT_BUILD'
 ]);
 
 const DISPLAY_TYPES = new Set<Part2DisplayType>([
@@ -249,7 +274,12 @@ const INSTRUCTION_OBJECT_ROLES = new Set<Part2InstructionObjectRole>([
 ]);
 
 const BUILD_ACTION_TYPES = new Set<Part2ActionType>([
-  'REVIEW_BUILD', 'BUILD_WORD', 'PRACTICE_BUILD', 'AFFIX_MANIPULATION', 'WORD_ELEMENT_BUILD'
+  'REVIEW_BUILD', 'BUILD_WORD', 'PRACTICE_BUILD', 'READ_WORDS',
+  'AFFIX_MANIPULATION', 'WORD_ELEMENT_BUILD'
+]);
+
+const CARD_REPRESENTATION_VALUES = new Set<Part2CardRepresentation>([
+  'single-syllable', 'multisyllabic', 'morphological', 'greek-latin'
 ]);
 
 const SOURCE_SECTION_VALUES = new Set<Part2SourceSection>([
@@ -401,12 +431,27 @@ const normalizeSaveHints = (value: unknown): Part2SaveHints | undefined | null =
   return { troubleSpotPrompt, notePrompt };
 };
 
+const normalizeNotebookContext = (value: unknown): Part2NotebookContext | undefined | null => {
+  if (value === undefined) return undefined;
+  const record = asRecord(value);
+  if (!record) return null;
+  const location = optionalText(record.location);
+  const entryAppearance = optionalText(record.entryAppearance);
+  const purpose = optionalText(record.purpose);
+  if (!location && !entryAppearance && !purpose) return null;
+  return { location, entryAppearance, purpose };
+};
+
 const buildValidationError = (
   actionType: Part2ActionType,
   displayType: Part2DisplayType,
-  objects: Part2InstructionObject[]
+  objects: Part2InstructionObject[],
+  cardRepresentation?: Part2CardRepresentation
 ): string | null => {
   if (!BUILD_ACTION_TYPES.has(actionType)) return null;
+  if (!cardRepresentation) {
+    return 'Build/read/manipulation steps require an explicit source-supplied cardRepresentation.';
+  }
   const staged = objects.map(object => object.stagingOrder);
   if (staged.some(order => order === undefined)) return 'Build/manipulation steps require an explicit stagingOrder for every object.';
   const ordered = [...(staged as number[])].sort((left, right) => left - right);
@@ -417,6 +462,19 @@ const buildValidationError = (
   const roles = objects.map(object => object.role);
   const tileRole = (role: Part2InstructionObjectRole) => TILE_ROLES.has(role as Part2TileRole);
   const elementRole = (role: Part2InstructionObjectRole) => ELEMENT_ROLES.has(role as Part2WordElement['role']);
+
+  if (cardRepresentation === 'single-syllable' && displayType !== 'LETTER_SOUND_TILES') {
+    return 'single-syllable source representations require explicit Letter-Sound Tiles.';
+  }
+  if (cardRepresentation === 'multisyllabic' && displayType !== 'SYLLABLE_CARDS') {
+    return 'multisyllabic source representations require explicit Syllable Cards.';
+  }
+  if (cardRepresentation === 'morphological' && !['PREFIX_SUFFIX_CARDS', 'WORD_ELEMENT_CARDS'].includes(displayType)) {
+    return 'morphological source representations require explicit Prefix/Suffix or Word Element Cards.';
+  }
+  if (cardRepresentation === 'greek-latin' && displayType !== 'WORD_ELEMENT_CARDS') {
+    return 'Greek/Latin source representations require explicit Word Element Cards.';
+  }
 
   switch (displayType) {
     case 'LETTER_SOUND_TILES':
@@ -443,6 +501,32 @@ const buildValidationError = (
   }
 };
 
+const actionValidationError = (
+  actionType: Part2ActionType,
+  displayType: Part2DisplayType,
+  objects: Part2InstructionObject[],
+  cardRepresentation?: Part2CardRepresentation,
+  notebookContext?: Part2NotebookContext
+): string | null => {
+  if (actionType === 'READ_WORDS' && displayType === 'WRITTEN_WORD') {
+    return 'READ_WORDS cannot fall back to WRITTEN_WORD; source-supplied card segmentation is required.';
+  }
+  if (actionType === 'MARK_WORDS') {
+    if (displayType !== 'WRITTEN_WORD') return 'MARK_WORDS requires a supplied written-word marking surface.';
+    if (!objects.every(object => object.role === 'word')) return 'MARK_WORDS requires explicit written-word objects.';
+  }
+  if (actionType === 'NOTEBOOK') {
+    if (displayType !== 'NOTEBOOK') return 'NOTEBOOK requires the NOTEBOOK display type.';
+    if (!objects.every(object => object.role === 'notebook')) return 'NOTEBOOK requires explicit notebook-entry objects.';
+  } else if (notebookContext) {
+    return 'notebookContext may only be supplied for a NOTEBOOK step.';
+  }
+  if (!BUILD_ACTION_TYPES.has(actionType) && cardRepresentation) {
+    return 'cardRepresentation may only be supplied for a source-controlled build/read/manipulation step.';
+  }
+  return null;
+};
+
 const normalizeInteractiveStep = (
   value: unknown,
   index: number,
@@ -462,6 +546,8 @@ const normalizeInteractiveStep = (
   const sourceSection = (record.sourceSection ?? 'introductory-and-ongoing') as Part2SourceSection;
   const projectPacingRule = record.projectPacingRule as Part2ProjectPacingRule | undefined;
   const saveHints = normalizeSaveHints(record.saveHints);
+  const cardRepresentation = record.cardRepresentation as Part2CardRepresentation | undefined;
+  const notebookContext = normalizeNotebookContext(record.notebookContext);
   const provenance = record.provenance as Part2PresentationProvenance | undefined;
 
   if (!actionType || !ACTION_TYPES.has(actionType)) return invalidInteractiveStep(id, 'Instructional actionType is missing or unsupported.');
@@ -479,14 +565,21 @@ const normalizeInteractiveStep = (
     return invalidInteractiveStep(id, 'A projectPacingRule may only be attached to Subsequent Lessons source material.');
   }
   if (saveHints === null) return invalidInteractiveStep(id, 'saveHints must contain a supplied prompt.');
+  if (cardRepresentation !== undefined && !CARD_REPRESENTATION_VALUES.has(cardRepresentation)) {
+    return invalidInteractiveStep(id, 'cardRepresentation is not recognized.');
+  }
+  if (notebookContext === null) return invalidInteractiveStep(id, 'notebookContext must contain source-supplied notebook context.');
 
-  const buildError = buildValidationError(actionType, displayType, objects);
+  const actionError = actionValidationError(actionType, displayType, objects, cardRepresentation, notebookContext || undefined);
+  if (actionError) return invalidInteractiveStep(id, actionError);
+  const buildError = buildValidationError(actionType, displayType, objects, cardRepresentation);
   if (buildError) return invalidInteractiveStep(id, buildError);
 
   return {
     kind: 'step', id, provenance, actionType, displayType,
     teacherCue: teacherCue || '', teacherDirections: teacherDirections || [],
-    studentPrompt: optionalText(record.studentPrompt), objects,
+    studentPrompt: optionalText(record.studentPrompt), objects, cardRepresentation,
+    notebookContext: notebookContext || undefined,
     expectedStudentAction: optionalText(record.expectedStudentAction),
     teachingPoint: optionalText(record.teachingPoint), sourceRef: sourceRef || { sourceIds: [] }, sourceSection,
     projectPacingRule, saveHints: saveHints || undefined
@@ -553,7 +646,7 @@ export const sanitizePart2PresentationForStudent = (value: unknown): unknown => 
       const studentStep = { ...record };
       for (const privateKey of [
         'teacherCue', 'teacherDirections', 'teachingPoint',
-        'expectedStudentAction', 'sourceRef', 'saveHints'
+        'expectedStudentAction', 'sourceRef', 'saveHints', 'notebookContext'
       ]) {
         delete studentStep[privateKey];
       }
