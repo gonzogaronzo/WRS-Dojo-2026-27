@@ -535,6 +535,11 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [showCodingTray, setShowCodingTray] = useState(true);
+  const runnerMarkIndex = slideIndex ?? 0;
+  const runnerMarks = slideMarks?.[runnerMarkIndex] || [];
+  const updateRunnerMarks = onUpdateSlideMarks
+    ? (nextMarks: CodingMark[]) => onUpdateSlideMarks({ ...(slideMarks || {}), [runnerMarkIndex]: nextMarks })
+    : undefined;
 
   return (
     <div className="min-h-full flex flex-col bg-[#fdf6e3] overflow-hidden select-none text-stone-900 font-sans">
@@ -604,6 +609,13 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
                    onUpdateObjectStates={onUpdateSlideObjectStates}
                    notes={notes}
                    onUpdateNotes={onUpdateNotes}
+                   drawingStrokes={drawingStrokes}
+                   onUpdateDrawingStrokes={onUpdateDrawingStrokes}
+                   drawingTool={tool}
+                   onUpdateDrawingTool={setTool}
+                   {...(updateRunnerMarks ? { marks: runnerMarks, onUpdateMarks: updateRunnerMarks } : {})}
+                   showMarkingTools={showCodingTray}
+                   onToggleMarkingTools={() => setShowCodingTray(value => !value)}
                    readOnly={readOnly}
                  />
                ) : (
