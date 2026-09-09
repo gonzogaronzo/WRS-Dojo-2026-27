@@ -210,23 +210,75 @@
         { "id": "n", "text": "n", "role": "consonant", "stagingOrder": 3 },
         { "id": "e", "text": "e", "role": "vowel", "stagingOrder": 4 }
       ],
+      "cardRepresentation": "single-syllable",
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 128" },
       "sourceSection": "introductory-and-ongoing"
     },
     {
-      "id": "ph-reading-practice",
+      "id": "phase-reading-practice",
       "provenance": "source-paraphrase",
-      "actionType": "TEACH_CARD",
-      "displayType": "WRITTEN_WORD",
-      "teacherCue": "Read the source-supplied ph examples using the supplied materials as needed.",
-      "teacherDirections": ["Present the source-listed ph examples in order and use only the source-supplied Letter-Sound or Syllable Cards needed for each word."],
-      "studentPrompt": "Read the ph words.",
+      "actionType": "READ_WORDS",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Read phase with the supplied Letter-Sound Tiles.",
+      "teacherDirections": ["Pull the source-supplied Letter-Sound Tiles for phase in order, then have the student read the completed word."],
+      "studentPrompt": "Build and read phase.",
       "objects": [
-        { "id": "phase", "text": "phase", "role": "word" },
-        { "id": "graph", "text": "graph", "role": "word" },
-        { "id": "trophy", "text": "trophy", "role": "word" },
-        { "id": "dolphin", "text": "dolphin", "role": "word" }
+        { "id": "phase-ph", "text": "ph", "role": "consonant-digraph", "stagingOrder": 1 },
+        { "id": "phase-a", "text": "a", "role": "vowel", "stagingOrder": 2 },
+        { "id": "phase-s", "text": "s", "role": "consonant", "stagingOrder": 3 },
+        { "id": "phase-e", "text": "e", "role": "vowel", "stagingOrder": 4 }
       ],
+      "cardRepresentation": "single-syllable",
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 128" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "graph-reading-practice",
+      "provenance": "source-paraphrase",
+      "actionType": "READ_WORDS",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Read graph with the supplied Letter-Sound Tiles.",
+      "teacherDirections": ["Pull the source-supplied Letter-Sound Tiles for graph in order, then have the student read the completed word."],
+      "studentPrompt": "Build and read graph.",
+      "objects": [
+        { "id": "graph-g", "text": "g", "role": "consonant", "stagingOrder": 1 },
+        { "id": "graph-r", "text": "r", "role": "consonant", "stagingOrder": 2 },
+        { "id": "graph-a", "text": "a", "role": "vowel", "stagingOrder": 3 },
+        { "id": "graph-ph", "text": "ph", "role": "consonant-digraph", "stagingOrder": 4 }
+      ],
+      "cardRepresentation": "single-syllable",
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 128" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "trophy-reading-practice",
+      "provenance": "source-paraphrase",
+      "actionType": "READ_WORDS",
+      "displayType": "SYLLABLE_CARDS",
+      "teacherCue": "Read trophy with the supplied Syllable Cards.",
+      "teacherDirections": ["Pull the source-supplied Syllable Cards for trophy in order, combine them, and have the student read the completed word."],
+      "studentPrompt": "Build and read trophy.",
+      "objects": [
+        { "id": "trophy-tro", "text": "tro", "role": "syllable", "stagingOrder": 1 },
+        { "id": "trophy-phy", "text": "phy", "role": "syllable", "stagingOrder": 2 }
+      ],
+      "cardRepresentation": "multisyllabic",
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 128" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "dolphin-reading-practice",
+      "provenance": "source-paraphrase",
+      "actionType": "READ_WORDS",
+      "displayType": "SYLLABLE_CARDS",
+      "teacherCue": "Read dolphin with the supplied Syllable Cards.",
+      "teacherDirections": ["Pull the source-supplied Syllable Cards for dolphin in order, combine them, and have the student read the completed word."],
+      "studentPrompt": "Build and read dolphin.",
+      "objects": [
+        { "id": "dolphin-dol", "text": "dol", "role": "syllable", "stagingOrder": 1 },
+        { "id": "dolphin-phin", "text": "phin", "role": "syllable", "stagingOrder": 2 }
+      ],
+      "cardRepresentation": "multisyllabic",
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 128" },
       "sourceSection": "introductory-and-ongoing"
     },
@@ -239,8 +291,9 @@
       "teacherDirections": ["Make the source-supplied fudge example with the dge card, then prompt the student to name the trigraph and notice the short vowel context."],
       "studentPrompt": "Read fudge and name dge.",
       "objects": [
-        { "id": "dge", "text": "dge", "role": "consonant-trigraph" },
-        { "id": "fudge", "text": "fudge", "role": "word" }
+        { "id": "fudge-f", "text": "f", "role": "consonant" },
+        { "id": "fudge-u", "text": "u", "role": "vowel" },
+        { "id": "fudge-dge", "text": "dge", "role": "consonant-trigraph" }
       ],
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
       "sourceSection": "introductory-and-ongoing"
@@ -270,22 +323,46 @@
         { "id": "a", "text": "a", "role": "vowel", "stagingOrder": 2 },
         { "id": "tch", "text": "tch", "role": "consonant-trigraph", "stagingOrder": 3 }
       ],
+      "cardRepresentation": "single-syllable",
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
       "sourceSection": "introductory-and-ongoing",
       "saveHints": { "troubleSpotPrompt": "Record any difficulty hearing or reading the tch pattern." }
     },
     {
-      "id": "tch-reading-practice",
+      "id": "stretch-reading-practice",
       "provenance": "source-paraphrase",
-      "actionType": "TEACH_CARD",
-      "displayType": "WRITTEN_WORD",
-      "teacherCue": "Read the source-supplied tch examples and discuss why tch appears.",
-      "teacherDirections": ["Present the source-listed tch examples and prompt the student to compare tch with ch after a short vowel."],
-      "studentPrompt": "Read the tch words.",
+      "actionType": "READ_WORDS",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Read stretch with the supplied Letter-Sound Tiles.",
+      "teacherDirections": ["Pull the source-supplied Letter-Sound Tiles for stretch in order, then prompt the student to read the word and notice tch after a short vowel."],
+      "studentPrompt": "Build and read stretch.",
       "objects": [
-        { "id": "stretch", "text": "stretch", "role": "word" },
-        { "id": "scratch", "text": "scratch", "role": "word" }
+        { "id": "stretch-s", "text": "s", "role": "consonant", "stagingOrder": 1 },
+        { "id": "stretch-t", "text": "t", "role": "consonant", "stagingOrder": 2 },
+        { "id": "stretch-r", "text": "r", "role": "consonant", "stagingOrder": 3 },
+        { "id": "stretch-e", "text": "e", "role": "vowel", "stagingOrder": 4 },
+        { "id": "stretch-tch", "text": "tch", "role": "consonant-trigraph", "stagingOrder": 5 }
       ],
+      "cardRepresentation": "single-syllable",
+      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
+      "sourceSection": "introductory-and-ongoing"
+    },
+    {
+      "id": "scratch-reading-practice",
+      "provenance": "source-paraphrase",
+      "actionType": "READ_WORDS",
+      "displayType": "LETTER_SOUND_TILES",
+      "teacherCue": "Read scratch with the supplied Letter-Sound Tiles.",
+      "teacherDirections": ["Pull the source-supplied Letter-Sound Tiles for scratch in order, then prompt the student to read the word and notice tch after a short vowel."],
+      "studentPrompt": "Build and read scratch.",
+      "objects": [
+        { "id": "scratch-s", "text": "s", "role": "consonant", "stagingOrder": 1 },
+        { "id": "scratch-c", "text": "c", "role": "consonant", "stagingOrder": 2 },
+        { "id": "scratch-r", "text": "r", "role": "consonant", "stagingOrder": 3 },
+        { "id": "scratch-a", "text": "a", "role": "vowel", "stagingOrder": 4 },
+        { "id": "scratch-tch", "text": "tch", "role": "consonant-trigraph", "stagingOrder": 5 }
+      ],
+      "cardRepresentation": "single-syllable",
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
       "sourceSection": "introductory-and-ongoing"
     },
@@ -313,6 +390,11 @@
       "teacherDirections": ["Guide the student through the source-directed Sounds-section notebook entry for ph."],
       "studentPrompt": "Add the ph notebook entry.",
       "objects": [{ "id": "ph-notebook-entry", "text": "ph · phone", "role": "notebook" }],
+      "notebookContext": {
+        "location": "Sounds section — Digraphs page.",
+        "entryAppearance": "Write “ph · phone” as the supplied sound/keyword entry.",
+        "purpose": "Record the introduced ph pattern and keyword before applying it in word work."
+      },
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
       "sourceSection": "introductory-and-ongoing"
     },
@@ -325,6 +407,11 @@
       "teacherDirections": ["Guide the student through the source-directed Trigraphs-section notebook entry for tch."],
       "studentPrompt": "Add the tch notebook entry.",
       "objects": [{ "id": "tch-notebook-entry", "text": "tch · catch", "role": "notebook" }],
+      "notebookContext": {
+        "location": "Sounds section — Trigraphs page.",
+        "entryAppearance": "Write “tch · catch” as the supplied sound/keyword entry.",
+        "purpose": "Record the introduced tch pattern and keyword before applying it in word work."
+      },
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
       "sourceSection": "introductory-and-ongoing"
     },
@@ -343,6 +430,7 @@
         { "id": "-ed", "text": "-ed", "role": "suffix", "stagingOrder": 4 },
         { "id": "un-", "text": "un-", "role": "prefix", "stagingOrder": 5 }
       ],
+      "cardRepresentation": "morphological",
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
       "sourceSection": "introductory-and-ongoing",
       "saveHints": { "notePrompt": "Record the word-building response or next instructional move." }
@@ -359,6 +447,7 @@
         { "id": "micro", "text": "micro-", "role": "greek-combining-form", "stagingOrder": 1 },
         { "id": "scope", "text": "-scope", "role": "greek-combining-form", "stagingOrder": 2 }
       ],
+      "cardRepresentation": "greek-latin",
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Subsequent Lessons, Part 2" },
       "sourceSection": "subsequent-lessons",
       "projectPacingRule": "include-subsequent-in-introduction"
