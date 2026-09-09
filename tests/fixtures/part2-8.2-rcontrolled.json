@@ -23,6 +23,7 @@
         { "id": "mar", "text": "mar", "role": "syllable", "stagingOrder": 1 },
         { "id": "ket", "text": "ket", "role": "syllable", "stagingOrder": 2 }
       ],
+      "cardRepresentation": "multisyllabic",
       "sourceRef": { "sourceIds": ["SI-08.2"], "locator": "Substep 8.2, Part 2, pp. 186–187" },
       "sourceSection": "introductory-and-ongoing"
     },
@@ -39,6 +40,7 @@
         { "id": "part", "text": "-part-", "role": "base-element", "stagingOrder": 2 },
         { "id": "port", "text": "-port-", "role": "base-element", "stagingOrder": 3 }
       ],
+      "cardRepresentation": "greek-latin",
       "sourceRef": { "sourceIds": ["SI-08.2"], "locator": "Substep 8.2, Subsequent Lessons, pp. 188–189" },
       "sourceSection": "subsequent-lessons",
       "projectPacingRule": "include-subsequent-in-introduction"
