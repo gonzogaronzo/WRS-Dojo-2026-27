@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, PlusCircle, RotateCcw, Save } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, MousePointer2, PenTool, PlusCircle, RotateCcw, Save, Trash2, X } from 'lucide-react';
 import Tile from '../Tile';
 import Draggable from '../interactive/Draggable';
 import { useLessonStageScale } from '../LessonStage';
+import CodingTray, { CodingMark } from './CodingTray';
+import CodingMarkContent from '../CodingMarkContent';
+import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
+import { generateId } from '../../utils';
 import {
   encodePart2SemanticUnit,
   isPart2BuildAction,
@@ -27,6 +31,7 @@ interface RunnerObjectState {
 
 interface RunnerMetaState extends RunnerObjectState {
   quickPracticeAnchorId?: string;
+  activeWordIndex?: number;
 }
 
 type RunnerStoredState = RunnerMetaState;
@@ -40,6 +45,14 @@ interface Part2InteractiveRunnerProps {
   onUpdateObjectStates?: (states: RunnerStateMap) => void;
   notes?: string;
   onUpdateNotes?: (notes: string) => void;
+  drawingStrokes?: DrawingStroke[];
+  onUpdateDrawingStrokes?: (strokes: DrawingStroke[]) => void;
+  drawingTool?: 'cursor' | 'pen';
+  onUpdateDrawingTool?: (tool: 'cursor' | 'pen') => void;
+  marks?: CodingMark[];
+  onUpdateMarks?: (marks: CodingMark[]) => void;
+  showMarkingTools?: boolean;
+  onToggleMarkingTools?: () => void;
   readOnly?: boolean;
 }
 
@@ -69,6 +82,9 @@ const readRunnerMetaState = (value: unknown): RunnerMetaState => {
     ...base,
     quickPracticeAnchorId: typeof record.quickPracticeAnchorId === 'string'
       ? record.quickPracticeAnchorId
+      : undefined,
+    activeWordIndex: typeof record.activeWordIndex === 'number' && Number.isInteger(record.activeWordIndex)
+      ? Math.max(0, record.activeWordIndex)
       : undefined
   };
 };
@@ -93,6 +109,14 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
   onUpdateObjectStates,
   notes,
   onUpdateNotes,
+  drawingStrokes,
+  onUpdateDrawingStrokes,
+  drawingTool,
+  onUpdateDrawingTool,
+  marks,
+  onUpdateMarks,
+  showMarkingTools,
+  onToggleMarkingTools,
   readOnly = false
 }) => {
   const [localIndex, setLocalIndex] = useState(0);
@@ -103,6 +127,9 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
   const [instructionalNote, setInstructionalNote] = useState('');
   const [tagCurrentStep, setTagCurrentStep] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [localDrawingTool, setLocalDrawingTool] = useState<'cursor' | 'pen'>('cursor');
+  const [localMarks, setLocalMarks] = useState<CodingMark[]>([]);
+  const [localMarkingToolsVisible, setLocalMarkingToolsVisible] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);
   const [contentScale, setContentScale] = useState(1);
   const lessonStageScale = useLessonStageScale();
@@ -116,6 +143,32 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
   const quickPractice = activeStep ? isQuickPractice(meta, activeStep) : false;
   const showTeacherPrivate = !readOnly && !boardSafe;
   const buttonClass = boardSafe ? compactButtonClass : standardButtonClass;
+  const activeDrawingTool = drawingTool ?? localDrawingTool;
+  const markingToolsVisible = showMarkingTools ?? localMarkingToolsVisible;
+  const activeMarks = marks ?? localMarks;
+  const visibleMarks = activeMarks.filter((mark): mark is CodingMark => Boolean(mark?.id));
+  const syncedDrawing = useSyncedDrawingCanvas({
+    strokes: drawingStrokes,
+    onUpdateStrokes: onUpdateDrawingStrokes,
+    tool: activeDrawingTool,
+    lineWidth: 6,
+    readOnly
+  });
+
+  const setRunnerDrawingTool = (next: 'cursor' | 'pen') => {
+    if (onUpdateDrawingTool) onUpdateDrawingTool(next);
+    else setLocalDrawingTool(next);
+  };
+
+  const replaceMarks = (next: CodingMark[]) => {
+    if (onUpdateMarks) onUpdateMarks(next);
+    else setLocalMarks(next);
+  };
+
+  const toggleMarkingTools = () => {
+    if (onToggleMarkingTools) onToggleMarkingTools();
+    else setLocalMarkingToolsVisible(value => !value);
+  };
 
   useEffect(() => {
     const measure = () => {
@@ -202,6 +255,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
     nextActive[RUNNER_META_KEY] = {
       ...readRunnerMetaState(activeStates[RUNNER_META_KEY]),
       quickPracticeAnchorId: next.quickPracticeAnchorId,
+      activeWordIndex: 0,
       x: 0,
       y: 0,
       scale: 1
@@ -235,12 +289,42 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
 
   const buildStep = isPart2BuildAction(activeStep.actionType);
   const orderedObjects = [...activeStep.objects].sort((left, right) => (left.stagingOrder || 0) - (right.stagingOrder || 0));
+  const usesWordSequence = activeStep.displayType === 'WRITTEN_WORD'
+    && orderedObjects.length > 0
+    && orderedObjects.every(object => object.role === 'word');
+  const activeWordIndex = usesWordSequence ? clampIndex(meta.activeWordIndex ?? 0, orderedObjects.length) : 0;
+  const activeWord = usesWordSequence ? orderedObjects[activeWordIndex] : undefined;
+  const visibleStaticObjects = usesWordSequence ? (activeWord ? [activeWord] : []) : orderedObjects;
   const unplaced = orderedObjects.filter(object => !readObjectState(
     activeStates[objectKey(activeStep.id, object.id)],
     { x: 0, y: 0, scale: 1 }
   ).placed);
   const topStagedId = unplaced[0]?.id;
   const displayCue = quickPractice ? 'Quick Practice — repeat the supplied move.' : activeStep.teacherCue;
+
+  const setActiveWordIndex = (next: number) => {
+    if (!usesWordSequence) return;
+    updateCurrentState(RUNNER_META_KEY, { activeWordIndex: clampIndex(next, orderedObjects.length) });
+  };
+
+  const spawnMark = (type: CodingMark['type']) => {
+    const mark: CodingMark = {
+      id: generateId(),
+      type,
+      x: 770,
+      y: 385,
+      scale: 1.25
+    };
+    replaceMarks([...activeMarks, mark]);
+  };
+
+  const updateMark = (id: string, updates: Partial<CodingMark>) => {
+    replaceMarks(activeMarks.map(mark => mark.id === id ? { ...mark, ...updates } : mark));
+  };
+
+  const removeMark = (id: string) => {
+    replaceMarks(activeMarks.filter(mark => mark.id !== id));
+  };
 
   const renderObject = (object: Part2InstructionObject, objectIndex: number) => {
     const key = objectKey(activeStep.id, object.id);
@@ -307,6 +391,19 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
                 <summary className="cursor-pointer font-black uppercase tracking-[0.1em] text-stone-600">Full source directions</summary>
                 <ol className="mt-2 list-decimal space-y-1 pl-4 leading-relaxed">{activeStep.teacherDirections.map((direction, index) => <li key={`${activeStep.id}-direction-${index}`}>{direction}</li>)}</ol>
               </details>
+              {activeStep.actionType === 'NOTEBOOK' && (
+                <aside data-part2-notebook-note className="max-w-2xl rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
+                  <p className="font-black uppercase tracking-[0.1em] text-sky-800">Student Notebook</p>
+                  <dl className="mt-1 grid gap-x-3 gap-y-1 sm:grid-cols-[5.5rem_1fr]">
+                    <dt className="font-bold">Location</dt>
+                    <dd>{activeStep.notebookContext?.location || 'Location is unavailable from this source payload; do not infer a page or layout.'}</dd>
+                    <dt className="font-bold">Entry</dt>
+                    <dd>{activeStep.notebookContext?.entryAppearance || 'Unavailable from this source payload; do not invent the entry form.'}</dd>
+                    <dt className="font-bold">Why now</dt>
+                    <dd>{activeStep.notebookContext?.purpose || 'Unavailable from this source payload; confirm the instructional purpose in the cited source.'}</dd>
+                  </dl>
+                </aside>
+              )}
               {activeStep.sourceSection === 'subsequent-lessons' && activeStep.projectPacingRule && (
                 <span data-part2-project-pacing className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">Project pacing: introduce this source-ordered Subsequent Lessons move in the current Introduction lesson.</span>
               )}
@@ -316,21 +413,131 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
       )}
 
       <div ref={stageRef} className="flex-1 min-h-0 relative overflow-hidden bg-stone-100" data-part2-stage-viewport>
+        {!readOnly && (
+          <div data-part2-drawing-tools className={`absolute left-3 top-3 z-[70] flex max-h-[calc(100%-1.5rem)] flex-col items-center gap-1 overflow-y-auto rounded-2xl border p-1.5 shadow-xl backdrop-blur-md ${activeStep.actionType === 'MARK_WORDS' ? 'border-red-200 bg-white/95' : 'border-stone-200 bg-white/85'}`}>
+            <button
+              type="button"
+              onClick={() => setRunnerDrawingTool('cursor')}
+              className={`rounded-xl p-3 transition-colors ${activeDrawingTool === 'cursor' ? 'bg-stone-900 text-white' : 'text-stone-500 hover:bg-stone-100'}`}
+              title="Move cards and marks"
+              aria-label="Use cursor to move Part 2 cards and marks"
+            >
+              <MousePointer2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setRunnerDrawingTool('pen')}
+              className={`rounded-xl p-3 transition-colors ${activeDrawingTool === 'pen' ? 'bg-red-700 text-white' : 'text-red-700 hover:bg-red-50'}`}
+              title="Draw or underline on this Part 2 step"
+              aria-label="Draw or underline on the active Part 2 step"
+            >
+              <PenTool className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={toggleMarkingTools}
+              className={`rounded-xl px-2 py-2 text-[8px] font-black uppercase tracking-[0.08em] transition-colors ${markingToolsVisible ? 'bg-emerald-100 text-emerald-900' : 'text-stone-500 hover:bg-stone-100'}`}
+              title="Show or hide Wilson coding marks"
+              aria-label="Toggle Wilson coding marks"
+            >
+              Code
+            </button>
+            {markingToolsVisible && (
+              <CodingTray
+                onSpawnMark={spawnMark}
+                onClearMarks={() => replaceMarks([])}
+                vertical
+                initiallyCollapsed={false}
+              />
+            )}
+            <div className="my-0.5 h-px w-8 bg-stone-200" />
+            <button
+              type="button"
+              onClick={() => syncedDrawing.clear()}
+              className="rounded-xl p-3 text-stone-500 transition-colors hover:bg-red-50 hover:text-red-700"
+              title="Clear drawing on this Part 2 step"
+              aria-label="Clear drawing on the active Part 2 step"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => replaceMarks([])}
+              className="rounded-xl p-3 text-stone-500 transition-colors hover:bg-red-50 hover:text-red-700"
+              title="Clear Wilson coding marks on this Part 2 step"
+              aria-label="Clear Wilson coding marks on the active Part 2 step"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
         <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
           <div className="relative h-px w-px" style={{ transform: `scale(${contentScale})` }}>
-            <div data-part2-live-work-area className="relative h-[900px] w-[1600px] -translate-x-1/2 -translate-y-1/2 overflow-hidden border border-stone-200 bg-[#fcfbf9]">
+            <div
+              data-part2-live-work-area
+              {...(activeStep.actionType === 'MARK_WORDS' ? { 'data-part2-marking-surface': 'true' } : {})}
+              className="relative h-[900px] w-[1600px] -translate-x-1/2 -translate-y-1/2 overflow-hidden border border-stone-200 bg-[#fcfbf9]"
+            >
               <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#f8f7f4_100%)]" />
               {activeStep.studentPrompt && <p data-part2-student-prompt className="absolute left-1/2 top-12 z-20 w-[980px] -translate-x-1/2 text-center text-[30px] font-semibold leading-tight text-stone-700">{activeStep.studentPrompt}</p>}
               {buildStep && !readOnly && <div data-part2-staging-stack className="absolute left-12 top-14 z-20 h-[610px] w-[280px] rounded-2xl border border-stone-300 bg-stone-50/90 p-4 shadow-sm"><p className="text-[11px] font-black uppercase tracking-[0.18em] text-stone-500">Pull stack</p><p className="mt-1 text-xs text-stone-500">Take the top supplied card first.</p></div>}
               {buildStep && readOnly && unplaced.length > 0 && <p className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-center text-2xl font-semibold text-stone-400">Waiting for the teacher to place the supplied materials.</p>}
               {buildStep ? orderedObjects.map(renderObject) : (
                 <div data-part2-static-objects className="absolute inset-0 z-10 flex flex-wrap content-center items-center justify-center gap-5 px-32 pt-20">
-                  {orderedObjects.map(object => <div key={object.id} data-part2-object-id={object.id} data-part2-role={object.role}><Tile data={semanticTile(object)} size="xl" /></div>)}
+                  {visibleStaticObjects.map(object => (
+                    <div
+                      key={object.id}
+                      data-part2-object-id={object.id}
+                      data-part2-role={object.role}
+                      {...(usesWordSequence ? { 'data-part2-active-word': 'true', 'data-part2-word-index': activeWordIndex + 1 } : {})}
+                      className={usesWordSequence ? 'origin-center scale-[1.35]' : undefined}
+                    >
+                      <Tile data={semanticTile(object)} size="xl" />
+                    </div>
+                  ))}
                 </div>
               )}
+              {usesWordSequence && !readOnly && orderedObjects.length > 1 && (
+                <div data-part2-word-sequence-controls className="absolute bottom-16 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-xl border border-stone-300 bg-white/95 px-4 py-3 shadow-sm">
+                  <button type="button" className={compactButtonClass} onClick={() => setActiveWordIndex(activeWordIndex - 1)} disabled={activeWordIndex === 0} aria-label="Previous word"><ChevronLeft className="inline h-3.5 w-3.5" /> Word</button>
+                  <span className="text-[10px] font-black uppercase tracking-[0.14em] text-stone-500">Word {activeWordIndex + 1} of {orderedObjects.length}</span>
+                  <button type="button" className={compactButtonClass} onClick={() => setActiveWordIndex(activeWordIndex + 1)} disabled={activeWordIndex >= orderedObjects.length - 1} aria-label="Next word">Word <ChevronRight className="inline h-3.5 w-3.5" /></button>
+                </div>
+              )}
+              {visibleMarks.map(mark => (
+                <Draggable
+                  key={mark.id}
+                  initialPos={{ x: mark.x, y: mark.y }}
+                  viewportScale={contentScale * lessonStageScale}
+                  onDragEnd={position => !readOnly && updateMark(mark.id, position)}
+                  className={readOnly ? 'pointer-events-none' : 'pointer-events-auto'}
+                  style={{ zIndex: 90 }}
+                >
+                  <div data-part2-coding-mark className="relative group/part2-mark flex items-center justify-center p-4">
+                    <CodingMarkContent mark={mark} variant="small" />
+                    {!readOnly && <button
+                      type="button"
+                      onClick={event => { event.stopPropagation(); removeMark(mark.id); }}
+                      className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-700 text-white opacity-0 shadow-lg transition-opacity group-hover/part2-mark:opacity-100"
+                      aria-label="Remove coding mark"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>}
+                  </div>
+                </Draggable>
+              ))}
             </div>
           </div>
         </div>
+        <canvas
+          ref={syncedDrawing.canvasRef}
+          data-part2-drawing-surface
+          onPointerDown={syncedDrawing.onPointerDown}
+          onPointerMove={syncedDrawing.onPointerMove}
+          onPointerUp={syncedDrawing.onPointerUp}
+          onPointerCancel={syncedDrawing.onPointerCancel}
+          className={`absolute inset-0 z-40 touch-none ${readOnly || activeDrawingTool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`}
+        />
       </div>
 
       {!readOnly && showTeacherPrivate && (
