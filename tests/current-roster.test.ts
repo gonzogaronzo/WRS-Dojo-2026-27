@@ -27,8 +27,8 @@ test('assigns every current student to exactly one requested group', () => {
     'Group 5B': ['Oliver', 'Ethan'],
     'Group 5A': ['Alex', 'Finn', 'Maya'],
     'Group 2': ['Enrique'],
-    'Group 3A': ['Elise', 'Eleanor', 'Juliana', 'Carolyn'],
-    'Group 3B': ['Izzy', 'Levi', 'Nora'],
+    'Group 3A': ['Levi', 'Nora', 'Eleanor'],
+    'Group 3B': ['Izzy', 'Juliana', 'Carolyn', 'Elise'],
     'Group 4A': ['Charlotte', 'Bennett', 'Ben', 'Xavier', 'Uffarren']
   });
   assert.ok(assignments.every(assignment => assignment.student));
