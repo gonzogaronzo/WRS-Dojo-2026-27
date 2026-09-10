@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Lesson, Slide, WordCard } from '../../types';
 import Slideshow, { ObjectState, SlideshowRef } from './Slideshow';
+import Part2InteractiveRunner from './Part2InteractiveRunner';
 import GenericText from './GenericText';
 import { parseWordToTiles, getTileColor, generateId, TileData, splitIntoSyllables } from '../../utils';
 import { getTilesForStep, getPhonemeForGrapheme, getOptionsForPhoneme } from '../../masterCurriculum';
@@ -18,6 +19,7 @@ import CodingTray, { CodingMark } from './CodingTray';
 import Draggable from '../interactive/Draggable';
 import CodingMarkContent from '../CodingMarkContent';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
+import { part2InteractivePresentationFromData } from '../../part2Presentation';
 
 interface TeachConceptsProps {
   lesson: Lesson;
@@ -120,10 +122,16 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
   slideFullScreen,
   onUpdateSlideFullScreen
 }) => {
+  // The runner is opt-in from source data. Existing semantic Part 2 slides
+  // remain the production fallback for lessons that have not supplied steps.
+  const interactivePart2Presentation = !isSpelling
+    ? part2InteractivePresentationFromData(lesson.runtimePlan?.parts.find(part => part.part === 2)?.data)
+    : null;
+  const hasInteractivePart2 = Boolean(interactivePart2Presentation);
   const [publicMode, setPublicMode] = useSyncState(syncedMode, onUpdateMode, (() => {
     if (forcedInitialMode) return forcedInitialMode;
     if (isSpelling) return (lesson.cipherWords && lesson.cipherWords.length > 0) ? 'cipher' : 'board';
-    return (lesson.slides?.length > 0 || lesson.googleSlidesUrl) ? 'slides' : 'board';
+    return (hasInteractivePart2 || lesson.slides?.length > 0 || lesson.googleSlidesUrl) ? 'slides' : 'board';
   })() as 'slides' | 'notes' | 'board' | 'cipher');
   const [showTeacherNotes, setShowTeacherNotes] = useState(false);
   const audienceMode = publicMode === 'notes' ? 'board' : publicMode;
@@ -527,6 +535,11 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [showCodingTray, setShowCodingTray] = useState(true);
+  const runnerMarkIndex = slideIndex ?? 0;
+  const runnerMarks = slideMarks?.[runnerMarkIndex] || [];
+  const updateRunnerMarks = onUpdateSlideMarks
+    ? (nextMarks: CodingMark[]) => onUpdateSlideMarks({ ...(slideMarks || {}), [runnerMarkIndex]: nextMarks })
+    : undefined;
 
   return (
     <div className="min-h-full flex flex-col bg-[#fdf6e3] overflow-hidden select-none text-stone-900 font-sans">
@@ -534,12 +547,12 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
       <div className="h-16 border-b-4 border-red-900 flex items-center justify-between px-8 z-40 flex-shrink-0 bg-stone-900 text-white shadow-xl">
         <div className="flex items-center gap-6">
            {!readOnly && <div className="flex bg-stone-800 p-1 rounded-full border border-stone-700">
-             {!isSpelling && (lesson.slides?.length > 0 || lesson.googleSlidesUrl) && (
+             {!isSpelling && (hasInteractivePart2 || lesson.slides?.length > 0 || lesson.googleSlidesUrl) && (
                 <button
                   onClick={() => setMode('slides')}
                   className={`px-5 py-2 rounded-full transition-all text-xs font-black uppercase tracking-widest ${mode === 'slides' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
                 >
-                  Slides
+                  {hasInteractivePart2 ? 'Runner' : 'Slides'}
                 </button>
              )}
              <button
@@ -587,23 +600,43 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
         <div className="flex-1 overflow-hidden relative flex flex-col">
           {mode === 'slides' && (
             <div className="flex-1 overflow-hidden">
-               <Slideshow
-                 ref={slideshowRef}
-                 slides={lesson.slides}
-                 googleSlidesUrl={lesson.googleSlidesUrl}
-                 tool={tool}
-                 currentIndex={slideIndex}
-                 onUpdateIndex={onUpdateSlideIndex}
-                 drawingStrokes={drawingStrokes}
-                 onUpdateDrawingStrokes={onUpdateDrawingStrokes}
-                 readOnly={readOnly}
-                 slideMarks={slideMarks}
-                 onUpdateSlideMarks={onUpdateSlideMarks}
-                 objectStates={slideObjectStates}
-                 onUpdateObjectStates={onUpdateSlideObjectStates}
-                 isFullScreenContent={slideFullScreen}
-                 onUpdateFullScreenContent={onUpdateSlideFullScreen}
-               />
+               {interactivePart2Presentation ? (
+                 <Part2InteractiveRunner
+                   presentation={interactivePart2Presentation}
+                   activeStepIndex={slideIndex}
+                   onUpdateActiveStepIndex={onUpdateSlideIndex}
+                   objectStates={slideObjectStates}
+                   onUpdateObjectStates={onUpdateSlideObjectStates}
+                   notes={notes}
+                   onUpdateNotes={onUpdateNotes}
+                   drawingStrokes={drawingStrokes}
+                   onUpdateDrawingStrokes={onUpdateDrawingStrokes}
+                   drawingTool={tool}
+                   onUpdateDrawingTool={setTool}
+                   {...(updateRunnerMarks ? { marks: runnerMarks, onUpdateMarks: updateRunnerMarks } : {})}
+                   showMarkingTools={showCodingTray}
+                   onToggleMarkingTools={() => setShowCodingTray(value => !value)}
+                   readOnly={readOnly}
+                 />
+               ) : (
+                 <Slideshow
+                   ref={slideshowRef}
+                   slides={lesson.slides}
+                   googleSlidesUrl={lesson.googleSlidesUrl}
+                   tool={tool}
+                   currentIndex={slideIndex}
+                   onUpdateIndex={onUpdateSlideIndex}
+                   drawingStrokes={drawingStrokes}
+                   onUpdateDrawingStrokes={onUpdateDrawingStrokes}
+                   readOnly={readOnly}
+                   slideMarks={slideMarks}
+                   onUpdateSlideMarks={onUpdateSlideMarks}
+                   objectStates={slideObjectStates}
+                   onUpdateObjectStates={onUpdateSlideObjectStates}
+                   isFullScreenContent={slideFullScreen}
+                   onUpdateFullScreenContent={onUpdateSlideFullScreen}
+                 />
+               )}
             </div>
           )}
           {mode === 'notes' && <GenericText title="Plan Notes" content={isSpelling ? lesson.conceptNotes7 : lesson.conceptNotes} />}
@@ -761,7 +794,7 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
           )}
 
           {/* 3. FLOATING TOOL PALETTE (Top Left) */}
-          {(mode === 'slides' || mode === 'board') && !readOnly && (
+          {(mode === 'board' || (mode === 'slides' && !hasInteractivePart2)) && !readOnly && (
              <div className="absolute top-6 left-6 z-50 flex flex-col items-center gap-1.5 bg-white/60 backdrop-blur-md border border-stone-200/50 p-1.5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all hover:bg-white/90 group/tray">
                 <button
                   onClick={() => setTool('cursor')}

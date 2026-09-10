@@ -18,6 +18,8 @@ import {
 import { presenterHealth } from '../legacy/useCloudPresenter';
 import { createInitialLessonSession } from '../legacy/useLessonSession';
 import { LessonPart } from '../legacy/types';
+import { part2InteractivePresentationFromData } from '../legacy/part2Presentation';
+import fixture73 from './fixtures/part2-7.3-wilson-visual.json';
 
 test('recognizes only the dedicated student display query', () => {
   assert.equal(isStudentDisplayRequest('?display=student'), true);
@@ -129,6 +131,37 @@ test('sends only current-part lesson content and strips slide notes', () => {
   assert.equal(slideFrame.slides[0].notes, undefined);
   assert.equal(slideFrame.conceptNotes, '');
   assert.equal(slideFrame.passage, undefined);
+});
+
+test('projects the interactive Part 2 runner to students without teacher-private source fields', () => {
+  const emptyPart = (part: number) => ({ part, title: `Part ${part}`, teacherDirections: ['private'], sourceIds: ['private-source'], data: {} });
+  const lesson = {
+    id: 'interactive-lesson', title: 'Lesson 7.3', step: '7', substep: '3', conceptNotes: 'private', conceptNotes7: '',
+    slides: [], quickDrill: [], wordCards: [], sentences: [],
+    dictation: { sounds: [], realWords: [], wordElements: [], nonsenseWords: [], phrases: [], sentences: [] },
+    hfwList: [], affixPractice: [],
+    runtimePlan: {
+      schemaVersion: 'wrs-runtime-v1', id: 'interactive-lesson', title: 'Lesson 7.3', step: '7', substep: '3',
+      focus: 'introduction', sources: [{ id: 'SI-07', label: 'private source', kind: 'step-instruction' }],
+      parts: Array.from({ length: 10 }, (_, index) => index + 1).map(part => part === 2
+        ? { ...emptyPart(part), data: { part2Presentation: fixture73 } }
+        : emptyPart(part))
+    }
+  } as unknown as import('../legacy/types').Lesson;
+  const studentLesson = sanitizePresenterLesson(lesson, LessonPart.Part2)!;
+  const serialized = JSON.stringify(studentLesson);
+  assert.equal(serialized.includes('Build the supplied catch example'), false);
+  assert.equal(serialized.includes('SI-07'), false);
+  assert.equal(serialized.includes('Common Greek Bases'), false);
+  assert.equal(serialized.includes('sourceContext'), false);
+  assert.equal(serialized.includes('"meaning":"small"'), true);
+  assert.equal(studentLesson.runtimePlan?.sources.length, 0);
+
+  const studentPart2 = studentLesson.runtimePlan?.parts.find(part => part.part === 2)?.data;
+  const projection = part2InteractivePresentationFromData(studentPart2);
+  assert.ok(projection);
+  assert.equal(projection?.studentProjection, true);
+  assert.equal(projection?.steps[2].kind, 'step');
 });
 
 test('builds a valid presenter snapshot with student names but no student records', () => {

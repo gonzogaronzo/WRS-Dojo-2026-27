@@ -42,6 +42,146 @@ export interface Part2BuildStep {
   units: Part2BuildUnit[];
 }
 
+/**
+ * Source-driven Part 2 runner schema. Action describes the instructional move;
+ * displayType describes the supplied physical/manipulative representation.
+ * They intentionally remain separate so the renderer never guesses structure
+ * from a spelling string.
+ */
+export type Part2ActionType =
+  | 'REVIEW_BUILD'
+  | 'TEACH_CARD'
+  | 'BUILD_WORD'
+  | 'PRACTICE_BUILD'
+  | 'READ_WORDS'
+  | 'MARK_WORDS'
+  | 'NOTEBOOK'
+  | 'AFFIX_MANIPULATION'
+  | 'WORD_ELEMENT_BUILD';
+
+export type Part2DisplayType =
+  | 'LETTER_SOUND_TILES'
+  | 'SYLLABLE_CARDS'
+  | 'PREFIX_SUFFIX_CARDS'
+  | 'WORD_ELEMENT_CARDS'
+  | 'WRITTEN_WORD'
+  | 'NOTEBOOK'
+  | 'MIXED_SOURCE_CARDS';
+
+export type Part2InstructionObjectRole = Part2BuildUnitRole | 'notebook' | 'statement';
+
+export interface Part2InstructionObject {
+  id: string;
+  text: string;
+  role: Part2InstructionObjectRole;
+  /** Required for build/manipulation moves; source order begins at 1. */
+  stagingOrder?: number;
+}
+
+/**
+ * The compiler/source owns this classification. It lets the runner reject a
+ * raw-word fallback instead of trying to infer syllables or morphology.
+ */
+export type Part2CardRepresentation =
+  | 'single-syllable'
+  | 'multisyllabic'
+  | 'morphological'
+  | 'greek-latin';
+
+/** Private, source-owned context for a Student Notebook move. */
+export interface Part2NotebookContext {
+  /** Printed Student Notebook page only when the source explicitly verifies it. */
+  pageNumber?: number;
+  /** Source-verified notebook section. */
+  section?: string;
+  /** Source-verified subheading on that page. */
+  subheading?: string;
+  /** Source-verified placement within the page. */
+  pageLocation?: string;
+  /** Nearby source-verified landmarks that help the teacher locate the entry. */
+  nearbyContext?: string[];
+  /** Section/page/location only when the source explicitly verifies it. */
+  location?: string;
+  /** The source-supplied visual/form of the entry. */
+  entryAppearance?: string;
+  /** Why the entry is being added at this point in the lesson. */
+  purpose?: string;
+  /** A source-described visual when shipping a source image is not practical. */
+  visualReference?: string;
+}
+
+/**
+ * Student-safe meaning with teacher-private Answer Key context.  The runner
+ * never derives these values from a spelling string or card label.
+ */
+export interface Part2WordElementMeaning {
+  objectId: string;
+  meaning: string;
+  sourceContext?: Part2NotebookContext;
+}
+
+export type Part2SourceSection = 'introductory-and-ongoing' | 'subsequent-lessons';
+export type Part2ProjectPacingRule = 'include-subsequent-in-introduction';
+
+export interface Part2StepSourceReference {
+  sourceIds: string[];
+  locator?: string;
+}
+
+export interface Part2SaveHints {
+  troubleSpotPrompt?: string;
+  notePrompt?: string;
+}
+
+export interface Part2InstructionStep {
+  kind: 'step';
+  id: string;
+  /** Every runnable move must identify whether its wording came from a source. */
+  provenance: Part2PresentationProvenance;
+  actionType: Part2ActionType;
+  displayType: Part2DisplayType;
+  teacherCue: string;
+  teacherDirections: string[];
+  studentPrompt?: string;
+  objects: Part2InstructionObject[];
+  /** Required for source-controlled Part 2 build/read/manipulation moves. */
+  cardRepresentation?: Part2CardRepresentation;
+  /** Kept private; stripped before a passive student projection is created. */
+  notebookContext?: Part2NotebookContext;
+  /**
+   * Source-verified, student-friendly meanings for supplied Word Element
+   * Cards.  sourceContext is stripped before passive projection, but the
+   * verified meaning remains available next to the manipulable card.
+   */
+  wordElementMeanings?: Part2WordElementMeaning[];
+  expectedStudentAction?: string;
+  teachingPoint?: string;
+  sourceRef: Part2StepSourceReference;
+  sourceSection: Part2SourceSection;
+  projectPacingRule?: Part2ProjectPacingRule;
+  saveHints?: Part2SaveHints;
+}
+
+export interface Part2InvalidInstructionStep {
+  kind: 'invalid';
+  id: string;
+  reason: string;
+}
+
+export type Part2InteractiveStep = Part2InstructionStep | Part2InvalidInstructionStep;
+
+export interface Part2InteractivePresentation {
+  version: 1;
+  focus?: LessonFocus;
+  steps: Part2InteractiveStep[];
+  /** Set only on the intentionally redacted passive-display projection. */
+  studentProjection?: boolean;
+}
+
+/** The 2026–27 project pacing convention; it is not a Wilson claim. */
+export const PART2_SUBSEQUENT_INTRO_PACING_RULE: Part2ProjectPacingRule = 'include-subsequent-in-introduction';
+export const PART2_SUBSEQUENT_INTRO_PACING_LABEL = '2026–27 project pacing rule: begin source-ordered Subsequent Lessons material in Introduction.';
+
 interface Part2FrameBase {
   id: string;
   title?: string;
@@ -120,6 +260,8 @@ export interface Part2PresentationV1 {
   version: 1;
   focus?: LessonFocus;
   frames: Part2PresentationFrame[];
+  /** Optional during rollout; legacy semantic frames remain supported. */
+  interactiveSteps?: Part2InteractiveStep[];
 }
 
 const TILE_ROLES = new Set<Part2TileRole>([
@@ -143,6 +285,37 @@ const PROVENANCE_VALUES = new Set<Part2PresentationProvenance>([
 
 const FOCUS_VALUES = new Set<LessonFocus>([
   'introduction', 'accuracy', 'automaticity-fluency', 'mixed'
+]);
+
+const ACTION_TYPES = new Set<Part2ActionType>([
+  'REVIEW_BUILD', 'TEACH_CARD', 'BUILD_WORD', 'PRACTICE_BUILD',
+  'READ_WORDS', 'MARK_WORDS', 'NOTEBOOK', 'AFFIX_MANIPULATION', 'WORD_ELEMENT_BUILD'
+]);
+
+const DISPLAY_TYPES = new Set<Part2DisplayType>([
+  'LETTER_SOUND_TILES', 'SYLLABLE_CARDS', 'PREFIX_SUFFIX_CARDS',
+  'WORD_ELEMENT_CARDS', 'WRITTEN_WORD', 'NOTEBOOK', 'MIXED_SOURCE_CARDS'
+]);
+
+const INSTRUCTION_OBJECT_ROLES = new Set<Part2InstructionObjectRole>([
+  ...BUILD_UNIT_ROLES, 'notebook', 'statement'
+]);
+
+const BUILD_ACTION_TYPES = new Set<Part2ActionType>([
+  'REVIEW_BUILD', 'BUILD_WORD', 'PRACTICE_BUILD', 'READ_WORDS',
+  'AFFIX_MANIPULATION', 'WORD_ELEMENT_BUILD'
+]);
+
+const CARD_REPRESENTATION_VALUES = new Set<Part2CardRepresentation>([
+  'single-syllable', 'multisyllabic', 'morphological', 'greek-latin'
+]);
+
+const SOURCE_SECTION_VALUES = new Set<Part2SourceSection>([
+  'introductory-and-ongoing', 'subsequent-lessons'
+]);
+
+const PACING_RULE_VALUES = new Set<Part2ProjectPacingRule>([
+  PART2_SUBSEQUENT_INTRO_PACING_RULE
 ]);
 
 const asRecord = (value: unknown): UnknownRecord | null => (
@@ -245,6 +418,357 @@ const normalizeBuildSteps = (value: unknown): Part2BuildStep[] | null => {
     steps.push({ label: optionalText(record.label), units });
   }
   return steps;
+};
+
+const invalidInteractiveStep = (id: string, reason: string): Part2InvalidInstructionStep => ({
+  kind: 'invalid', id, reason
+});
+
+const normalizeInstructionObjects = (value: unknown): Part2InstructionObject[] | null => {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const objects: Part2InstructionObject[] = [];
+  const ids = new Set<string>();
+  for (const candidate of value) {
+    const record = asRecord(candidate);
+    const id = nonEmptyText(record?.id);
+    const objectText = nonEmptyText(record?.text);
+    const role = record?.role as Part2InstructionObjectRole | undefined;
+    const stagingOrder = record?.stagingOrder;
+    if (!record || !id || !objectText || !role || !INSTRUCTION_OBJECT_ROLES.has(role) || ids.has(id)) return null;
+    if (stagingOrder !== undefined && (!Number.isInteger(stagingOrder) || Number(stagingOrder) < 1)) return null;
+    ids.add(id);
+    objects.push({ id, text: objectText, role, stagingOrder: stagingOrder as number | undefined });
+  }
+  return objects;
+};
+
+const normalizeSourceRef = (value: unknown): Part2StepSourceReference | null => {
+  const record = asRecord(value);
+  const sourceIds = normalizeTextArray(record?.sourceIds);
+  if (!record || !sourceIds) return null;
+  return { sourceIds, locator: optionalText(record.locator) };
+};
+
+const normalizeSaveHints = (value: unknown): Part2SaveHints | undefined | null => {
+  if (value === undefined) return undefined;
+  const record = asRecord(value);
+  if (!record) return null;
+  const troubleSpotPrompt = optionalText(record.troubleSpotPrompt);
+  const notePrompt = optionalText(record.notePrompt);
+  if (!troubleSpotPrompt && !notePrompt) return null;
+  return { troubleSpotPrompt, notePrompt };
+};
+
+const normalizeNotebookContext = (value: unknown): Part2NotebookContext | undefined | null => {
+  if (value === undefined) return undefined;
+  const record = asRecord(value);
+  if (!record) return null;
+  const pageNumber = record.pageNumber;
+  if (pageNumber !== undefined && (typeof pageNumber !== 'number' || !Number.isInteger(pageNumber) || pageNumber < 1)) return null;
+  const section = optionalText(record.section);
+  const subheading = optionalText(record.subheading);
+  const pageLocation = optionalText(record.pageLocation);
+  const nearbyContext = record.nearbyContext === undefined
+    ? undefined
+    : normalizeTextArray(record.nearbyContext);
+  const location = optionalText(record.location);
+  const entryAppearance = optionalText(record.entryAppearance);
+  const purpose = optionalText(record.purpose);
+  const visualReference = optionalText(record.visualReference);
+  if (nearbyContext === null) return null;
+  if (
+    pageNumber === undefined && !section && !subheading && !pageLocation && !nearbyContext
+    && !location && !entryAppearance && !purpose && !visualReference
+  ) return null;
+  return {
+    pageNumber: pageNumber as number | undefined,
+    section,
+    subheading,
+    pageLocation,
+    nearbyContext,
+    location,
+    entryAppearance,
+    purpose,
+    visualReference
+  };
+};
+
+const normalizeWordElementMeanings = (
+  value: unknown
+): Part2WordElementMeaning[] | undefined | null => {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const seenObjectIds = new Set<string>();
+  const meanings: Part2WordElementMeaning[] = [];
+  for (const candidate of value) {
+    const record = asRecord(candidate);
+    const objectId = nonEmptyText(record?.objectId);
+    const meaning = nonEmptyText(record?.meaning);
+    const sourceContext = normalizeNotebookContext(record?.sourceContext);
+    if (!record || !objectId || !meaning || seenObjectIds.has(objectId) || sourceContext === null) return null;
+    seenObjectIds.add(objectId);
+    meanings.push({ objectId, meaning, sourceContext: sourceContext || undefined });
+  }
+  return meanings;
+};
+
+const buildValidationError = (
+  actionType: Part2ActionType,
+  displayType: Part2DisplayType,
+  objects: Part2InstructionObject[],
+  cardRepresentation?: Part2CardRepresentation
+): string | null => {
+  if (!BUILD_ACTION_TYPES.has(actionType)) return null;
+  if (!cardRepresentation) {
+    return 'Build/read/manipulation steps require an explicit source-supplied cardRepresentation.';
+  }
+  const staged = objects.map(object => object.stagingOrder);
+  if (staged.some(order => order === undefined)) return 'Build/manipulation steps require an explicit stagingOrder for every object.';
+  const ordered = [...(staged as number[])].sort((left, right) => left - right);
+  if (ordered.some((order, index) => order !== index + 1)) {
+    return 'Build/manipulation stagingOrder values must be the source-supplied sequence 1 through n.';
+  }
+
+  const roles = objects.map(object => object.role);
+  const tileRole = (role: Part2InstructionObjectRole) => TILE_ROLES.has(role as Part2TileRole);
+  const elementRole = (role: Part2InstructionObjectRole) => ELEMENT_ROLES.has(role as Part2WordElement['role']);
+
+  if (cardRepresentation === 'single-syllable' && displayType !== 'LETTER_SOUND_TILES') {
+    return 'single-syllable source representations require explicit Letter-Sound Tiles.';
+  }
+  if (cardRepresentation === 'multisyllabic' && displayType !== 'SYLLABLE_CARDS') {
+    return 'multisyllabic source representations require explicit Syllable Cards.';
+  }
+  if (cardRepresentation === 'morphological' && !['PREFIX_SUFFIX_CARDS', 'WORD_ELEMENT_CARDS'].includes(displayType)) {
+    return 'morphological source representations require explicit Prefix/Suffix or Word Element Cards.';
+  }
+  if (cardRepresentation === 'greek-latin' && displayType !== 'WORD_ELEMENT_CARDS') {
+    return 'Greek/Latin source representations require explicit Word Element Cards.';
+  }
+
+  switch (displayType) {
+    case 'LETTER_SOUND_TILES':
+      return roles.every(tileRole) ? null : 'LETTER_SOUND_TILES requires explicit Letter-Sound tile roles.';
+    case 'SYLLABLE_CARDS':
+      return roles.every(role => role === 'syllable') ? null : 'SYLLABLE_CARDS requires explicit syllable-card objects.';
+    case 'PREFIX_SUFFIX_CARDS':
+      if (!roles.some(role => role === 'prefix' || role === 'suffix')) {
+        return 'PREFIX_SUFFIX_CARDS requires a supplied Prefix or Suffix Card.';
+      }
+      return roles.every(role => tileRole(role) || role === 'prefix' || role === 'suffix')
+        ? null
+        : 'PREFIX_SUFFIX_CARDS may contain only supplied Letter-Sound, Prefix, or Suffix Cards.';
+    case 'WORD_ELEMENT_CARDS':
+      return roles.every(elementRole) && roles.some(role => role === 'base-element' || role === 'greek-combining-form')
+        ? null
+        : 'WORD_ELEMENT_CARDS requires explicit supplied Word Element Cards.';
+    case 'MIXED_SOURCE_CARDS':
+      return roles.every(role => tileRole(role) || role === 'syllable' || elementRole(role))
+        ? null
+        : 'MIXED_SOURCE_CARDS requires explicit source-controlled card roles.';
+    default:
+      return `${displayType} is not a build/manipulation display type.`;
+  }
+};
+
+const actionValidationError = (
+  actionType: Part2ActionType,
+  displayType: Part2DisplayType,
+  objects: Part2InstructionObject[],
+  cardRepresentation?: Part2CardRepresentation,
+  notebookContext?: Part2NotebookContext,
+  wordElementMeanings?: Part2WordElementMeaning[],
+  studentPrompt?: string
+): string | null => {
+  if (BUILD_ACTION_TYPES.has(actionType) && studentPrompt) {
+    return 'Build/read/manipulation steps may not supply a studentPrompt; keep answer-bearing directions teacher-private.';
+  }
+  if (actionType === 'READ_WORDS' && displayType === 'WRITTEN_WORD') {
+    return 'READ_WORDS cannot fall back to WRITTEN_WORD; source-supplied card segmentation is required.';
+  }
+  if (actionType === 'MARK_WORDS') {
+    if (displayType !== 'WRITTEN_WORD') return 'MARK_WORDS requires a supplied written-word marking surface.';
+    if (!objects.every(object => object.role === 'word')) return 'MARK_WORDS requires explicit written-word objects.';
+  }
+  if (actionType === 'NOTEBOOK') {
+    if (displayType !== 'NOTEBOOK') return 'NOTEBOOK requires the NOTEBOOK display type.';
+    if (!objects.every(object => object.role === 'notebook')) return 'NOTEBOOK requires explicit notebook-entry objects.';
+  } else if (notebookContext) {
+    return 'notebookContext may only be supplied for a NOTEBOOK step.';
+  }
+  if (wordElementMeanings) {
+    if (displayType !== 'WORD_ELEMENT_CARDS') {
+      return 'wordElementMeanings may only be supplied with explicit Word Element Cards.';
+    }
+    const objectById = new Map(objects.map(object => [object.id, object]));
+    for (const entry of wordElementMeanings) {
+      const object = objectById.get(entry.objectId);
+      if (!object || !['base-element', 'greek-combining-form'].includes(object.role)) {
+        return 'wordElementMeanings must reference an explicit supplied Word Element Card.';
+      }
+    }
+  }
+  if (!BUILD_ACTION_TYPES.has(actionType) && cardRepresentation) {
+    return 'cardRepresentation may only be supplied for a source-controlled build/read/manipulation step.';
+  }
+  return null;
+};
+
+const normalizeInteractiveStep = (
+  value: unknown,
+  index: number,
+  allowRedactedTeacherFields = false
+): Part2InteractiveStep => {
+  const record = asRecord(value);
+  const fallbackId = `invalid-step-${index + 1}`;
+  const id = nonEmptyText(record?.id) || fallbackId;
+  if (!record) return invalidInteractiveStep(id, 'Instructional step must be an object.');
+
+  const actionType = record.actionType as Part2ActionType | undefined;
+  const displayType = record.displayType as Part2DisplayType | undefined;
+  const teacherCue = nonEmptyText(record.teacherCue);
+  const teacherDirections = normalizeTextArray(record.teacherDirections);
+  const objects = normalizeInstructionObjects(record.objects);
+  const sourceRef = normalizeSourceRef(record.sourceRef);
+  const sourceSection = (record.sourceSection ?? 'introductory-and-ongoing') as Part2SourceSection;
+  const projectPacingRule = record.projectPacingRule as Part2ProjectPacingRule | undefined;
+  const saveHints = normalizeSaveHints(record.saveHints);
+  const cardRepresentation = record.cardRepresentation as Part2CardRepresentation | undefined;
+  const notebookContext = normalizeNotebookContext(record.notebookContext);
+  const wordElementMeanings = normalizeWordElementMeanings(record.wordElementMeanings);
+  const studentPrompt = optionalText(record.studentPrompt);
+  const provenance = record.provenance as Part2PresentationProvenance | undefined;
+
+  if (!actionType || !ACTION_TYPES.has(actionType)) return invalidInteractiveStep(id, 'Instructional actionType is missing or unsupported.');
+  if (!displayType || !DISPLAY_TYPES.has(displayType)) return invalidInteractiveStep(id, 'Instructional displayType is missing or unsupported.');
+  if (!provenance || !PROVENANCE_VALUES.has(provenance)) return invalidInteractiveStep(id, 'Instructional provenance is missing or unsupported.');
+  if (!teacherCue && !allowRedactedTeacherFields) return invalidInteractiveStep(id, 'A concise source-derived teacherCue is required.');
+  if (!teacherDirections && !allowRedactedTeacherFields) return invalidInteractiveStep(id, 'Source-derived teacherDirections are required.');
+  if (!objects) return invalidInteractiveStep(id, 'Instructional objects must have explicit ids, text, and roles.');
+  if (!sourceRef && !allowRedactedTeacherFields) return invalidInteractiveStep(id, 'sourceRef.sourceIds is required for every interactive instructional step.');
+  if (!SOURCE_SECTION_VALUES.has(sourceSection)) return invalidInteractiveStep(id, 'sourceSection is not recognized.');
+  if (projectPacingRule !== undefined && !PACING_RULE_VALUES.has(projectPacingRule)) {
+    return invalidInteractiveStep(id, 'projectPacingRule is not recognized.');
+  }
+  if (projectPacingRule && sourceSection !== 'subsequent-lessons') {
+    return invalidInteractiveStep(id, 'A projectPacingRule may only be attached to Subsequent Lessons source material.');
+  }
+  if (saveHints === null) return invalidInteractiveStep(id, 'saveHints must contain a supplied prompt.');
+  if (cardRepresentation !== undefined && !CARD_REPRESENTATION_VALUES.has(cardRepresentation)) {
+    return invalidInteractiveStep(id, 'cardRepresentation is not recognized.');
+  }
+  if (notebookContext === null) return invalidInteractiveStep(id, 'notebookContext must contain source-supplied notebook context.');
+  if (wordElementMeanings === null) return invalidInteractiveStep(id, 'wordElementMeanings must contain source-supplied meaning data.');
+
+  const actionError = actionValidationError(
+    actionType,
+    displayType,
+    objects,
+    cardRepresentation,
+    notebookContext || undefined,
+    wordElementMeanings || undefined,
+    studentPrompt
+  );
+  if (actionError) return invalidInteractiveStep(id, actionError);
+  const buildError = buildValidationError(actionType, displayType, objects, cardRepresentation);
+  if (buildError) return invalidInteractiveStep(id, buildError);
+
+  return {
+    kind: 'step', id, provenance, actionType, displayType,
+    teacherCue: teacherCue || '', teacherDirections: teacherDirections || [],
+    studentPrompt, objects, cardRepresentation,
+    notebookContext: notebookContext || undefined,
+    wordElementMeanings: wordElementMeanings || undefined,
+    expectedStudentAction: optionalText(record.expectedStudentAction),
+    teachingPoint: optionalText(record.teachingPoint), sourceRef: sourceRef || { sourceIds: [] }, sourceSection,
+    projectPacingRule, saveHints: saveHints || undefined
+  };
+};
+
+export const isPart2BuildAction = (actionType: Part2ActionType) => BUILD_ACTION_TYPES.has(actionType);
+
+export const isPart2StepIncludedForFocus = (step: Part2InteractiveStep, focus?: LessonFocus): boolean => {
+  if (step.kind === 'invalid') return true;
+  if (focus !== 'introduction' || step.sourceSection !== 'subsequent-lessons') return true;
+  return step.projectPacingRule === PART2_SUBSEQUENT_INTRO_PACING_RULE;
+};
+
+/**
+ * Returns null when the source supplied only the existing semantic-frame path.
+ * A malformed runner source returns a safe unavailable step instead of
+ * synthesizing structure from spelling or prose.
+ */
+export const part2InteractivePresentationFromData = (partData: unknown): Part2InteractivePresentation | null => {
+  const data = asRecord(partData);
+  const presentation = asRecord(data?.part2Presentation);
+  if (!presentation || !Object.prototype.hasOwnProperty.call(presentation, 'interactiveSteps')) return null;
+
+  if (presentation.version !== 1) {
+    return { version: 1, steps: [invalidInteractiveStep('invalid-presentation', 'Part 2 interactive presentation version is missing or unsupported.')] };
+  }
+
+  const focus = presentation.focus as LessonFocus | undefined;
+  if (focus !== undefined && !FOCUS_VALUES.has(focus)) {
+    return { version: 1, steps: [invalidInteractiveStep('invalid-presentation', 'Part 2 presentation focus is not recognized.')] };
+  }
+  if (!Array.isArray(presentation.interactiveSteps) || presentation.interactiveSteps.length === 0) {
+    return { version: 1, focus, steps: [invalidInteractiveStep('invalid-presentation', 'Part 2 interactiveSteps contains no steps.')] };
+  }
+
+  const studentProjection = presentation.studentProjection === true;
+  const normalized = presentation.interactiveSteps.map((step, index) => (
+    normalizeInteractiveStep(step, index, studentProjection)
+  ));
+  const included = normalized.filter(step => isPart2StepIncludedForFocus(step, focus));
+  return {
+    version: 1,
+    focus,
+    studentProjection,
+    steps: included.length > 0
+      ? included
+      : [invalidInteractiveStep('no-introduction-steps', 'No source-authorized interactive Part 2 steps are available for this lesson focus.')]
+  };
+};
+
+export const encodePart2SemanticUnit = (role: string, value: string) => (
+  `§p2:${role}:${encodeURIComponent(value)}`
+);
+
+/** Removes teacher-private source cues before a runner is sent to a passive display. */
+export const sanitizePart2PresentationForStudent = (value: unknown): unknown => {
+  const presentation = asRecord(value);
+  if (!presentation) return undefined;
+  const interactiveSteps = Array.isArray(presentation.interactiveSteps)
+    ? presentation.interactiveSteps.map(step => {
+      const record = asRecord(step);
+      if (!record) return step;
+      const studentStep = { ...record };
+      for (const privateKey of [
+        'teacherCue', 'teacherDirections', 'teachingPoint',
+        'expectedStudentAction', 'sourceRef', 'saveHints', 'notebookContext'
+      ]) {
+        delete studentStep[privateKey];
+      }
+      if (!['MARK_WORDS', 'NOTEBOOK'].includes(studentStep.actionType as string)) {
+        delete studentStep.studentPrompt;
+      }
+      if (Array.isArray(studentStep.wordElementMeanings)) {
+        studentStep.wordElementMeanings = studentStep.wordElementMeanings.map(entry => {
+          const meaning = asRecord(entry);
+          return meaning
+            ? { objectId: meaning.objectId, meaning: meaning.meaning }
+            : entry;
+        });
+      }
+      return studentStep;
+    })
+    : undefined;
+  return {
+    version: presentation.version,
+    studentProjection: true,
+    ...(presentation.focus !== undefined ? { focus: presentation.focus } : {}),
+    ...(interactiveSteps ? { interactiveSteps } : {})
+  };
 };
 
 const normalizeFrame = (value: unknown, index: number): Part2PresentationFrame => {

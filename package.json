@@ -14,7 +14,7 @@
     "build:standalone": "vite build --config vite.standalone.config.ts",
     "preview:standalone": "vite preview --config vite.standalone.config.ts",
     "deploy:standalone": "bash scripts/deploy-firebase-hosting.sh",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/auth-policy.test.mjs tests/sheet-mirror.test.mjs && node --import tsx --test tests/lesson-session.test.ts tests/lesson-rules.test.ts tests/word-distribution.test.ts tests/word-cards-state.test.ts tests/presenter-mode.test.ts tests/mission-archive.test.ts tests/cloud-migration.test.ts tests/student-report.test.ts tests/drawing-sync.test.ts tests/current-roster.test.ts tests/data-normalization.test.ts tests/wrs-lesson-plan.test.ts tests/null-safe-render.test.tsx tests/part2-visual-grammar.test.tsx",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/auth-policy.test.mjs tests/sheet-mirror.test.mjs && node --import tsx --test tests/lesson-session.test.ts tests/lesson-rules.test.ts tests/word-distribution.test.ts tests/word-cards-state.test.ts tests/presenter-mode.test.ts tests/mission-archive.test.ts tests/cloud-migration.test.ts tests/student-report.test.ts tests/drawing-sync.test.ts tests/current-roster.test.ts tests/data-normalization.test.ts tests/wrs-lesson-plan.test.ts tests/null-safe-render.test.tsx tests/part2-visual-grammar.test.tsx tests/part2-interactive-step-runner.test.tsx",
     "validate:artifact": "bash scripts/validate-artifact.sh",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate"
