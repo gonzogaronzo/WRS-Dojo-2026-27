@@ -14,7 +14,6 @@ import {
 import type { Lesson } from '../legacy/types';
 import {
   createPart2SavePayload,
-  insertPart2QuickPractice,
   nextPart2Step,
   previousPart2Step,
   upsertPart2SavePayloadInNotes
@@ -80,6 +79,10 @@ test('uses explicit source action, display, cards, and staging order for 7.3 rat
   assert.equal(greekBuild.sourceSection, 'subsequent-lessons');
   assert.equal(greekBuild.projectPacingRule, PART2_SUBSEQUENT_INTRO_PACING_RULE);
   assert.deepEqual(greekBuild.objects.map(object => object.text), ['micro-', '-scope']);
+  assert.deepEqual(greekBuild.wordElementMeanings?.map(entry => [entry.objectId, entry.meaning]), [
+    ['micro', 'small'],
+    ['scope', 'instrument for viewing']
+  ]);
   assert.equal(phasePractice.actionType, 'READ_WORDS');
   assert.equal(phasePractice.displayType, 'LETTER_SOUND_TILES');
   assert.equal(phasePractice.cardRepresentation, 'single-syllable');
@@ -107,6 +110,11 @@ test('supports a structurally different 8.2 source with Syllable and Word Elemen
   assert.equal(latin.displayType, 'WORD_ELEMENT_CARDS');
   assert.equal(latin.cardRepresentation, 'greek-latin');
   assert.deepEqual(latin.objects.map(object => object.role), ['base-element', 'base-element', 'base-element']);
+  assert.deepEqual(latin.wordElementMeanings?.map(entry => [entry.objectId, entry.meaning]), [
+    ['form', 'to form, shape'],
+    ['part', 'part, divide'],
+    ['port', 'to carry']
+  ]);
 
   const malformed = JSON.parse(JSON.stringify(fixture82));
   delete malformed.interactiveSteps[0].objects[1].stagingOrder;
@@ -140,7 +148,7 @@ test('supports a structurally different 8.2 source with Syllable and Word Elemen
   if (representationFailure?.kind === 'invalid') assert.match(representationFailure.reason, /cardRepresentation/);
 });
 
-test('shows source-supplied written-word practice one word at a time without a crowded row', () => {
+test('shows one movable review card at a time and keeps Next runner-owned', () => {
   const presentation = runnerPresentation(fixture73);
   const reviewIndex = presentation.steps.findIndex(step => step.id === 'previous-substep-review');
   assert.ok(reviewIndex >= 0);
@@ -151,23 +159,31 @@ test('shows source-supplied written-word practice one word at a time without a c
   assert.match(html, /bridge/);
   assert.doesNotMatch(html, /hinge/);
   assert.doesNotMatch(html, /fence/);
-  assert.match(html, /data-part2-word-sequence-controls/);
-  assert.match(html, /Word 1 of 4/);
+  assert.match(html, /data-part2-review-card="true"/);
+  assert.match(html, /data-part2-manipulative/);
+  assert.equal((html.match(/aria-label="Next"/g) || []).length, 1);
+  assert.match(html, /data-part2-next-scope="review-word"/);
+  assert.doesNotMatch(html, /data-part2-word-sequence-controls|Previous word|Next word|Quick Practice/);
 });
 
-test('keeps source-owned notebook location context private and does not invent missing notebook details', () => {
+test('uses source-verified notebook page, location, entry, purpose, and nearby context privately', () => {
   const presentation = runnerPresentation(fixture73);
   const notebookIndex = presentation.steps.findIndex(step => step.id === 'ph-notebook');
   const notebookStep = suppliedStep(presentation, 'ph-notebook');
-  assert.equal(notebookStep.notebookContext?.location, 'Sounds section — Digraphs page.');
-  assert.match(notebookStep.notebookContext?.entryAppearance || '', /ph · phone/);
+  assert.equal(notebookStep.notebookContext?.pageNumber, 2);
+  assert.equal(notebookStep.notebookContext?.section, 'Sounds');
+  assert.equal(notebookStep.notebookContext?.subheading, 'Consonant Combinations — Digraphs');
+  assert.match(notebookStep.notebookContext?.pageLocation || '', /first unshaded entry box/);
+  assert.match(notebookStep.notebookContext?.entryAppearance || '', /telephone picture/);
+  assert.match(notebookStep.notebookContext?.purpose || '', /Step 7.3 ph digraph/);
 
   const teacherHtml = renderToStaticMarkup(
     <Part2InteractiveRunner presentation={presentation} activeStepIndex={notebookIndex} />
   );
   assert.match(teacherHtml, /data-part2-notebook-note/);
-  assert.match(teacherHtml, /Sounds section — Digraphs page/);
-  assert.match(teacherHtml, /Record the introduced ph pattern/);
+  assert.match(teacherHtml, /Consonant Combinations — Digraphs/);
+  assert.match(teacherHtml, /first unshaded entry box/);
+  assert.match(teacherHtml, /telephone drawing/);
 
   const missingContext = JSON.parse(JSON.stringify(fixture73));
   delete missingContext.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook').notebookContext;
@@ -176,7 +192,7 @@ test('keeps source-owned notebook location context private and does not invent m
   const missingHtml = renderToStaticMarkup(
     <Part2InteractiveRunner presentation={missingPresentation} activeStepIndex={missingIndex} />
   );
-  assert.match(missingHtml, /Location is unavailable from this source payload/);
+  assert.match(missingHtml, /Notebook location is not verified in this source payload/);
   assert.match(missingHtml, /do not infer a page or layout/);
 
   const studentSource = sanitizePart2PresentationForStudent(fixture73);
@@ -184,9 +200,53 @@ test('keeps source-owned notebook location context private and does not invent m
   const studentHtml = renderToStaticMarkup(
     <Part2InteractiveRunner presentation={studentPresentation} activeStepIndex={notebookIndex} readOnly />
   );
-  assert.doesNotMatch(JSON.stringify(studentSource), /notebookContext|Sounds section — Digraphs page/);
+  assert.doesNotMatch(JSON.stringify(studentSource), /notebookContext|Consonant Combinations — Digraphs|first unshaded entry box/);
   assert.doesNotMatch(studentHtml, /data-part2-notebook-note/);
-  assert.doesNotMatch(studentHtml, /Sounds section — Digraphs page/);
+  assert.doesNotMatch(studentHtml, /Consonant Combinations — Digraphs/);
+});
+
+test('shows Answer Key word-element meanings while stripping the private source context from students', () => {
+  const presentation = runnerPresentation(fixture73);
+  const greekIndex = presentation.steps.findIndex(step => step.id === 'greek-word-element-build');
+  const teacherHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={presentation} activeStepIndex={greekIndex} />
+  );
+  assert.match(teacherHtml, /data-part2-word-element-meanings/);
+  assert.match(teacherHtml, /small/);
+  assert.match(teacherHtml, /instrument for viewing/);
+  assert.match(teacherHtml, /data-part2-word-element-source-context/);
+  assert.match(teacherHtml, /p\. 47/);
+  assert.match(teacherHtml, /Example Image column shows a microscope/);
+
+  const studentSource = sanitizePart2PresentationForStudent(fixture73);
+  const studentPresentation = runnerPresentation(studentSource);
+  const studentHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={studentPresentation} activeStepIndex={greekIndex} readOnly />
+  );
+  assert.match(JSON.stringify(studentSource), /"meaning":"small"/);
+  assert.doesNotMatch(JSON.stringify(studentSource), /sourceContext|p\. 47|Common Greek Bases/);
+  assert.match(studentHtml, /data-part2-word-element-meanings/);
+  assert.match(studentHtml, /small/);
+  assert.doesNotMatch(studentHtml, /data-part2-word-element-source-context|Common Greek Bases|p\. 47/);
+});
+
+test('never surfaces answer-giving card prompts to students and fails closed for build/read/manipulation prompts', () => {
+  const promptOnBuild = JSON.parse(JSON.stringify(fixture73));
+  promptOnBuild.interactiveSteps.find((step: { id: string }) => step.id === 'catch-build').studentPrompt = 'Build and read catch.';
+  const buildFailure = runnerPresentation(promptOnBuild).steps.find(step => step.id === 'catch-build');
+  assert.equal(buildFailure?.kind, 'invalid');
+  if (buildFailure?.kind === 'invalid') assert.match(buildFailure.reason, /studentPrompt/);
+
+  const cardPrompt = JSON.parse(JSON.stringify(fixture73));
+  cardPrompt.interactiveSteps.find((step: { id: string }) => step.id === 'tch-card').studentPrompt = 'Say the sound for tch.';
+  const cardPresentation = runnerPresentation(cardPrompt);
+  const cardIndex = cardPresentation.steps.findIndex(step => step.id === 'tch-card');
+  const studentSource = sanitizePart2PresentationForStudent(cardPrompt);
+  const studentHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={runnerPresentation(studentSource)} activeStepIndex={cardIndex} readOnly />
+  );
+  assert.doesNotMatch(JSON.stringify(studentSource), /Say the sound for tch/);
+  assert.doesNotMatch(studentHtml, /data-part2-student-prompt|Say the sound for tch/);
 });
 
 test('routes supplied runner source through Teach Concepts while legacy semantic slides remain the fallback', () => {
@@ -277,18 +337,13 @@ test('keeps drawing and Wilson coding marks available on MARK_WORDS while hiding
   assert.doesNotMatch(studentHtml, /Draw or underline on the active Part 2 step/);
 });
 
-test('keeps Quick Practice transient and bounds Back/Next navigation to source order', () => {
+test('bounds Back/Next navigation to source order after removing dead-end Quick Practice', () => {
   const presentation = runnerPresentation(fixture73);
-  const catchIndex = presentation.steps.findIndex(step => step.id === 'catch-build');
-  assert.ok(catchIndex >= 0);
-  const before = JSON.stringify(presentation.steps);
-  const quick = insertPart2QuickPractice({ activeIndex: catchIndex }, presentation.steps);
-  assert.equal(quick.activeIndex, catchIndex);
-  assert.equal(quick.quickPracticeAnchorId, 'catch-build');
-  assert.equal(JSON.stringify(presentation.steps), before);
   assert.equal(previousPart2Step({ activeIndex: 0 }, presentation.steps.length).activeIndex, 0);
   assert.equal(nextPart2Step({ activeIndex: presentation.steps.length - 1 }, presentation.steps.length).activeIndex, presentation.steps.length - 1);
-  assert.equal(nextPart2Step(quick, presentation.steps.length).activeIndex, catchIndex + 1);
+  const catchIndex = presentation.steps.findIndex(step => step.id === 'catch-build');
+  const html = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={catchIndex} />);
+  assert.doesNotMatch(html, /Quick Practice|quickPractice/);
 });
 
 test('writes only the concise Part 2 lesson record into the existing session note', () => {
