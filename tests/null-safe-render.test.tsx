@@ -233,6 +233,7 @@ test('keeps an independent, touch-safe Mission scroll path when a short viewport
   const root = html.match(/<div([^>]*data-mission-scroll-container="true"[^>]*)>/);
   assert.ok(root, 'Mission needs a dedicated scroll owner instead of relying on document overflow.');
   assert.match(root[1], /overflow-y-auto/);
+  assert.doesNotMatch(root[1], /overflow-hidden/);
   assert.match(root[1], /touch-pan-y/);
   assert.match(root[1], /tabindex="-1"/);
   assert.match(html, /data-mission-scroll-content="true"/);
