@@ -456,9 +456,9 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
                 <ol className="mt-2 list-decimal space-y-1 pl-4 leading-relaxed">{activeStep.teacherDirections.map((direction, index) => <li key={`${activeStep.id}-direction-${index}`}>{direction}</li>)}</ol>
               </details>
               {activeStep.actionType === 'NOTEBOOK' && (
-                <aside data-part2-notebook-note className="max-w-2xl rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
-                  <p className="font-black uppercase tracking-[0.1em] text-sky-800">Student Notebook</p>
-                  <dl className="mt-1 grid gap-x-3 gap-y-1 sm:grid-cols-[5.5rem_1fr]">
+                <details data-part2-notebook-note className="max-w-2xl rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
+                  <summary className="cursor-pointer font-black uppercase tracking-[0.1em] text-sky-800">Notebook source details</summary>
+                  <dl className="mt-2 grid gap-x-3 gap-y-1 sm:grid-cols-[5.5rem_1fr]">
                     {activeStep.notebookContext?.pageNumber && <><dt className="font-bold">Page</dt><dd>{activeStep.notebookContext.pageNumber}</dd></>}
                     {activeStep.notebookContext?.section && <><dt className="font-bold">Section</dt><dd>{activeStep.notebookContext.section}</dd></>}
                     {activeStep.notebookContext?.subheading && <><dt className="font-bold">Subheading</dt><dd>{activeStep.notebookContext.subheading}</dd></>}
@@ -471,7 +471,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
                     <dd>{activeStep.notebookContext?.purpose || 'Unavailable from this source payload; confirm the instructional purpose in the cited source.'}</dd>
                     {activeStep.notebookContext?.visualReference && <><dt className="font-bold">Source visual</dt><dd>{activeStep.notebookContext.visualReference}</dd></>}
                   </dl>
-                </aside>
+                </details>
               )}
               {activeStep.wordElementMeanings?.some(entry => entry.sourceContext) && (
                 <aside data-part2-word-element-source-context className="max-w-2xl rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-950">
