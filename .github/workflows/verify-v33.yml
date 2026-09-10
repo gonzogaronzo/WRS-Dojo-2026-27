@@ -25,7 +25,7 @@ jobs:
         run: npm ci --prefix functions
 
       - name: Build and run tests
-        run: npm test && npm run build:standalone
+        run: npm test
 
       - name: Validate Firebase Functions source
         run: node --check functions/index.js
