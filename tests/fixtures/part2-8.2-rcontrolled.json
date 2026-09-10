@@ -18,7 +18,6 @@
       "displayType": "SYLLABLE_CARDS",
       "teacherCue": "Build the source-supplied market word with the supplied syllable cards.",
       "teacherDirections": ["Pull mar and then ket from the ordered stack, combine the syllables, and read the completed word."],
-      "studentPrompt": "Build and read market.",
       "objects": [
         { "id": "mar", "text": "mar", "role": "syllable", "stagingOrder": 1 },
         { "id": "ket", "text": "ket", "role": "syllable", "stagingOrder": 2 }
@@ -34,14 +33,57 @@
       "displayType": "WORD_ELEMENT_CARDS",
       "teacherCue": "Introduce the supplied Latin base-element cards in source order under the project pacing convention.",
       "teacherDirections": ["Pull each supplied Word Element Card from the stack and use the source-provided words for the next build."],
-      "studentPrompt": "Read the Latin base elements.",
       "objects": [
         { "id": "form", "text": "-form-", "role": "base-element", "stagingOrder": 1 },
         { "id": "part", "text": "-part-", "role": "base-element", "stagingOrder": 2 },
         { "id": "port", "text": "-port-", "role": "base-element", "stagingOrder": 3 }
       ],
       "cardRepresentation": "greek-latin",
-      "sourceRef": { "sourceIds": ["SI-08.2"], "locator": "Substep 8.2, Subsequent Lessons, pp. 188–189" },
+      "wordElementMeanings": [
+        {
+          "objectId": "form",
+          "meaning": "to form, shape",
+          "sourceContext": {
+            "pageNumber": 44,
+            "section": "Word Elements",
+            "subheading": "Latin Bases Which can Occur in R-controlled Syllables",
+            "pageLocation": "Third row from the top, below -firm- and above -part-.",
+            "nearbyContext": ["The row uses inform as the example word."],
+            "entryAppearance": "-form- in the Base column; to form, shape in Meaning; inform in Example Word.",
+            "purpose": "Keep the source-verified meaning next to the supplied Word Element Card.",
+            "visualReference": "The Answer Key row includes an Example Image."
+          }
+        },
+        {
+          "objectId": "part",
+          "meaning": "part, divide",
+          "sourceContext": {
+            "pageNumber": 44,
+            "section": "Word Elements",
+            "subheading": "Latin Bases Which can Occur in R-controlled Syllables",
+            "pageLocation": "Fourth row from the top, below -form- and above -port-.",
+            "nearbyContext": ["The row uses compartment as the example word."],
+            "entryAppearance": "-part- in the Base column; part, divide in Meaning; compartment in Example Word.",
+            "purpose": "Keep the source-verified meaning next to the supplied Word Element Card.",
+            "visualReference": "The Answer Key row includes an Example Image."
+          }
+        },
+        {
+          "objectId": "port",
+          "meaning": "to carry",
+          "sourceContext": {
+            "pageNumber": 44,
+            "section": "Word Elements",
+            "subheading": "Latin Bases Which can Occur in R-controlled Syllables",
+            "pageLocation": "Bottom row, directly below -part-.",
+            "nearbyContext": ["The row uses export as the example word."],
+            "entryAppearance": "-port- in the Base column; to carry in Meaning; export in Example Word.",
+            "purpose": "Keep the source-verified meaning next to the supplied Word Element Card.",
+            "visualReference": "The Answer Key row includes an Example Image."
+          }
+        }
+      ],
+      "sourceRef": { "sourceIds": ["SI-08.2", "SNB-7-12-AK"], "locator": "Substep 8.2, Subsequent Lessons, pp. 188–189; Wilson Student Notebook Steps 7–12 Answer Key, p. 44" },
       "sourceSection": "subsequent-lessons",
       "projectPacingRule": "include-subsequent-in-introduction"
     }
