@@ -156,7 +156,6 @@
       "displayType": "WRITTEN_WORD",
       "teacherCue": "Read the supplied review words and briefly reconnect the previous concepts.",
       "teacherDirections": ["Present the supplied previous-substep words one at a time and use only the needed review prompt."],
-      "studentPrompt": "Read each review word.",
       "objects": [
         { "id": "bridge", "text": "bridge", "role": "word" },
         { "id": "hinge", "text": "hinge", "role": "word" },
@@ -173,7 +172,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Name the supplied known digraph cards before introducing ph.",
       "teacherDirections": ["Display the source-listed known digraph cards and allow the Student Notebook as a reference when needed."],
-      "studentPrompt": "Name each known digraph.",
       "objects": [
         { "id": "wh", "text": "wh", "role": "consonant-digraph" },
         { "id": "ch", "text": "ch", "role": "consonant-digraph" },
@@ -191,7 +189,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Present the supplied ph Letter-Sound Card and practice its keyword connection.",
       "teacherDirections": ["Use the source-supplied ph card and keyword practice before moving to the examples."],
-      "studentPrompt": "Say the sound for ph.",
       "objects": [{ "id": "ph", "text": "ph", "role": "consonant-digraph" }],
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
       "sourceSection": "introductory-and-ongoing"
@@ -203,7 +200,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Build the supplied phone example in source order and tap it.",
       "teacherDirections": ["Pull the supplied Letter-Sound Tiles in order, build phone, and review the ph sound while the student taps the word."],
-      "studentPrompt": "Build and read phone.",
       "objects": [
         { "id": "ph", "text": "ph", "role": "consonant-digraph", "stagingOrder": 1 },
         { "id": "o", "text": "o", "role": "vowel", "stagingOrder": 2 },
@@ -221,7 +217,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Read phase with the supplied Letter-Sound Tiles.",
       "teacherDirections": ["Pull the source-supplied Letter-Sound Tiles for phase in order, then have the student read the completed word."],
-      "studentPrompt": "Build and read phase.",
       "objects": [
         { "id": "phase-ph", "text": "ph", "role": "consonant-digraph", "stagingOrder": 1 },
         { "id": "phase-a", "text": "a", "role": "vowel", "stagingOrder": 2 },
@@ -239,7 +234,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Read graph with the supplied Letter-Sound Tiles.",
       "teacherDirections": ["Pull the source-supplied Letter-Sound Tiles for graph in order, then have the student read the completed word."],
-      "studentPrompt": "Build and read graph.",
       "objects": [
         { "id": "graph-g", "text": "g", "role": "consonant", "stagingOrder": 1 },
         { "id": "graph-r", "text": "r", "role": "consonant", "stagingOrder": 2 },
@@ -257,7 +251,6 @@
       "displayType": "SYLLABLE_CARDS",
       "teacherCue": "Read trophy with the supplied Syllable Cards.",
       "teacherDirections": ["Pull the source-supplied Syllable Cards for trophy in order, combine them, and have the student read the completed word."],
-      "studentPrompt": "Build and read trophy.",
       "objects": [
         { "id": "trophy-tro", "text": "tro", "role": "syllable", "stagingOrder": 1 },
         { "id": "trophy-phy", "text": "phy", "role": "syllable", "stagingOrder": 2 }
@@ -273,7 +266,6 @@
       "displayType": "SYLLABLE_CARDS",
       "teacherCue": "Read dolphin with the supplied Syllable Cards.",
       "teacherDirections": ["Pull the source-supplied Syllable Cards for dolphin in order, combine them, and have the student read the completed word."],
-      "studentPrompt": "Build and read dolphin.",
       "objects": [
         { "id": "dolphin-dol", "text": "dol", "role": "syllable", "stagingOrder": 1 },
         { "id": "dolphin-phin", "text": "phin", "role": "syllable", "stagingOrder": 2 }
@@ -289,7 +281,6 @@
       "displayType": "MIXED_SOURCE_CARDS",
       "teacherCue": "Use the supplied dge card with fudge to recall the known trigraph before introducing tch.",
       "teacherDirections": ["Make the source-supplied fudge example with the dge card, then prompt the student to name the trigraph and notice the short vowel context."],
-      "studentPrompt": "Read fudge and name dge.",
       "objects": [
         { "id": "fudge-f", "text": "f", "role": "consonant" },
         { "id": "fudge-u", "text": "u", "role": "vowel" },
@@ -305,7 +296,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Present the supplied tch Letter-Sound Card with its keyword connection.",
       "teacherDirections": ["Use the source-supplied tch card and keyword practice before the word work."],
-      "studentPrompt": "Say the sound for tch.",
       "objects": [{ "id": "tch", "text": "tch", "role": "consonant-trigraph" }],
       "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
       "sourceSection": "introductory-and-ongoing"
@@ -317,7 +307,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Build the supplied catch example in source order, then tap its three sounds.",
       "teacherDirections": ["Pull each supplied Letter-Sound Tile from the ordered stack, build catch, and prompt the student to identify the short vowel and the tch trigraph."],
-      "studentPrompt": "Build and read catch.",
       "objects": [
         { "id": "c", "text": "c", "role": "consonant", "stagingOrder": 1 },
         { "id": "a", "text": "a", "role": "vowel", "stagingOrder": 2 },
@@ -335,7 +324,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Read stretch with the supplied Letter-Sound Tiles.",
       "teacherDirections": ["Pull the source-supplied Letter-Sound Tiles for stretch in order, then prompt the student to read the word and notice tch after a short vowel."],
-      "studentPrompt": "Build and read stretch.",
       "objects": [
         { "id": "stretch-s", "text": "s", "role": "consonant", "stagingOrder": 1 },
         { "id": "stretch-t", "text": "t", "role": "consonant", "stagingOrder": 2 },
@@ -354,7 +342,6 @@
       "displayType": "LETTER_SOUND_TILES",
       "teacherCue": "Read scratch with the supplied Letter-Sound Tiles.",
       "teacherDirections": ["Pull the source-supplied Letter-Sound Tiles for scratch in order, then prompt the student to read the word and notice tch after a short vowel."],
-      "studentPrompt": "Build and read scratch.",
       "objects": [
         { "id": "scratch-s", "text": "s", "role": "consonant", "stagingOrder": 1 },
         { "id": "scratch-c", "text": "c", "role": "consonant", "stagingOrder": 2 },
@@ -373,7 +360,6 @@
       "displayType": "WRITTEN_WORD",
       "teacherCue": "Mark the supplied ph and tch examples as directed.",
       "teacherDirections": ["Write the source-supplied examples and have the student underline the digraph and trigraph."],
-      "studentPrompt": "Read the words and mark ph or tch.",
       "objects": [
         { "id": "phase-word", "text": "phase", "role": "word" },
         { "id": "match-word", "text": "match", "role": "word" }
@@ -388,14 +374,21 @@
       "displayType": "NOTEBOOK",
       "teacherCue": "Complete the supplied ph notebook entry.",
       "teacherDirections": ["Guide the student through the source-directed Sounds-section notebook entry for ph."],
-      "studentPrompt": "Add the ph notebook entry.",
       "objects": [{ "id": "ph-notebook-entry", "text": "ph · phone", "role": "notebook" }],
       "notebookContext": {
-        "location": "Sounds section — Digraphs page.",
-        "entryAppearance": "Write “ph · phone” as the supplied sound/keyword entry.",
-        "purpose": "Record the introduced ph pattern and keyword before applying it in word work."
+        "pageNumber": 2,
+        "section": "Sounds",
+        "subheading": "Consonant Combinations — Digraphs",
+        "pageLocation": "Lower half of the page: the first unshaded entry box below the gray Previously Taught panel.",
+        "nearbyContext": [
+          "Above: the gray Previously Taught blend, digraph, and digraph-blend reference panel.",
+          "Below: the ch /k/ chorus entry."
+        ],
+        "entryAppearance": "A large ph at left, a telephone picture with phone (7.3) in the center, and /f/ at right.",
+        "purpose": "Add the Step 7.3 ph digraph, keyword, and sound reference before applying the pattern in word work.",
+        "visualReference": "The Answer Key entry uses a telephone drawing for the phone keyword."
       },
-      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2" },
+      "sourceRef": { "sourceIds": ["SI-07", "SNB-7-12-AK"], "locator": "Wilson Student Notebook Steps 7–12 Answer Key, p. 2, Sounds → Consonant Combinations → Digraphs" },
       "sourceSection": "introductory-and-ongoing"
     },
     {
@@ -405,14 +398,21 @@
       "displayType": "NOTEBOOK",
       "teacherCue": "Complete the supplied tch notebook entry.",
       "teacherDirections": ["Guide the student through the source-directed Trigraphs-section notebook entry for tch."],
-      "studentPrompt": "Add the tch notebook entry.",
       "objects": [{ "id": "tch-notebook-entry", "text": "tch · catch", "role": "notebook" }],
       "notebookContext": {
-        "location": "Sounds section — Trigraphs page.",
-        "entryAppearance": "Write “tch · catch” as the supplied sound/keyword entry.",
-        "purpose": "Record the introduced tch pattern and keyword before applying it in word work."
+        "pageNumber": 3,
+        "section": "Sounds",
+        "subheading": "Consonant Combinations — Trigraphs",
+        "pageLocation": "Lower half of the page: the second entry box, directly below the dge /j/ fudge entry.",
+        "nearbyContext": [
+          "Above: the short-vowel supportive-letter generalization and the dge /j/ fudge entry.",
+          "The tch entry is paired with the Step 7.3 label on the same Trigraphs page."
+        ],
+        "entryAppearance": "A large tch at left, a catch picture/keyword in the center, and /ch/ at right.",
+        "purpose": "Add the Step 7.3 tch trigraph, keyword, and sound reference alongside the source's short-vowel support-letter context.",
+        "visualReference": "The Answer Key entry uses a catch picture for the keyword."
       },
-      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Part 2, p. 129" },
+      "sourceRef": { "sourceIds": ["SI-07", "SNB-7-12-AK"], "locator": "Wilson Student Notebook Steps 7–12 Answer Key, p. 3, Sounds → Consonant Combinations → Trigraphs" },
       "sourceSection": "introductory-and-ongoing"
     },
     {
@@ -422,7 +422,6 @@
       "displayType": "PREFIX_SUFFIX_CARDS",
       "teacherCue": "Build the supplied latch base, then manipulate the supplied prefix and suffix cards.",
       "teacherDirections": ["Pull the source-supplied cards in order, read the base word, and then read each resulting whole word."],
-      "studentPrompt": "Build, change, and read the word.",
       "objects": [
         { "id": "l", "text": "l", "role": "consonant", "stagingOrder": 1 },
         { "id": "a", "text": "a", "role": "vowel", "stagingOrder": 2 },
@@ -442,13 +441,48 @@
       "displayType": "WORD_ELEMENT_CARDS",
       "teacherCue": "Introduce the source-ordered Greek combining-form cards under the 2026–27 pacing convention.",
       "teacherDirections": ["Pull the supplied Greek combining-form cards in source order and read the resulting word."],
-      "studentPrompt": "Build and read microscope.",
       "objects": [
         { "id": "micro", "text": "micro-", "role": "greek-combining-form", "stagingOrder": 1 },
         { "id": "scope", "text": "-scope", "role": "greek-combining-form", "stagingOrder": 2 }
       ],
       "cardRepresentation": "greek-latin",
-      "sourceRef": { "sourceIds": ["SI-07"], "locator": "Substep 7.3, Subsequent Lessons, Part 2" },
+      "wordElementMeanings": [
+        {
+          "objectId": "micro",
+          "meaning": "small",
+          "sourceContext": {
+            "pageNumber": 47,
+            "section": "Word Elements",
+            "subheading": "Common Greek Bases – Combining Forms",
+            "pageLocation": "Bottom entry row on the first Common Greek Bases page.",
+            "nearbyContext": [
+              "Above: -logy, meaning study of, with astrology as the example word.",
+              "The micro- row gives microscope as the example word."
+            ],
+            "entryAppearance": "-micro- in the Base column; small in Meaning; microscope in Example Word.",
+            "purpose": "Give the Greek combining-form card a student-friendly meaning anchor while it remains a manipulable card.",
+            "visualReference": "The Answer Key Example Image column shows a microscope."
+          }
+        },
+        {
+          "objectId": "scope",
+          "meaning": "instrument for viewing",
+          "sourceContext": {
+            "pageNumber": 48,
+            "section": "Word Elements",
+            "subheading": "Common Greek Bases – Combining Forms (continued)",
+            "pageLocation": "Middle-lower entry row, below photo- and above -sphere-.",
+            "nearbyContext": [
+              "Above: photo-, meaning light, with photograph as the example word.",
+              "The -scope row gives microscope as the example word."
+            ],
+            "entryAppearance": "-scope in the Base column; instrument for viewing in Meaning; microscope in Example Word.",
+            "purpose": "Give the Greek combining-form card a student-friendly meaning anchor while it remains a manipulable card.",
+            "visualReference": "The Answer Key Example Image column shows a microscope."
+          }
+        }
+      ],
+      "sourceRef": { "sourceIds": ["SI-07", "SNB-7-12-AK"], "locator": "Wilson Student Notebook Steps 7–12 Answer Key, pp. 47–48, Word Elements → Common Greek Bases – Combining Forms" },
       "sourceSection": "subsequent-lessons",
       "projectPacingRule": "include-subsequent-in-introduction"
     }
