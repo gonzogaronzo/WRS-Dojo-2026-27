@@ -246,6 +246,7 @@ test('renders an Answer-Key-grounded notebook facsimile while keeping locator pr
   assert.match(teacherHtml, /Previously Taught/);
   assert.match(teacherHtml, /Visual cue · telephone/);
   assert.match(teacherHtml, /data-part2-notebook-note/);
+  assert.match(teacherHtml, /Notebook source details/);
   assert.match(teacherHtml, /first unshaded entry box/);
   assert.match(teacherHtml, /telephone drawing/);
 
