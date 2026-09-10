@@ -90,12 +90,34 @@ export type Part2CardRepresentation =
 
 /** Private, source-owned context for a Student Notebook move. */
 export interface Part2NotebookContext {
+  /** Printed Student Notebook page only when the source explicitly verifies it. */
+  pageNumber?: number;
+  /** Source-verified notebook section. */
+  section?: string;
+  /** Source-verified subheading on that page. */
+  subheading?: string;
+  /** Source-verified placement within the page. */
+  pageLocation?: string;
+  /** Nearby source-verified landmarks that help the teacher locate the entry. */
+  nearbyContext?: string[];
   /** Section/page/location only when the source explicitly verifies it. */
   location?: string;
   /** The source-supplied visual/form of the entry. */
   entryAppearance?: string;
   /** Why the entry is being added at this point in the lesson. */
   purpose?: string;
+  /** A source-described visual when shipping a source image is not practical. */
+  visualReference?: string;
+}
+
+/**
+ * Student-safe meaning with teacher-private Answer Key context.  The runner
+ * never derives these values from a spelling string or card label.
+ */
+export interface Part2WordElementMeaning {
+  objectId: string;
+  meaning: string;
+  sourceContext?: Part2NotebookContext;
 }
 
 export type Part2SourceSection = 'introductory-and-ongoing' | 'subsequent-lessons';
@@ -126,6 +148,12 @@ export interface Part2InstructionStep {
   cardRepresentation?: Part2CardRepresentation;
   /** Kept private; stripped before a passive student projection is created. */
   notebookContext?: Part2NotebookContext;
+  /**
+   * Source-verified, student-friendly meanings for supplied Word Element
+   * Cards.  sourceContext is stripped before passive projection, but the
+   * verified meaning remains available next to the manipulable card.
+   */
+  wordElementMeanings?: Part2WordElementMeaning[];
   expectedStudentAction?: string;
   teachingPoint?: string;
   sourceRef: Part2StepSourceReference;
@@ -435,11 +463,53 @@ const normalizeNotebookContext = (value: unknown): Part2NotebookContext | undefi
   if (value === undefined) return undefined;
   const record = asRecord(value);
   if (!record) return null;
+  const pageNumber = record.pageNumber;
+  if (pageNumber !== undefined && (typeof pageNumber !== 'number' || !Number.isInteger(pageNumber) || pageNumber < 1)) return null;
+  const section = optionalText(record.section);
+  const subheading = optionalText(record.subheading);
+  const pageLocation = optionalText(record.pageLocation);
+  const nearbyContext = record.nearbyContext === undefined
+    ? undefined
+    : normalizeTextArray(record.nearbyContext);
   const location = optionalText(record.location);
   const entryAppearance = optionalText(record.entryAppearance);
   const purpose = optionalText(record.purpose);
-  if (!location && !entryAppearance && !purpose) return null;
-  return { location, entryAppearance, purpose };
+  const visualReference = optionalText(record.visualReference);
+  if (nearbyContext === null) return null;
+  if (
+    pageNumber === undefined && !section && !subheading && !pageLocation && !nearbyContext
+    && !location && !entryAppearance && !purpose && !visualReference
+  ) return null;
+  return {
+    pageNumber: pageNumber as number | undefined,
+    section,
+    subheading,
+    pageLocation,
+    nearbyContext,
+    location,
+    entryAppearance,
+    purpose,
+    visualReference
+  };
+};
+
+const normalizeWordElementMeanings = (
+  value: unknown
+): Part2WordElementMeaning[] | undefined | null => {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const seenObjectIds = new Set<string>();
+  const meanings: Part2WordElementMeaning[] = [];
+  for (const candidate of value) {
+    const record = asRecord(candidate);
+    const objectId = nonEmptyText(record?.objectId);
+    const meaning = nonEmptyText(record?.meaning);
+    const sourceContext = normalizeNotebookContext(record?.sourceContext);
+    if (!record || !objectId || !meaning || seenObjectIds.has(objectId) || sourceContext === null) return null;
+    seenObjectIds.add(objectId);
+    meanings.push({ objectId, meaning, sourceContext: sourceContext || undefined });
+  }
+  return meanings;
 };
 
 const buildValidationError = (
@@ -506,8 +576,13 @@ const actionValidationError = (
   displayType: Part2DisplayType,
   objects: Part2InstructionObject[],
   cardRepresentation?: Part2CardRepresentation,
-  notebookContext?: Part2NotebookContext
+  notebookContext?: Part2NotebookContext,
+  wordElementMeanings?: Part2WordElementMeaning[],
+  studentPrompt?: string
 ): string | null => {
+  if (BUILD_ACTION_TYPES.has(actionType) && studentPrompt) {
+    return 'Build/read/manipulation steps may not supply a studentPrompt; keep answer-bearing directions teacher-private.';
+  }
   if (actionType === 'READ_WORDS' && displayType === 'WRITTEN_WORD') {
     return 'READ_WORDS cannot fall back to WRITTEN_WORD; source-supplied card segmentation is required.';
   }
@@ -520,6 +595,18 @@ const actionValidationError = (
     if (!objects.every(object => object.role === 'notebook')) return 'NOTEBOOK requires explicit notebook-entry objects.';
   } else if (notebookContext) {
     return 'notebookContext may only be supplied for a NOTEBOOK step.';
+  }
+  if (wordElementMeanings) {
+    if (displayType !== 'WORD_ELEMENT_CARDS') {
+      return 'wordElementMeanings may only be supplied with explicit Word Element Cards.';
+    }
+    const objectById = new Map(objects.map(object => [object.id, object]));
+    for (const entry of wordElementMeanings) {
+      const object = objectById.get(entry.objectId);
+      if (!object || !['base-element', 'greek-combining-form'].includes(object.role)) {
+        return 'wordElementMeanings must reference an explicit supplied Word Element Card.';
+      }
+    }
   }
   if (!BUILD_ACTION_TYPES.has(actionType) && cardRepresentation) {
     return 'cardRepresentation may only be supplied for a source-controlled build/read/manipulation step.';
@@ -548,6 +635,8 @@ const normalizeInteractiveStep = (
   const saveHints = normalizeSaveHints(record.saveHints);
   const cardRepresentation = record.cardRepresentation as Part2CardRepresentation | undefined;
   const notebookContext = normalizeNotebookContext(record.notebookContext);
+  const wordElementMeanings = normalizeWordElementMeanings(record.wordElementMeanings);
+  const studentPrompt = optionalText(record.studentPrompt);
   const provenance = record.provenance as Part2PresentationProvenance | undefined;
 
   if (!actionType || !ACTION_TYPES.has(actionType)) return invalidInteractiveStep(id, 'Instructional actionType is missing or unsupported.');
@@ -569,8 +658,17 @@ const normalizeInteractiveStep = (
     return invalidInteractiveStep(id, 'cardRepresentation is not recognized.');
   }
   if (notebookContext === null) return invalidInteractiveStep(id, 'notebookContext must contain source-supplied notebook context.');
+  if (wordElementMeanings === null) return invalidInteractiveStep(id, 'wordElementMeanings must contain source-supplied meaning data.');
 
-  const actionError = actionValidationError(actionType, displayType, objects, cardRepresentation, notebookContext || undefined);
+  const actionError = actionValidationError(
+    actionType,
+    displayType,
+    objects,
+    cardRepresentation,
+    notebookContext || undefined,
+    wordElementMeanings || undefined,
+    studentPrompt
+  );
   if (actionError) return invalidInteractiveStep(id, actionError);
   const buildError = buildValidationError(actionType, displayType, objects, cardRepresentation);
   if (buildError) return invalidInteractiveStep(id, buildError);
@@ -578,8 +676,9 @@ const normalizeInteractiveStep = (
   return {
     kind: 'step', id, provenance, actionType, displayType,
     teacherCue: teacherCue || '', teacherDirections: teacherDirections || [],
-    studentPrompt: optionalText(record.studentPrompt), objects, cardRepresentation,
+    studentPrompt, objects, cardRepresentation,
     notebookContext: notebookContext || undefined,
+    wordElementMeanings: wordElementMeanings || undefined,
     expectedStudentAction: optionalText(record.expectedStudentAction),
     teachingPoint: optionalText(record.teachingPoint), sourceRef: sourceRef || { sourceIds: [] }, sourceSection,
     projectPacingRule, saveHints: saveHints || undefined
@@ -649,6 +748,17 @@ export const sanitizePart2PresentationForStudent = (value: unknown): unknown => 
         'expectedStudentAction', 'sourceRef', 'saveHints', 'notebookContext'
       ]) {
         delete studentStep[privateKey];
+      }
+      if (!['MARK_WORDS', 'NOTEBOOK'].includes(studentStep.actionType as string)) {
+        delete studentStep.studentPrompt;
+      }
+      if (Array.isArray(studentStep.wordElementMeanings)) {
+        studentStep.wordElementMeanings = studentStep.wordElementMeanings.map(entry => {
+          const meaning = asRecord(entry);
+          return meaning
+            ? { objectId: meaning.objectId, meaning: meaning.meaning }
+            : entry;
+        });
       }
       return studentStep;
     })
