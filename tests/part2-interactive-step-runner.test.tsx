@@ -337,13 +337,17 @@ test('keeps drawing and Wilson coding marks available on MARK_WORDS while hiding
   assert.doesNotMatch(studentHtml, /Draw or underline on the active Part 2 step/);
 });
 
-test('bounds Back/Next navigation to source order after removing dead-end Quick Practice', () => {
+test('removes Quick Practice and keeps one runner-owned navigation path', () => {
   const presentation = runnerPresentation(fixture73);
+  assert.equal(nextPart2Step({ activeIndex: 0 }, presentation.steps.length).activeIndex, 1);
+  assert.equal(previousPart2Step({ activeIndex: 1 }, presentation.steps.length).activeIndex, 0);
   assert.equal(previousPart2Step({ activeIndex: 0 }, presentation.steps.length).activeIndex, 0);
   assert.equal(nextPart2Step({ activeIndex: presentation.steps.length - 1 }, presentation.steps.length).activeIndex, presentation.steps.length - 1);
   const catchIndex = presentation.steps.findIndex(step => step.id === 'catch-build');
   const html = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={catchIndex} />);
-  assert.doesNotMatch(html, /Quick Practice|quickPractice/);
+  assert.equal((html.match(/aria-label="Next"/g) || []).length, 1);
+  assert.match(html, /data-part2-next-scope="instructional-move"/);
+  assert.doesNotMatch(html, /Quick Practice|quickPractice|data-part2-quick-practice|data-part2-word-sequence-controls|Previous word|Next word/);
 });
 
 test('writes only the concise Part 2 lesson record into the existing session note', () => {
