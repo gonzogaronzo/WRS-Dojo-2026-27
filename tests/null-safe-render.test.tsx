@@ -238,6 +238,10 @@ test('keeps an independent, touch-safe Mission scroll path when a short viewport
   assert.match(root[1], /tabindex="-1"/);
   assert.match(html, /data-mission-scroll-content="true"/);
   assert.match(html, /Mission scroll guard/);
+
+  const missionSource = readFileSync(new URL('../legacy/components/MissionPlayer.tsx', import.meta.url), 'utf8');
+  assert.match(missionSource, /aria-label="Completed Mission workspace"/);
+  assert.match(missionSource, /\}, \[isFinished\]\);/);
 });
 
 test('allows document vertical overflow while preserving the fixed lesson-stage viewport', () => {
