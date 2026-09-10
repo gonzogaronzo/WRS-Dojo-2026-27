@@ -35,7 +35,7 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
   // The Mission overlay is its own scroll owner. Focusing it lets PageUp/PageDown and arrow-key scrolling work without relying on a hidden document root.
   useEffect(() => {
     missionScrollRef.current?.focus({ preventScroll: true });
-  }, []);
+  }, [isFinished]);
 
   useEffect(() => {
     if (isActive && !isFinished) {
@@ -84,7 +84,13 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
 
   if (isFinished) {
     return (
-      <div className="fixed inset-0 z-[100] overflow-y-auto overscroll-y-contain touch-pan-y bg-stone-950" data-mission-scroll-container="true">
+      <div
+        ref={missionScrollRef}
+        tabIndex={-1}
+        className="fixed inset-0 z-[100] overflow-y-auto overscroll-y-contain touch-pan-y bg-stone-950 outline-none"
+        data-mission-scroll-container="true"
+        aria-label="Completed Mission workspace"
+      >
         <div className="min-h-full flex items-center justify-center p-6" data-mission-scroll-content="true">
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
