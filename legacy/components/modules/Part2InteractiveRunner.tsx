@@ -11,6 +11,7 @@ import {
   encodePart2SemanticUnit,
   isPart2BuildAction,
   type Part2InstructionObject,
+  type Part2InstructionStep,
   type Part2InteractivePresentation
 } from '../../part2Presentation';
 import {
@@ -87,6 +88,62 @@ const semanticTile = (object: Part2InstructionObject) => ({
   text: encodePart2SemanticUnit(object.role, object.text),
   type: 'syllable' as const
 });
+
+/**
+ * Renders only source-supplied page structure. There is deliberately no
+ * prose-to-layout fallback: a payload without a verified visual is visibly
+ * unavailable instead of inventing a notebook page.
+ */
+const NotebookPage: React.FC<{ step: Part2InstructionStep }> = ({ step }) => {
+  const visual = step.notebookVisual;
+  if (!visual || visual.layout !== 'sound-entry-grid') {
+    return (
+      <article data-part2-notebook-page-unavailable className="absolute inset-x-[255px] top-[120px] z-20 mx-auto max-w-[900px] rounded-2xl border-2 border-amber-200 bg-amber-50 px-10 py-8 text-center text-stone-700">
+        <p className="text-2xl font-black text-stone-800">Notebook page view unavailable</p>
+        <p className="mt-2 text-lg">Wait for the teacher’s source-verified notebook guidance.</p>
+      </article>
+    );
+  }
+
+  return (
+    <article data-part2-notebook-page className="absolute left-1/2 top-[64px] z-20 w-[980px] -translate-x-1/2 rounded-[28px] border-[10px] border-[#d7c5a6] bg-[#fffdf6] p-8 text-stone-900 shadow-[0_18px_45px_rgba(63,47,28,0.18)]">
+      <header className="border-b-2 border-stone-300 pb-4 text-center">
+        <div className="flex items-center justify-between gap-5 text-[13px] font-black uppercase tracking-[0.15em] text-stone-500">
+          <span data-part2-notebook-section>{visual.section}</span>
+          <span data-part2-notebook-page-number>Page {visual.pageNumber}</span>
+        </div>
+        <h2 data-part2-notebook-subheading className="mt-2 text-[30px] font-black tracking-tight text-stone-800">{visual.subheading}</h2>
+      </header>
+      <div data-part2-notebook-entry-grid className="mt-6 space-y-3">
+        {visual.rows.map(row => row.kind === 'reference-panel' ? (
+          <section
+            key={row.id}
+            data-part2-notebook-reference-panel
+            data-notebook-source-order={row.sourceOrder}
+            className={`rounded-xl border border-stone-300 px-5 py-4 text-center text-[16px] font-black uppercase tracking-[0.16em] ${row.shaded ? 'bg-stone-200 text-stone-600' : 'bg-white text-stone-700'}`}
+          >
+            {row.label}
+          </section>
+        ) : (
+          <section
+            key={row.id}
+            data-part2-notebook-row
+            data-notebook-source-order={row.sourceOrder}
+            {...(row.target ? { 'data-part2-notebook-target-row': 'true' } : {})}
+            className={`grid min-h-[128px] grid-cols-[180px_1fr_160px] items-stretch overflow-hidden rounded-xl border-2 ${row.target ? 'border-sky-500 bg-sky-50 ring-4 ring-sky-100' : 'border-stone-300 bg-white'}`}
+          >
+            <div className="flex items-center justify-center border-r-2 border-stone-300 px-4 text-[48px] font-black tracking-tight text-stone-800">{row.pattern}</div>
+            <div className="flex min-w-0 flex-col items-center justify-center px-5 text-center">
+              {row.visualCue ? <div data-part2-notebook-source-visual className="mb-1 rounded-full border border-stone-300 bg-[#f5eee2] px-3 py-1 text-[12px] font-bold uppercase tracking-[0.12em] text-stone-600">Visual cue · {row.visualCue}</div> : null}
+              <div className="text-[27px] font-black text-stone-800">{row.keyword}{row.stepLabel ? <span className="ml-2 text-[15px] font-bold text-stone-500">({row.stepLabel})</span> : null}</div>
+            </div>
+            <div className="flex items-center justify-center border-l-2 border-stone-300 px-4 text-[34px] font-black text-stone-800">{row.sound}</div>
+          </section>
+        ))}
+      </div>
+    </article>
+  );
+};
 
 const compactButtonClass = 'rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-stone-700 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-35';
 const standardButtonClass = 'rounded-xl border border-stone-300 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-stone-700 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-35';
@@ -256,7 +313,9 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
   ).placed);
   const topStagedId = unplaced[0]?.id;
   const displayCue = activeStep.teacherCue;
-  const studentFacingPrompt = ['MARK_WORDS', 'NOTEBOOK'].includes(activeStep.actionType)
+  // Notebook layout itself is the student-facing guide. Location prose remains
+  // teacher-private, and build/read/manipulation prompts are source-gated away.
+  const studentFacingPrompt = activeStep.actionType === 'MARK_WORDS'
     ? activeStep.studentPrompt
     : undefined;
 
@@ -312,40 +371,61 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
       scale: 1,
       placed: false
     };
+    const workRowStart = 800 - (Math.max(1, orderedObjects.length) * 205) / 2;
     const defaultWork = dominantReviewWord
       ? { x: 620, y: 360, scale: 1, placed: true }
-      : { x: 410 + objectIndex * 205, y: 410, scale: 1, placed: true };
+      : { x: workRowStart + objectIndex * 205, y: 410, scale: 1, placed: true };
     const fallback = buildStep ? defaultStack : defaultWork;
     const state = readObjectState(activeStates[key], fallback);
     const placed = !buildStep || state.placed;
     const isTopStaged = buildStep && !placed && object.id === topStagedId;
+    const movable = object.interaction !== 'static' && activeStep.actionType !== 'NOTEBOOK';
+    const dragEnabled = movable && !readOnly && (!buildStep || placed || isTopStaged);
 
     if (readOnly && !placed) return null;
+    const surface = (
+      <div
+        data-part2-manipulative
+        data-part2-draggable={movable ? 'true' : 'false'}
+        data-part2-drag-enabled={dragEnabled ? 'true' : 'false'}
+        data-part2-object-id={object.id}
+        data-part2-role={object.role}
+        {...(dominantReviewWord ? {
+          'data-part2-review-card': 'true',
+          'data-part2-active-word': 'true',
+          'data-part2-word-index': objectIndex + 1
+        } : {})}
+        {...(!placed ? { 'data-staging-order': object.stagingOrder || objectIndex + 1 } : {})}
+        className={`rounded-xl ${!placed ? 'bg-white/85 p-1 shadow-lg' : 'bg-transparent p-0'} ${dominantReviewWord ? 'origin-center scale-[1.45]' : ''}`}
+      >
+        <Tile data={semanticTile(object)} size="xl" />
+      </div>
+    );
+
+    if (!movable) {
+      return (
+        <div
+          key={key}
+          className="absolute"
+          style={{ left: state.x, top: state.y, zIndex: placed ? 30 + objectIndex : 200 - (object.stagingOrder || objectIndex) }}
+        >
+          {surface}
+        </div>
+      );
+    }
+
     return (
       <Draggable
         key={key}
         initialPos={{ x: state.x, y: state.y }}
         viewportScale={contentScale * lessonStageScale}
-        disabled={readOnly || (buildStep && !placed && !isTopStaged)}
+        disabled={!dragEnabled}
         onDrag={position => updateCurrentState(key, { ...position, placed: true })}
         onDragEnd={position => updateCurrentState(key, { ...position, placed: true })}
         className={readOnly ? 'pointer-events-none' : ''}
         style={{ zIndex: placed ? 30 + objectIndex : 200 - (object.stagingOrder || objectIndex) }}
       >
-        <div
-          data-part2-manipulative
-          data-part2-object-id={object.id}
-          data-part2-role={object.role}
-          {...(dominantReviewWord ? {
-            'data-part2-review-card': 'true',
-            'data-part2-active-word': 'true',
-            'data-part2-word-index': objectIndex + 1
-          } : {})}
-          {...(!placed ? { 'data-staging-order': object.stagingOrder || objectIndex + 1 } : {})}
-          className={`rounded-xl ${!placed ? 'bg-white/85 p-1 shadow-lg' : 'bg-transparent p-0'} ${dominantReviewWord ? 'origin-center scale-[1.45]' : ''}`}
-        >
-          <Tile data={semanticTile(object)} size="xl" />
-        </div>
+        {surface}
       </Draggable>
     );
   };
@@ -376,9 +456,9 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
                 <ol className="mt-2 list-decimal space-y-1 pl-4 leading-relaxed">{activeStep.teacherDirections.map((direction, index) => <li key={`${activeStep.id}-direction-${index}`}>{direction}</li>)}</ol>
               </details>
               {activeStep.actionType === 'NOTEBOOK' && (
-                <aside data-part2-notebook-note className="max-w-2xl rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
-                  <p className="font-black uppercase tracking-[0.1em] text-sky-800">Student Notebook</p>
-                  <dl className="mt-1 grid gap-x-3 gap-y-1 sm:grid-cols-[5.5rem_1fr]">
+                <details data-part2-notebook-note className="max-w-2xl rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
+                  <summary className="cursor-pointer font-black uppercase tracking-[0.1em] text-sky-800">Notebook source details</summary>
+                  <dl className="mt-2 grid gap-x-3 gap-y-1 sm:grid-cols-[5.5rem_1fr]">
                     {activeStep.notebookContext?.pageNumber && <><dt className="font-bold">Page</dt><dd>{activeStep.notebookContext.pageNumber}</dd></>}
                     {activeStep.notebookContext?.section && <><dt className="font-bold">Section</dt><dd>{activeStep.notebookContext.section}</dd></>}
                     {activeStep.notebookContext?.subheading && <><dt className="font-bold">Subheading</dt><dd>{activeStep.notebookContext.subheading}</dd></>}
@@ -391,7 +471,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
                     <dd>{activeStep.notebookContext?.purpose || 'Unavailable from this source payload; confirm the instructional purpose in the cited source.'}</dd>
                     {activeStep.notebookContext?.visualReference && <><dt className="font-bold">Source visual</dt><dd>{activeStep.notebookContext.visualReference}</dd></>}
                   </dl>
-                </aside>
+                </details>
               )}
               {activeStep.wordElementMeanings?.some(entry => entry.sourceContext) && (
                 <aside data-part2-word-element-source-context className="max-w-2xl rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-950">
@@ -490,20 +570,14 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
               ) : null}
               {buildStep && !readOnly && <div data-part2-staging-stack className="absolute left-12 top-14 z-20 h-[610px] w-[280px] rounded-2xl border border-stone-300 bg-stone-50/90 p-4 shadow-sm"><p className="text-[11px] font-black uppercase tracking-[0.18em] text-stone-500">Pull stack</p><p className="mt-1 text-xs text-stone-500">Take the top supplied card first.</p></div>}
               {buildStep && readOnly && unplaced.length > 0 && <p className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-center text-2xl font-semibold text-stone-400">Waiting for the teacher to place the supplied materials.</p>}
-              {buildStep ? orderedObjects.map(renderObject) : (
+              {activeStep.actionType === 'NOTEBOOK' ? (
+                <NotebookPage step={activeStep} />
+              ) : buildStep ? orderedObjects.map(renderObject) : (
                 usesWordSequence ? (
                   activeWord ? renderObject(activeWord, activeWordIndex, true) : null
                 ) : (
-                  <div data-part2-static-objects className="absolute inset-0 z-10 flex flex-wrap content-center items-center justify-center gap-5 px-32 pt-20">
-                  {visibleStaticObjects.map(object => (
-                    <div
-                      key={object.id}
-                      data-part2-object-id={object.id}
-                      data-part2-role={object.role}
-                    >
-                      <Tile data={semanticTile(object)} size="xl" />
-                    </div>
-                  ))}
+                  <div data-part2-static-objects className="absolute inset-0 z-10">
+                    {visibleStaticObjects.map(renderObject)}
                   </div>
                 )
               )}
