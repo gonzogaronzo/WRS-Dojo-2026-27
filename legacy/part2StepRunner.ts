@@ -1,8 +1,5 @@
-import type { Part2InteractiveStep } from './part2Presentation';
-
 export interface Part2StepRunnerNavigationState {
   activeIndex: number;
-  quickPracticeAnchorId?: string;
 }
 
 export const PART2_SAVE_NOTE_PREFIX = '[Part 2 save]';
@@ -14,24 +11,6 @@ const clampIndex = (index: number, stepCount: number) => (
 export const createPart2StepRunnerNavigation = (stepCount: number): Part2StepRunnerNavigationState => ({
   activeIndex: clampIndex(0, stepCount)
 });
-
-/**
- * A Quick Practice is a view-state insertion. It deliberately does not change
- * the source-owned step array or its ordering.
- */
-export const insertPart2QuickPractice = (
-  state: Part2StepRunnerNavigationState,
-  steps: readonly Part2InteractiveStep[]
-): Part2StepRunnerNavigationState => {
-  const active = steps[clampIndex(state.activeIndex, steps.length)];
-  if (!active || active.kind === 'invalid') return { ...state };
-  return { activeIndex: clampIndex(state.activeIndex, steps.length), quickPracticeAnchorId: active.id };
-};
-
-export const clearPart2QuickPractice = (
-  state: Part2StepRunnerNavigationState,
-  stepCount: number
-): Part2StepRunnerNavigationState => ({ activeIndex: clampIndex(state.activeIndex, stepCount) });
 
 export const nextPart2Step = (
   state: Part2StepRunnerNavigationState,
