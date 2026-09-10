@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import Slideshow from '../legacy/components/modules/Slideshow';
 import TeachConcepts from '../legacy/components/modules/TeachConcepts';
+import MissionPlayer from '../legacy/components/MissionPlayer';
+import LessonStage from '../legacy/components/LessonStage';
 import QuickDrill from '../legacy/components/modules/QuickDrill';
 import Spelling from '../legacy/components/modules/Spelling';
 import { UnassignedLessonCompletion } from '../legacy/components/SessionDossier';
@@ -207,4 +210,42 @@ test('projects semantic Part 2 runtime data into the existing synchronized Teach
   assert.match(html, /Supplied semantic explanation/);
   assert.doesNotMatch(html, /Legacy slide/);
   assert.match(html, /data-part2-role="statement"/);
+});
+
+
+test('keeps an independent, touch-safe Mission scroll path when a short viewport cannot fit the mission content', () => {
+  const tallLesson = {
+    id: 'scroll-guard',
+    title: 'Mission scroll guard '.repeat(80),
+    step: '7',
+    substep: '3',
+    wordCards: [{ id: 'scroll-card', text: 'scrollable', type: 'word' }]
+  } as any;
+  const html = renderToStaticMarkup(
+    <MissionPlayer
+      lesson={tallLesson}
+      students={[{ id: 'student-scroll', name: 'Student Scroll Guard' }] as any}
+      onComplete={() => {}}
+      onExit={() => {}}
+    />
+  );
+
+  const root = html.match(/<div([^>]*data-mission-scroll-container="true"[^>]*)>/);
+  assert.ok(root, 'Mission needs a dedicated scroll owner instead of relying on document overflow.');
+  assert.match(root[1], /overflow-y-auto/);
+  assert.match(root[1], /touch-pan-y/);
+  assert.match(root[1], /tabindex="-1"/);
+  assert.match(html, /data-mission-scroll-content="true"/);
+  assert.match(html, /Mission scroll guard/);
+});
+
+test('allows document vertical overflow while preserving the fixed lesson-stage viewport', () => {
+  const globalCss = readFileSync(new URL('../legacy/index.css', import.meta.url), 'utf8');
+  assert.match(globalCss, /overflow-x:\s*hidden;/);
+  assert.match(globalCss, /overflow-y:\s*auto;/);
+  assert.doesNotMatch(globalCss, /html, body\s*\{[^}]*overflow:\s*hidden;/s);
+
+  const stageHtml = renderToStaticMarkup(<LessonStage><div>Fixed lesson stage</div></LessonStage>);
+  assert.match(stageHtml, /data-lesson-stage-viewport/);
+  assert.match(stageHtml, /overflow-hidden/);
 });
