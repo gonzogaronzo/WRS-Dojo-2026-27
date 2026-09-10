@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, MousePointer2, PenTool, PlusCircle, RotateCcw, Save, Trash2, X } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, MousePointer2, PenTool, RotateCcw, Save, Trash2, X } from 'lucide-react';
 import Tile from '../Tile';
 import Draggable from '../interactive/Draggable';
 import { useLessonStageScale } from '../LessonStage';
@@ -11,12 +11,10 @@ import {
   encodePart2SemanticUnit,
   isPart2BuildAction,
   type Part2InstructionObject,
-  type Part2InteractivePresentation,
-  type Part2InteractiveStep
+  type Part2InteractivePresentation
 } from '../../part2Presentation';
 import {
   createPart2SavePayload,
-  insertPart2QuickPractice,
   nextPart2Step,
   previousPart2Step,
   upsertPart2SavePayloadInNotes
@@ -30,7 +28,6 @@ interface RunnerObjectState {
 }
 
 interface RunnerMetaState extends RunnerObjectState {
-  quickPracticeAnchorId?: string;
   activeWordIndex?: number;
 }
 
@@ -80,18 +77,11 @@ const readRunnerMetaState = (value: unknown): RunnerMetaState => {
     : {};
   return {
     ...base,
-    quickPracticeAnchorId: typeof record.quickPracticeAnchorId === 'string'
-      ? record.quickPracticeAnchorId
-      : undefined,
     activeWordIndex: typeof record.activeWordIndex === 'number' && Number.isInteger(record.activeWordIndex)
       ? Math.max(0, record.activeWordIndex)
       : undefined
   };
 };
-
-const isQuickPractice = (state: RunnerMetaState | undefined, step: Part2InteractiveStep) => (
-  step.kind === 'step' && state?.quickPracticeAnchorId === step.id
-);
 
 const semanticTile = (object: Part2InstructionObject) => ({
   text: encodePart2SemanticUnit(object.role, object.text),
@@ -140,7 +130,6 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
   const stateMap = objectStates ?? localStates;
   const activeStates = stateMap[resolvedIndex] || {};
   const meta = readRunnerMetaState(activeStates[RUNNER_META_KEY]);
-  const quickPractice = activeStep ? isQuickPractice(meta, activeStep) : false;
   const showTeacherPrivate = !readOnly && !boardSafe;
   const buttonClass = boardSafe ? compactButtonClass : standardButtonClass;
   const activeDrawingTool = drawingTool ?? localDrawingTool;
@@ -211,19 +200,12 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
     });
   };
 
-  const clearCurrentWorkspace = (preserveQuickPractice = false) => {
+  const clearCurrentWorkspace = () => {
     if (!activeStep || activeStep.kind === 'invalid') return;
     const nextActive = { ...activeStates };
     for (const key of Object.keys(nextActive)) {
       if (key.startsWith(`part2:${activeStep.id}:`)) delete nextActive[key];
     }
-    if (!preserveQuickPractice) delete nextActive[RUNNER_META_KEY];
-    replaceStates({ ...stateMap, [resolvedIndex]: nextActive });
-  };
-
-  const clearCurrentQuickPractice = () => {
-    if (!activeStates[RUNNER_META_KEY]) return;
-    const nextActive = { ...activeStates };
     delete nextActive[RUNNER_META_KEY];
     replaceStates({ ...stateMap, [resolvedIndex]: nextActive });
   };
@@ -234,34 +216,6 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
     else setLocalIndex(safe);
   };
 
-  const navigate = (direction: 'back' | 'next' | 'skip') => {
-    // Navigation preserves each move's placed/rearranged materials. Repeat is
-    // the explicit reset action; leaving Quick Practice only removes its
-    // transient view-state marker.
-    clearCurrentQuickPractice();
-    const next = direction === 'back'
-      ? previousPart2Step({ activeIndex: resolvedIndex }, stepCount)
-      : nextPart2Step({ activeIndex: resolvedIndex }, stepCount);
-    setIndex(next.activeIndex);
-  };
-
-  const insertQuickPractice = () => {
-    if (!activeStep || activeStep.kind === 'invalid') return;
-    const next = insertPart2QuickPractice({ activeIndex: resolvedIndex }, presentation.steps);
-    const nextActive = { ...activeStates };
-    for (const key of Object.keys(nextActive)) {
-      if (key.startsWith(`part2:${activeStep.id}:`)) delete nextActive[key];
-    }
-    nextActive[RUNNER_META_KEY] = {
-      ...readRunnerMetaState(activeStates[RUNNER_META_KEY]),
-      quickPracticeAnchorId: next.quickPracticeAnchorId,
-      activeWordIndex: 0,
-      x: 0,
-      y: 0,
-      scale: 1
-    };
-    replaceStates({ ...stateMap, [resolvedIndex]: nextActive });
-  };
 
   const savePart2 = () => {
     if (!onUpdateNotes || !activeStep || activeStep.kind === 'invalid') return;
@@ -289,7 +243,8 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
 
   const buildStep = isPart2BuildAction(activeStep.actionType);
   const orderedObjects = [...activeStep.objects].sort((left, right) => (left.stagingOrder || 0) - (right.stagingOrder || 0));
-  const usesWordSequence = activeStep.displayType === 'WRITTEN_WORD'
+  const usesWordSequence = activeStep.actionType === 'TEACH_CARD'
+    && activeStep.displayType === 'WRITTEN_WORD'
     && orderedObjects.length > 0
     && orderedObjects.every(object => object.role === 'word');
   const activeWordIndex = usesWordSequence ? clampIndex(meta.activeWordIndex ?? 0, orderedObjects.length) : 0;
@@ -300,12 +255,35 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
     { x: 0, y: 0, scale: 1 }
   ).placed);
   const topStagedId = unplaced[0]?.id;
-  const displayCue = quickPractice ? 'Quick Practice — repeat the supplied move.' : activeStep.teacherCue;
+  const displayCue = activeStep.teacherCue;
+  const studentFacingPrompt = ['MARK_WORDS', 'NOTEBOOK'].includes(activeStep.actionType)
+    ? activeStep.studentPrompt
+    : undefined;
 
   const setActiveWordIndex = (next: number) => {
     if (!usesWordSequence) return;
     updateCurrentState(RUNNER_META_KEY, { activeWordIndex: clampIndex(next, orderedObjects.length) });
   };
+
+  const navigate = (direction: 'back' | 'next' | 'skip') => {
+    // The runner owns navigation.  A review-word move consumes its one Next
+    // control before advancing the source-owned instructional move.
+    if (direction === 'next' && usesWordSequence && activeWordIndex < orderedObjects.length - 1) {
+      setActiveWordIndex(activeWordIndex + 1);
+      return;
+    }
+    if (direction === 'back' && usesWordSequence && activeWordIndex > 0) {
+      setActiveWordIndex(activeWordIndex - 1);
+      return;
+    }
+    const next = direction === 'back'
+      ? previousPart2Step({ activeIndex: resolvedIndex }, stepCount)
+      : nextPart2Step({ activeIndex: resolvedIndex }, stepCount);
+    setIndex(next.activeIndex);
+  };
+
+  const hasPreviousRunnerTarget = resolvedIndex > 0 || (usesWordSequence && activeWordIndex > 0);
+  const hasNextRunnerTarget = resolvedIndex < stepCount - 1 || (usesWordSequence && activeWordIndex < orderedObjects.length - 1);
 
   const spawnMark = (type: CodingMark['type']) => {
     const mark: CodingMark = {
@@ -326,7 +304,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
     replaceMarks(activeMarks.filter(mark => mark.id !== id));
   };
 
-  const renderObject = (object: Part2InstructionObject, objectIndex: number) => {
+  const renderObject = (object: Part2InstructionObject, objectIndex: number, dominantReviewWord = false) => {
     const key = objectKey(activeStep.id, object.id);
     const defaultStack = {
       x: 105,
@@ -334,7 +312,9 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
       scale: 1,
       placed: false
     };
-    const defaultWork = { x: 410 + objectIndex * 205, y: 410, scale: 1, placed: true };
+    const defaultWork = dominantReviewWord
+      ? { x: 620, y: 360, scale: 1, placed: true }
+      : { x: 410 + objectIndex * 205, y: 410, scale: 1, placed: true };
     const fallback = buildStep ? defaultStack : defaultWork;
     const state = readObjectState(activeStates[key], fallback);
     const placed = !buildStep || state.placed;
@@ -356,8 +336,13 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
           data-part2-manipulative
           data-part2-object-id={object.id}
           data-part2-role={object.role}
+          {...(dominantReviewWord ? {
+            'data-part2-review-card': 'true',
+            'data-part2-active-word': 'true',
+            'data-part2-word-index': objectIndex + 1
+          } : {})}
           {...(!placed ? { 'data-staging-order': object.stagingOrder || objectIndex + 1 } : {})}
-          className={`rounded-xl ${!placed ? 'bg-white/85 p-1 shadow-lg' : 'bg-transparent p-0'}`}
+          className={`rounded-xl ${!placed ? 'bg-white/85 p-1 shadow-lg' : 'bg-transparent p-0'} ${dominantReviewWord ? 'origin-center scale-[1.45]' : ''}`}
         >
           <Tile data={semanticTile(object)} size="xl" />
         </div>
@@ -375,11 +360,10 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
               {!boardSafe && <p data-part2-teacher-cue className="mt-1 text-base font-bold text-stone-800">{displayCue}</p>}
             </div>
             <div data-part2-runner-controls className="flex flex-wrap items-center gap-2">
-              <button type="button" className={buttonClass} onClick={() => navigate('back')} disabled={resolvedIndex === 0} aria-label="Back one instructional move"><ChevronLeft className="inline h-3.5 w-3.5" /> Back</button>
-              <button type="button" className={buttonClass} onClick={() => navigate('next')} disabled={resolvedIndex >= stepCount - 1} aria-label="Next instructional move">Next <ChevronRight className="inline h-3.5 w-3.5" /></button>
-              <button type="button" className={buttonClass} onClick={() => clearCurrentWorkspace(quickPractice)} aria-label="Repeat current instructional move"><RotateCcw className="inline h-3.5 w-3.5" /> Repeat</button>
+              <button type="button" className={buttonClass} onClick={() => navigate('back')} disabled={!hasPreviousRunnerTarget} aria-label="Back"><ChevronLeft className="inline h-3.5 w-3.5" /> Back</button>
+              <button type="button" className={buttonClass} onClick={() => navigate('next')} disabled={!hasNextRunnerTarget} aria-label="Next" data-part2-next-scope={usesWordSequence && activeWordIndex < orderedObjects.length - 1 ? 'review-word' : 'instructional-move'}>Next <ChevronRight className="inline h-3.5 w-3.5" /></button>
+              <button type="button" className={buttonClass} onClick={clearCurrentWorkspace} aria-label="Repeat current instructional move"><RotateCcw className="inline h-3.5 w-3.5" /> Repeat</button>
               <button type="button" className={buttonClass} onClick={() => navigate('skip')} disabled={resolvedIndex >= stepCount - 1} aria-label="Skip current instructional move">Skip</button>
-              <button type="button" className={buttonClass} onClick={insertQuickPractice} aria-label="Insert transient Quick Practice"><PlusCircle className="inline h-3.5 w-3.5" /> Quick Practice</button>
               <button type="button" className={buttonClass} onClick={() => setBoardSafe(value => !value)} aria-label="Toggle board-safe projection">
                 {boardSafe ? <><Eye className="inline h-3.5 w-3.5" /> Teacher</> : <><EyeOff className="inline h-3.5 w-3.5" /> Board-safe</>}
               </button>
@@ -395,13 +379,29 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
                 <aside data-part2-notebook-note className="max-w-2xl rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
                   <p className="font-black uppercase tracking-[0.1em] text-sky-800">Student Notebook</p>
                   <dl className="mt-1 grid gap-x-3 gap-y-1 sm:grid-cols-[5.5rem_1fr]">
-                    <dt className="font-bold">Location</dt>
-                    <dd>{activeStep.notebookContext?.location || 'Location is unavailable from this source payload; do not infer a page or layout.'}</dd>
+                    {activeStep.notebookContext?.pageNumber && <><dt className="font-bold">Page</dt><dd>{activeStep.notebookContext.pageNumber}</dd></>}
+                    {activeStep.notebookContext?.section && <><dt className="font-bold">Section</dt><dd>{activeStep.notebookContext.section}</dd></>}
+                    {activeStep.notebookContext?.subheading && <><dt className="font-bold">Subheading</dt><dd>{activeStep.notebookContext.subheading}</dd></>}
+                    <dt className="font-bold">Where</dt>
+                    <dd>{activeStep.notebookContext?.pageLocation || activeStep.notebookContext?.location || 'Notebook location is not verified in this source payload; do not infer a page or layout.'}</dd>
+                    {activeStep.notebookContext?.nearbyContext?.length ? <><dt className="font-bold">Nearby</dt><dd><ul className="list-disc space-y-0.5 pl-4">{activeStep.notebookContext.nearbyContext.map((context, index) => <li key={`${activeStep.id}-nearby-${index}`}>{context}</li>)}</ul></dd></> : null}
                     <dt className="font-bold">Entry</dt>
                     <dd>{activeStep.notebookContext?.entryAppearance || 'Unavailable from this source payload; do not invent the entry form.'}</dd>
                     <dt className="font-bold">Why now</dt>
                     <dd>{activeStep.notebookContext?.purpose || 'Unavailable from this source payload; confirm the instructional purpose in the cited source.'}</dd>
+                    {activeStep.notebookContext?.visualReference && <><dt className="font-bold">Source visual</dt><dd>{activeStep.notebookContext.visualReference}</dd></>}
                   </dl>
+                </aside>
+              )}
+              {activeStep.wordElementMeanings?.some(entry => entry.sourceContext) && (
+                <aside data-part2-word-element-source-context className="max-w-2xl rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-950">
+                  <p className="font-black uppercase tracking-[0.1em] text-violet-800">Word Element Answer Key</p>
+                  <ul className="mt-1 space-y-2">
+                    {activeStep.wordElementMeanings.filter(entry => entry.sourceContext).map(entry => {
+                      const context = entry.sourceContext!;
+                      return <li key={`${activeStep.id}-${entry.objectId}`}><span className="font-bold">{entry.objectId}</span>{context.pageNumber ? ` · p. ${context.pageNumber}` : ''}{context.section ? ` · ${context.section}` : ''}{context.subheading ? ` · ${context.subheading}` : ''}{context.pageLocation ? ` · ${context.pageLocation}` : ''}{context.visualReference ? ` · Source visual: ${context.visualReference}` : ''}</li>;
+                    })}
+                  </ul>
                 </aside>
               )}
               {activeStep.sourceSection === 'subsequent-lessons' && activeStep.projectPacingRule && (
@@ -479,30 +479,33 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
               className="relative h-[900px] w-[1600px] -translate-x-1/2 -translate-y-1/2 overflow-hidden border border-stone-200 bg-[#fcfbf9]"
             >
               <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#f8f7f4_100%)]" />
-              {activeStep.studentPrompt && <p data-part2-student-prompt className="absolute left-1/2 top-12 z-20 w-[980px] -translate-x-1/2 text-center text-[30px] font-semibold leading-tight text-stone-700">{activeStep.studentPrompt}</p>}
+              {studentFacingPrompt && <p data-part2-student-prompt className="absolute left-1/2 top-12 z-20 w-[980px] -translate-x-1/2 text-center text-[30px] font-semibold leading-tight text-stone-700">{studentFacingPrompt}</p>}
+              {activeStep.wordElementMeanings?.length ? (
+                <aside data-part2-word-element-meanings className="absolute left-1/2 top-12 z-20 max-w-[1020px] -translate-x-1/2 rounded-2xl border border-violet-200 bg-white/95 px-6 py-3 text-center shadow-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-700">Word element meanings</p>
+                  <ul className="mt-1 flex flex-wrap justify-center gap-x-6 gap-y-1 text-xl font-semibold text-stone-800">
+                    {activeStep.wordElementMeanings.map(entry => <li key={`${activeStep.id}-${entry.objectId}`}>{entry.objectId} · {entry.meaning}</li>)}
+                  </ul>
+                </aside>
+              ) : null}
               {buildStep && !readOnly && <div data-part2-staging-stack className="absolute left-12 top-14 z-20 h-[610px] w-[280px] rounded-2xl border border-stone-300 bg-stone-50/90 p-4 shadow-sm"><p className="text-[11px] font-black uppercase tracking-[0.18em] text-stone-500">Pull stack</p><p className="mt-1 text-xs text-stone-500">Take the top supplied card first.</p></div>}
               {buildStep && readOnly && unplaced.length > 0 && <p className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-center text-2xl font-semibold text-stone-400">Waiting for the teacher to place the supplied materials.</p>}
               {buildStep ? orderedObjects.map(renderObject) : (
-                <div data-part2-static-objects className="absolute inset-0 z-10 flex flex-wrap content-center items-center justify-center gap-5 px-32 pt-20">
+                usesWordSequence ? (
+                  activeWord ? renderObject(activeWord, activeWordIndex, true) : null
+                ) : (
+                  <div data-part2-static-objects className="absolute inset-0 z-10 flex flex-wrap content-center items-center justify-center gap-5 px-32 pt-20">
                   {visibleStaticObjects.map(object => (
                     <div
                       key={object.id}
                       data-part2-object-id={object.id}
                       data-part2-role={object.role}
-                      {...(usesWordSequence ? { 'data-part2-active-word': 'true', 'data-part2-word-index': activeWordIndex + 1 } : {})}
-                      className={usesWordSequence ? 'origin-center scale-[1.35]' : undefined}
                     >
                       <Tile data={semanticTile(object)} size="xl" />
                     </div>
                   ))}
-                </div>
-              )}
-              {usesWordSequence && !readOnly && orderedObjects.length > 1 && (
-                <div data-part2-word-sequence-controls className="absolute bottom-16 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-xl border border-stone-300 bg-white/95 px-4 py-3 shadow-sm">
-                  <button type="button" className={compactButtonClass} onClick={() => setActiveWordIndex(activeWordIndex - 1)} disabled={activeWordIndex === 0} aria-label="Previous word"><ChevronLeft className="inline h-3.5 w-3.5" /> Word</button>
-                  <span className="text-[10px] font-black uppercase tracking-[0.14em] text-stone-500">Word {activeWordIndex + 1} of {orderedObjects.length}</span>
-                  <button type="button" className={compactButtonClass} onClick={() => setActiveWordIndex(activeWordIndex + 1)} disabled={activeWordIndex >= orderedObjects.length - 1} aria-label="Next word">Word <ChevronRight className="inline h-3.5 w-3.5" /></button>
-                </div>
+                  </div>
+                )
               )}
               {visibleMarks.map(mark => (
                 <Draggable
