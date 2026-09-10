@@ -152,6 +152,9 @@ test('projects the interactive Part 2 runner to students without teacher-private
   const serialized = JSON.stringify(studentLesson);
   assert.equal(serialized.includes('Build the supplied catch example'), false);
   assert.equal(serialized.includes('SI-07'), false);
+  assert.equal(serialized.includes('Common Greek Bases'), false);
+  assert.equal(serialized.includes('sourceContext'), false);
+  assert.equal(serialized.includes('"meaning":"small"'), true);
   assert.equal(studentLesson.runtimePlan?.sources.length, 0);
 
   const studentPart2 = studentLesson.runtimePlan?.parts.find(part => part.part === 2)?.data;
