@@ -292,7 +292,8 @@
         ],
         "locator": "Substep 7.3, Part 2"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "single-card"
     },
     {
       "id": "known-digraph-review",
@@ -336,7 +337,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 128"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "review-row"
     },
     {
       "id": "ph-card",
@@ -360,7 +362,8 @@
         ],
         "locator": "Substep 7.3, Part 2"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "single-card"
     },
     {
       "id": "phone-build",
@@ -404,7 +407,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 128"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "pull-stack"
     },
     {
       "id": "phase-reading-practice",
@@ -448,7 +452,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 128"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "pull-stack"
     },
     {
       "id": "graph-reading-practice",
@@ -492,7 +497,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 128"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "pull-stack"
     },
     {
       "id": "trophy-reading-practice",
@@ -524,7 +530,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 128"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "pull-stack"
     },
     {
       "id": "dolphin-reading-practice",
@@ -556,7 +563,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 128"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "pull-stack"
     },
     {
       "id": "dge-review-card",
@@ -590,7 +598,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 129"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "review-row"
     },
     {
       "id": "tch-card",
@@ -614,7 +623,8 @@
         ],
         "locator": "Substep 7.3, Part 2"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "single-card"
     },
     {
       "id": "catch-build",
@@ -655,7 +665,8 @@
       "sourceSection": "introductory-and-ongoing",
       "saveHints": {
         "troubleSpotPrompt": "Record any difficulty hearing or reading the tch pattern."
-      }
+      },
+      "layout": "pull-stack"
     },
     {
       "id": "stretch-reading-practice",
@@ -705,7 +716,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 129"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "pull-stack"
     },
     {
       "id": "scratch-reading-practice",
@@ -755,7 +767,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 129"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "pull-stack"
     },
     {
       "id": "tch-short-vowel-check",
@@ -786,7 +799,8 @@
         ],
         "locator": "Substep 7.3, Part 2, p. 129"
       },
-      "sourceSection": "introductory-and-ongoing"
+      "sourceSection": "introductory-and-ongoing",
+      "layout": "review-row"
     },
     {
       "id": "ph-notebook",
@@ -859,7 +873,8 @@
             "sound": "/k/"
           }
         ]
-      }
+      },
+      "layout": "notebook-page"
     },
     {
       "id": "tch-notebook",
@@ -932,7 +947,8 @@
             "target": true
           }
         ]
-      }
+      },
+      "layout": "notebook-page"
     },
     {
       "id": "latch-affix-manipulation",
@@ -985,7 +1001,8 @@
       "sourceSection": "introductory-and-ongoing",
       "saveHints": {
         "notePrompt": "Record the word-building response or next instructional move."
-      }
+      },
+      "layout": "pull-stack"
     },
     {
       "id": "greek-word-element-build",
@@ -1055,7 +1072,8 @@
         "locator": "Wilson Student Notebook Steps 7–12 Answer Key, pp. 47–48, Word Elements → Common Greek Bases – Combining Forms"
       },
       "sourceSection": "subsequent-lessons",
-      "projectPacingRule": "include-subsequent-in-introduction"
+      "projectPacingRule": "include-subsequent-in-introduction",
+      "layout": "pull-stack"
     }
   ]
 }
