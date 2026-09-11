@@ -152,6 +152,15 @@ export interface Part2NotebookVisualRow {
   shaded?: boolean;
 }
 
+/** A runtime-resolved private whole-page asset; never a repository file. */
+export interface Part2NotebookPageImage {
+  assetId: string;
+  sourcePageNumber: number;
+  aspectRatio: number;
+  /** Short-lived authenticated/signed URL, injected outside source control. */
+  imageUrl?: string;
+}
+
 export interface Part2NotebookVisual {
   layout: Part2NotebookVisualLayout;
   pageNumber: number;
@@ -205,6 +214,8 @@ export interface Part2InstructionStep {
    * teacher locator prose and is retained in the passive projection.
    */
   notebookVisual?: Part2NotebookVisual;
+  /** Optional private full-page Answer Key asset; facsimile remains the fallback. */
+  notebookPageImage?: Part2NotebookPageImage;
   /**
    * Source-verified, student-friendly meanings for supplied Word Element
    * Cards.  sourceContext is stripped before passive projection, but the
@@ -574,6 +585,18 @@ const normalizeNotebookContext = (value: unknown): Part2NotebookContext | undefi
   };
 };
 
+const normalizeNotebookPageImage = (value: unknown): Part2NotebookPageImage | undefined | null => {
+  if (value === undefined) return undefined;
+  const record = asRecord(value);
+  const assetId = nonEmptyText(record?.assetId);
+  const sourcePageNumber = record?.sourcePageNumber;
+  const aspectRatio = record?.aspectRatio;
+  const imageUrl = optionalText(record?.imageUrl);
+  if (!record || !assetId || typeof sourcePageNumber !== 'number' || !Number.isInteger(sourcePageNumber) || sourcePageNumber < 1 || typeof aspectRatio !== 'number' || !Number.isFinite(aspectRatio) || aspectRatio <= 0) return null;
+  if (imageUrl && !/^https:\/\//.test(imageUrl)) return null;
+  return { assetId, sourcePageNumber, aspectRatio, imageUrl };
+};
+
 const normalizeNotebookVisual = (value: unknown): Part2NotebookVisual | undefined | null => {
   if (value === undefined) return undefined;
   const record = asRecord(value);
@@ -717,6 +740,7 @@ const actionValidationError = (
   cardRepresentation?: Part2CardRepresentation,
   notebookContext?: Part2NotebookContext,
   notebookVisual?: Part2NotebookVisual,
+  notebookPageImage?: Part2NotebookPageImage,
   wordElementMeanings?: Part2WordElementMeaning[],
   studentPrompt?: string
 ): string | null => {
@@ -744,6 +768,7 @@ const actionValidationError = (
   if (actionType === 'NOTEBOOK') {
     if (displayType !== 'NOTEBOOK') return 'NOTEBOOK requires the NOTEBOOK display type.';
     if (!objects.every(object => object.role === 'notebook')) return 'NOTEBOOK requires explicit notebook-entry objects.';
+    if (notebookPageImage && notebookContext?.pageNumber && notebookPageImage.sourcePageNumber !== notebookContext.pageNumber) return 'notebookPageImage sourcePageNumber must match the source-verified notebookContext pageNumber.';
     if (notebookVisual && notebookContext?.pageNumber && notebookVisual.pageNumber !== notebookContext.pageNumber) {
       return 'notebookVisual pageNumber must match the source-verified notebookContext pageNumber.';
     }
@@ -753,7 +778,7 @@ const actionValidationError = (
     if (notebookVisual && notebookContext?.subheading && notebookVisual.subheading !== notebookContext.subheading) {
       return 'notebookVisual subheading must match the source-verified notebookContext subheading.';
     }
-  } else if (notebookContext || notebookVisual) {
+  } else if (notebookContext || notebookVisual || notebookPageImage) {
     return notebookVisual
       ? 'notebookVisual may only be supplied for a NOTEBOOK step.'
       : 'notebookContext may only be supplied for a NOTEBOOK step.';
@@ -799,6 +824,7 @@ const normalizeInteractiveStep = (
   const cardRepresentation = record.cardRepresentation as Part2CardRepresentation | undefined;
   const notebookContext = normalizeNotebookContext(record.notebookContext);
   const notebookVisual = normalizeNotebookVisual(record.notebookVisual);
+  const notebookPageImage = normalizeNotebookPageImage(record.notebookPageImage);
   const wordElementMeanings = normalizeWordElementMeanings(record.wordElementMeanings);
   const studentPrompt = optionalText(record.studentPrompt);
   const provenance = record.provenance as Part2PresentationProvenance | undefined;
@@ -824,6 +850,7 @@ const normalizeInteractiveStep = (
   }
   if (notebookContext === null) return invalidInteractiveStep(id, 'notebookContext must contain source-supplied notebook context.');
   if (notebookVisual === null) return invalidInteractiveStep(id, 'notebookVisual must contain a complete source-supplied visual layout.');
+  if (notebookPageImage === null) return invalidInteractiveStep(id, 'notebookPageImage must contain a valid private source-page reference.');
   if (wordElementMeanings === null) return invalidInteractiveStep(id, 'wordElementMeanings must contain source-supplied meaning data.');
 
   const actionError = actionValidationError(
@@ -834,6 +861,7 @@ const normalizeInteractiveStep = (
     cardRepresentation,
     notebookContext || undefined,
     notebookVisual || undefined,
+    notebookPageImage || undefined,
     wordElementMeanings || undefined,
     studentPrompt
   );
@@ -847,6 +875,7 @@ const normalizeInteractiveStep = (
     studentPrompt, objects, cardRepresentation,
     notebookContext: notebookContext || undefined,
     notebookVisual: notebookVisual || undefined,
+    notebookPageImage: notebookPageImage || undefined,
     wordElementMeanings: wordElementMeanings || undefined,
     expectedStudentAction: optionalText(record.expectedStudentAction),
     teachingPoint: optionalText(record.teachingPoint), sourceRef: sourceRef || { sourceIds: [] }, sourceSection,
