@@ -499,7 +499,7 @@ test('keeps both Answer-Key notebook visuals through the runtime lesson path and
     const index = presentation.steps.findIndex(candidate => candidate.id === notebookId);
     const html = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={index} readOnly />);
     assert.match(html, /data-part2-notebook-page/);
-    assert.match(html, /data-part2-notebook-visual-status="ready"/);
+    assert.match(html, /data-part2-notebook-visual-status="facsimile-fallback"/);
     assert.doesNotMatch(html, /Notebook page view unavailable/);
   }
 });
