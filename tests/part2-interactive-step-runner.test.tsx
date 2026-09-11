@@ -513,7 +513,7 @@ test('uses a private whole-page notebook asset when runtime supplies it and othe
   const index = presentation.steps.findIndex(step => step.id === 'ph-notebook');
   const imageHtml = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={index} readOnly />);
   assert.match(imageHtml, /data-part2-notebook-page-image/);
-  assert.match(imageHtml, /notebook-page-002\.png/);
+  assert.match(imageHtml, /wrs-notebook-7-12-answer-key-page-002\.png/);
   assert.doesNotMatch(imageHtml, /Private notebook page image is unavailable/);
 
   const fallback = runnerPresentation(fixture73);
