@@ -11,8 +11,18 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "dist/**",
+    "standalone-dist/**",
+    "functions/node_modules/**",
     "next-env.d.ts",
   ]),
+  {
+    files: ["functions/**/*.js"],
+    rules: {
+      // Firebase Functions is a separate CommonJS package (see its package.json).
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

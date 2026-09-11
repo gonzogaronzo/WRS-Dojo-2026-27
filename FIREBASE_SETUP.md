@@ -38,3 +38,19 @@ firebase deploy --only firestore:rules --project wrs-firebase
 ```
 
 Do not commit Firebase service-account private keys or other server credentials. The browser Firebase configuration is a public project identifier; access control comes from Authentication and `firestore.rules`.
+
+## Google Sheets mission synchronization
+
+The deployed Functions environment must define `WRS_DATA_LOG_SPREADSHEET_ID` with
+the destination spreadsheet ID. `WRS_DATA_LOG_SHEET_NAME` is optional and
+defaults to `Data Log`. For the `wrs-firebase` project, keep deployment values in
+an untracked `functions/.env.wrs-firebase` file:
+
+```dotenv
+WRS_DATA_LOG_SPREADSHEET_ID=replace-with-destination-spreadsheet-id
+WRS_DATA_LOG_SHEET_NAME=Data Log
+```
+
+The Functions service account must have edit access to that spreadsheet. Keep
+production destination IDs out of committed source so a checkout cannot deploy
+to the production sheet merely by accepting a built-in fallback.
