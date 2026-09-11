@@ -917,7 +917,8 @@
               "notebookPageImage": {
                 "assetId": "wrs-notebook-7-12-answer-key-page-002",
                 "sourcePageNumber": 2,
-                "aspectRatio": 0.773
+                "aspectRatio": 0.773,
+                "imageUrl": "/notebook-assets/wrs-notebook-7-12-answer-key-page-002.png"
               }
             },
             {
@@ -996,7 +997,8 @@
               "notebookPageImage": {
                 "assetId": "wrs-notebook-7-12-answer-key-page-003",
                 "sourcePageNumber": 3,
-                "aspectRatio": 0.773
+                "aspectRatio": 0.773,
+                "imageUrl": "/notebook-assets/wrs-notebook-7-12-answer-key-page-003.png"
               }
             },
             {
