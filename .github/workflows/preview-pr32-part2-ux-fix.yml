@@ -25,6 +25,8 @@ jobs:
       - run: npm ci --prefix functions
       - run: npm test
       - run: npm run build:standalone
+      - name: Install preview-only page renderer
+        run: sudo apt-get update && sudo apt-get install --yes poppler-utils
       - name: Render licensed 7.3 notebook pages for this disposable preview
         run: |
           curl --fail --location --retry 2 'https://drive.usercontent.google.com/download?id=1d6wOdr1bwHizFYujDIYpjvB6RVvRq3SA&export=download&confirm=t' --output /tmp/wrs-notebook-7-12-answer-key.pdf
