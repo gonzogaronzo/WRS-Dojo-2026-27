@@ -345,7 +345,8 @@ test('renders only one source-owned move, an ordered teacher stack, and a passiv
     <Part2InteractiveRunner presentation={teacherPresentation} activeStepIndex={catchIndex} />
   );
   assert.match(teacherHtml, /data-part2-staging-stack/);
-  assert.match(teacherHtml, /Build the supplied catch example/);
+  assert.match(teacherHtml, /Full source directions/);
+  assert.doesNotMatch(teacherHtml, /data-part2-teacher-cue/);
   assert.match(teacherHtml, /Full source directions/);
   assert.match(teacherHtml, /data-part2-runner-controls/);
   const cPosition = teacherHtml.indexOf('data-part2-object-id="c"');
