@@ -508,7 +508,7 @@ test('keeps both Answer-Key notebook visuals through the runtime lesson path and
 test('uses a private whole-page notebook asset when runtime supplies it and otherwise keeps the verified facsimile', () => {
   const withAsset = JSON.parse(JSON.stringify(fixture73));
   const notebook = withAsset.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook');
-  notebook.notebookPageImage.imageUrl = 'https://private.example.test/notebook-page-002.png';
+  notebook.notebookPageImage.imageUrl = '/notebook-assets/wrs-notebook-7-12-answer-key-page-002.png';
   const presentation = runnerPresentation(withAsset);
   const index = presentation.steps.findIndex(step => step.id === 'ph-notebook');
   const imageHtml = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={index} readOnly />);
