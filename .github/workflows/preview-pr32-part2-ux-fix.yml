@@ -1,0 +1,42 @@
+name: Preview PR 32 Part 2 UX fix
+
+on:
+  pull_request:
+    branches:
+      - fix/part2-mission-import-stabilization
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 04aa785712a6d181603a5ebcf34d0499ccf0f90b
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix functions
+      - run: npm test
+      - run: npm run build:standalone
+      - name: Install preview-only page renderer
+        run: sudo apt-get update && sudo apt-get install --yes poppler-utils
+      - name: Render licensed 7.3 notebook pages for this disposable preview
+        run: |
+          curl --fail --location --retry 2 'https://drive.usercontent.google.com/download?id=1d6wOdr1bwHizFYujDIYpjvB6RVvRq3SA&export=download&confirm=t' --output /tmp/wrs-notebook-7-12-answer-key.pdf
+          mkdir -p standalone-dist/notebook-assets
+          pdftoppm -f 6 -l 6 -png -r 150 -singlefile /tmp/wrs-notebook-7-12-answer-key.pdf standalone-dist/notebook-assets/wrs-notebook-7-12-answer-key-page-002
+          pdftoppm -f 7 -l 7 -png -r 150 -singlefile /tmp/wrs-notebook-7-12-answer-key.pdf standalone-dist/notebook-assets/wrs-notebook-7-12-answer-key-page-003
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE }}
+          projectId: wrs-firebase
+          channelId: pr32-part2-ux-fix
+          expires: 7d
