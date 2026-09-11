@@ -503,3 +503,22 @@ test('keeps both Answer-Key notebook visuals through the runtime lesson path and
     assert.doesNotMatch(html, /Notebook page view unavailable/);
   }
 });
+
+
+test('uses a private whole-page notebook asset when runtime supplies it and otherwise keeps the verified facsimile', () => {
+  const withAsset = JSON.parse(JSON.stringify(fixture73));
+  const notebook = withAsset.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook');
+  notebook.notebookPageImage.imageUrl = 'https://private.example.test/notebook-page-002.png';
+  const presentation = runnerPresentation(withAsset);
+  const index = presentation.steps.findIndex(step => step.id === 'ph-notebook');
+  const imageHtml = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={index} readOnly />);
+  assert.match(imageHtml, /data-part2-notebook-page-image/);
+  assert.match(imageHtml, /notebook-page-002\.png/);
+  assert.doesNotMatch(imageHtml, /Private notebook page image is unavailable/);
+
+  const fallback = runnerPresentation(fixture73);
+  const fallbackIndex = fallback.steps.findIndex(step => step.id === 'ph-notebook');
+  const fallbackHtml = renderToStaticMarkup(<Part2InteractiveRunner presentation={fallback} activeStepIndex={fallbackIndex} readOnly />);
+  assert.match(fallbackHtml, /data-part2-notebook-image-unavailable/);
+  assert.match(fallbackHtml, /verified page facsimile/);
+});
