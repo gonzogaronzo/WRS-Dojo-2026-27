@@ -95,6 +95,9 @@ const semanticTile = (object: Part2InstructionObject) => ({
  */
 const NotebookPage: React.FC<{ step: Part2InstructionStep }> = ({ step }) => {
   const visual = step.notebookVisual;
+  const [imageUnavailable, setImageUnavailable] = useState(false);
+  useEffect(() => setImageUnavailable(false), [step.id, step.notebookPageImage?.imageUrl]);
+
   // The normalizer is the schema gate. A normalized visual is rendered as-is;
   // only a genuinely absent source visual may use the fail-closed fallback.
   if (!visual) {
@@ -106,10 +109,16 @@ const NotebookPage: React.FC<{ step: Part2InstructionStep }> = ({ step }) => {
     );
   }
 
-  if (step.notebookPageImage?.imageUrl) {
+  if (step.notebookPageImage?.imageUrl && !imageUnavailable) {
     return (
       <article data-part2-notebook-page data-part2-notebook-page-image data-part2-notebook-visual-status="private-page-ready" className="absolute inset-8 z-20 flex items-center justify-center overflow-hidden rounded-2xl bg-stone-100 p-4 shadow-xl">
-        <img src={step.notebookPageImage.imageUrl} alt={`Student Notebook page ${step.notebookPageImage.sourcePageNumber}`} className="max-h-full max-w-full object-contain" style={{ aspectRatio: String(step.notebookPageImage.aspectRatio) }} />
+        <img
+          src={step.notebookPageImage.imageUrl}
+          alt={`Student Notebook page ${step.notebookPageImage.sourcePageNumber}`}
+          className="max-h-full max-w-full object-contain"
+          style={{ aspectRatio: String(step.notebookPageImage.aspectRatio) }}
+          onError={() => setImageUnavailable(true)}
+        />
       </article>
     );
   }
