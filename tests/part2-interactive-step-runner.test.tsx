@@ -166,7 +166,62 @@ test('shows one movable review card at a time and keeps Next runner-owned', () =
   assert.doesNotMatch(html, /data-part2-word-sequence-controls|Previous word|Next word|Quick Practice/);
 });
 
-test('uses source-verified notebook page, location, entry, purpose, and nearby context privately', () => {
+test('keeps source-supplied and already-placed Letter-Sound tiles draggable on the teacher surface', () => {
+  const presentation = runnerPresentation(fixture73);
+  const suppliedIndex = presentation.steps.findIndex(step => step.id === 'known-digraph-review');
+  assert.ok(suppliedIndex >= 0);
+  const suppliedHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={presentation} activeStepIndex={suppliedIndex} />
+  );
+  const suppliedWh = suppliedHtml.slice(Math.max(0, suppliedHtml.indexOf('data-part2-object-id="wh"') - 220), suppliedHtml.indexOf('data-part2-object-id="wh"') + 140);
+  assert.match(suppliedWh, /data-part2-manipulative/);
+  assert.match(suppliedWh, /data-part2-draggable="true"/);
+  assert.match(suppliedWh, /data-part2-drag-enabled="true"/);
+
+  const phoneIndex = presentation.steps.findIndex(step => step.id === 'phone-build');
+  assert.ok(phoneIndex >= 0);
+  const placedHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner
+      presentation={presentation}
+      activeStepIndex={phoneIndex}
+      objectStates={{
+        [phoneIndex]: {
+          'part2:phone-build:ph': { x: 640, y: 410, scale: 1, placed: true }
+        }
+      }}
+    />
+  );
+  const placedPh = placedHtml.slice(Math.max(0, placedHtml.indexOf('data-part2-object-id="ph"') - 220), placedHtml.indexOf('data-part2-object-id="ph"') + 140);
+  assert.match(placedPh, /data-part2-draggable="true"/);
+  assert.match(placedPh, /data-part2-drag-enabled="true"/);
+}); 
+
+test('keeps target-word build and read directions private from student projections', () => {
+  const teacherPresentation = runnerPresentation(fixture73);
+  const phoneIndex = teacherPresentation.steps.findIndex(step => step.id === 'phone-build');
+  const phaseIndex = teacherPresentation.steps.findIndex(step => step.id === 'phase-reading-practice');
+  assert.ok(phoneIndex >= 0 && phaseIndex >= 0);
+  const teacherHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={teacherPresentation} activeStepIndex={phoneIndex} />
+  );
+  assert.match(teacherHtml, /Build the supplied phone example/);
+  assert.match(teacherHtml, /build phone/);
+
+  const studentSource = sanitizePart2PresentationForStudent(fixture73);
+  const studentPresentation = runnerPresentation(studentSource);
+  const phoneHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={studentPresentation} activeStepIndex={phoneIndex} readOnly />
+  );
+  const phaseHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={studentPresentation} activeStepIndex={phaseIndex} readOnly />
+  );
+  const studentSerialized = JSON.stringify(studentSource);
+  assert.doesNotMatch(studentSerialized, /Build the supplied phone example|build phone|Read phase with the supplied Letter-Sound Tiles|for phase in order/i);
+  assert.doesNotMatch(phoneHtml, /Build the supplied phone example|build phone|data-part2-teacher-cue|data-part2-teacher-directions/i);
+  assert.doesNotMatch(phaseHtml, /Read phase with the supplied Letter-Sound Tiles|for phase in order|data-part2-teacher-cue|data-part2-teacher-directions/i);
+});
+
+test('renders an Answer-Key-grounded notebook facsimile while keeping locator prose private', () => {
   const presentation = runnerPresentation(fixture73);
   const notebookIndex = presentation.steps.findIndex(step => step.id === 'ph-notebook');
   const notebookStep = suppliedStep(presentation, 'ph-notebook');
@@ -176,33 +231,52 @@ test('uses source-verified notebook page, location, entry, purpose, and nearby c
   assert.match(notebookStep.notebookContext?.pageLocation || '', /first unshaded entry box/);
   assert.match(notebookStep.notebookContext?.entryAppearance || '', /telephone picture/);
   assert.match(notebookStep.notebookContext?.purpose || '', /Step 7.3 ph digraph/);
+  assert.deepEqual(notebookStep.notebookVisual?.rows.map(row => [row.id, row.sourceOrder, row.target]), [
+    ['ph-previously-taught', 1, false],
+    ['ph-entry', 2, true],
+    ['ch-k-chorus-entry', 3, false]
+  ]);
 
   const teacherHtml = renderToStaticMarkup(
     <Part2InteractiveRunner presentation={presentation} activeStepIndex={notebookIndex} />
   );
+  assert.match(teacherHtml, /data-part2-notebook-page/);
+  assert.match(teacherHtml, /data-part2-notebook-entry-grid/);
+  assert.match(teacherHtml, /data-part2-notebook-target-row="true"/);
+  assert.match(teacherHtml, /Previously Taught/);
+  assert.match(teacherHtml, /Visual cue · telephone/);
   assert.match(teacherHtml, /data-part2-notebook-note/);
-  assert.match(teacherHtml, /Consonant Combinations — Digraphs/);
+  assert.match(teacherHtml, /Notebook source details/);
   assert.match(teacherHtml, /first unshaded entry box/);
   assert.match(teacherHtml, /telephone drawing/);
 
-  const missingContext = JSON.parse(JSON.stringify(fixture73));
-  delete missingContext.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook').notebookContext;
-  const missingPresentation = runnerPresentation(missingContext);
-  const missingIndex = missingPresentation.steps.findIndex(step => step.id === 'ph-notebook');
-  const missingHtml = renderToStaticMarkup(
-    <Part2InteractiveRunner presentation={missingPresentation} activeStepIndex={missingIndex} />
+  const noVisual = JSON.parse(JSON.stringify(fixture73));
+  delete noVisual.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook').notebookVisual;
+  const noVisualPresentation = runnerPresentation(noVisual);
+  const noVisualIndex = noVisualPresentation.steps.findIndex(step => step.id === 'ph-notebook');
+  const noVisualStudent = runnerPresentation(sanitizePart2PresentationForStudent(noVisual));
+  const noVisualHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={noVisualStudent} activeStepIndex={noVisualIndex} readOnly />
   );
-  assert.match(missingHtml, /Notebook location is not verified in this source payload/);
-  assert.match(missingHtml, /do not infer a page or layout/);
+  assert.match(noVisualHtml, /data-part2-notebook-page-unavailable/);
+  assert.match(noVisualHtml, /Notebook page view unavailable/);
+
+  const malformedVisual = JSON.parse(JSON.stringify(fixture73));
+  malformedVisual.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook').notebookVisual.rows[1].target = false;
+  const malformedStep = runnerPresentation(malformedVisual).steps.find(step => step.id === 'ph-notebook');
+  assert.equal(malformedStep?.kind, 'invalid');
 
   const studentSource = sanitizePart2PresentationForStudent(fixture73);
   const studentPresentation = runnerPresentation(studentSource);
   const studentHtml = renderToStaticMarkup(
     <Part2InteractiveRunner presentation={studentPresentation} activeStepIndex={notebookIndex} readOnly />
   );
-  assert.doesNotMatch(JSON.stringify(studentSource), /notebookContext|Consonant Combinations — Digraphs|first unshaded entry box/);
-  assert.doesNotMatch(studentHtml, /data-part2-notebook-note/);
-  assert.doesNotMatch(studentHtml, /Consonant Combinations — Digraphs/);
+  assert.match(JSON.stringify(studentSource), /notebookVisual/);
+  assert.doesNotMatch(JSON.stringify(studentSource), /notebookContext|first unshaded entry box|telephone drawing/);
+  assert.match(studentHtml, /data-part2-notebook-page/);
+  assert.match(studentHtml, /Consonant Combinations — Digraphs/);
+  assert.match(studentHtml, /data-part2-notebook-target-row="true"/);
+  assert.doesNotMatch(studentHtml, /data-part2-notebook-note|first unshaded entry box|telephone drawing/);
 });
 
 test('shows Answer Key word-element meanings while stripping the private source context from students', () => {
