@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - preview/pr32-stabilization
+  pull_request:
+    branches:
+      - fix/part2-mission-import-stabilization
 
 concurrency:
   group: wrs-dojo-pr32-preview
