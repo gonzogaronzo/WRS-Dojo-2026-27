@@ -106,8 +106,17 @@ const NotebookPage: React.FC<{ step: Part2InstructionStep }> = ({ step }) => {
     );
   }
 
+  if (step.notebookPageImage?.imageUrl) {
+    return (
+      <article data-part2-notebook-page data-part2-notebook-page-image data-part2-notebook-visual-status="private-page-ready" className="absolute inset-8 z-20 flex items-center justify-center overflow-hidden rounded-2xl bg-stone-100 p-4 shadow-xl">
+        <img src={step.notebookPageImage.imageUrl} alt={`Student Notebook page ${step.notebookPageImage.sourcePageNumber}`} className="max-h-full max-w-full object-contain" style={{ aspectRatio: String(step.notebookPageImage.aspectRatio) }} />
+      </article>
+    );
+  }
+
   return (
-    <article data-part2-notebook-page data-part2-notebook-visual-status="ready" className="absolute left-1/2 top-[64px] z-20 w-[980px] -translate-x-1/2 rounded-[28px] border-[10px] border-[#d7c5a6] bg-[#fffdf6] p-8 text-stone-900 shadow-[0_18px_45px_rgba(63,47,28,0.18)]">
+    <article data-part2-notebook-page data-part2-notebook-visual-status="facsimile-fallback" className="absolute left-1/2 top-[64px] z-20 w-[980px] -translate-x-1/2 rounded-[28px] border-[10px] border-[#d7c5a6] bg-[#fffdf6] p-8 text-stone-900 shadow-[0_18px_45px_rgba(63,47,28,0.18)]">
+      {step.notebookPageImage ? <p data-part2-notebook-image-unavailable className="mb-3 text-center text-xs font-semibold text-amber-800">Private notebook page image is unavailable; showing the verified page facsimile.</p> : null}
       <header className="border-b-2 border-stone-300 pb-4 text-center">
         <div className="flex items-center justify-between gap-5 text-[13px] font-black uppercase tracking-[0.15em] text-stone-500">
           <span data-part2-notebook-section>{visual.section}</span>
