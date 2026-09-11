@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fa271356a4e234a25808acdbeca70fea7f020280
+          ref: ff879d8229f58f0781dc15422935916e704f12e4
       - uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
@@ -25,6 +25,12 @@ jobs:
       - run: npm ci --prefix functions
       - run: npm test
       - run: npm run build:standalone
+      - name: Render licensed 7.3 notebook pages for this disposable preview
+        run: |
+          curl --fail --location --retry 2 'https://drive.usercontent.google.com/download?id=1d6wOdr1bwHizFYujDIYpjvB6RVvRq3SA&export=download&confirm=t' --output /tmp/wrs-notebook-7-12-answer-key.pdf
+          mkdir -p standalone-dist/notebook-assets
+          pdftoppm -f 6 -l 6 -png -r 150 -singlefile /tmp/wrs-notebook-7-12-answer-key.pdf standalone-dist/notebook-assets/wrs-notebook-7-12-answer-key-page-002
+          pdftoppm -f 7 -l 7 -png -r 150 -singlefile /tmp/wrs-notebook-7-12-answer-key.pdf standalone-dist/notebook-assets/wrs-notebook-7-12-answer-key-page-003
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
