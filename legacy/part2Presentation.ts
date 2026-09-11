@@ -593,7 +593,7 @@ const normalizeNotebookPageImage = (value: unknown): Part2NotebookPageImage | un
   const aspectRatio = record?.aspectRatio;
   const imageUrl = optionalText(record?.imageUrl);
   if (!record || !assetId || typeof sourcePageNumber !== 'number' || !Number.isInteger(sourcePageNumber) || sourcePageNumber < 1 || typeof aspectRatio !== 'number' || !Number.isFinite(aspectRatio) || aspectRatio <= 0) return null;
-  if (imageUrl && !/^https:\/\//.test(imageUrl)) return null;
+  if (imageUrl && !(/^(?:https:\/\/|\/(?!\/))/.test(imageUrl))) return null;
   return { assetId, sourcePageNumber, aspectRatio, imageUrl };
 };
 
