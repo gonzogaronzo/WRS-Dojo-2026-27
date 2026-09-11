@@ -913,7 +913,12 @@
                   }
                 ]
               },
-              "layout": "notebook-page"
+              "layout": "notebook-page",
+              "notebookPageImage": {
+                "assetId": "wrs-notebook-7-12-answer-key-page-002",
+                "sourcePageNumber": 2,
+                "aspectRatio": 0.773
+              }
             },
             {
               "id": "tch-notebook",
@@ -987,7 +992,12 @@
                   }
                 ]
               },
-              "layout": "notebook-page"
+              "layout": "notebook-page",
+              "notebookPageImage": {
+                "assetId": "wrs-notebook-7-12-answer-key-page-003",
+                "sourcePageNumber": 3,
+                "aspectRatio": 0.773
+              }
             },
             {
               "id": "latch-affix-manipulation",
