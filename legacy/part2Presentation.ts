@@ -76,6 +76,9 @@ export type Part2InstructionObjectRole = Part2BuildUnitRole | 'notebook' | 'stat
  */
 export type Part2InstructionObjectInteraction = 'movable' | 'static';
 
+/** Source/compiler-owned staging: mobility does not imply a pull stack. */
+export type Part2InstructionLayout = 'pull-stack' | 'review-row' | 'single-card' | 'notebook-page';
+
 export interface Part2InstructionObject {
   id: string;
   text: string;
@@ -187,6 +190,8 @@ export interface Part2InstructionStep {
   provenance: Part2PresentationProvenance;
   actionType: Part2ActionType;
   displayType: Part2DisplayType;
+  /** Explicit presentation/staging mode; never inferred from drag interaction. */
+  layout: Part2InstructionLayout;
   teacherCue: string;
   teacherDirections: string[];
   studentPrompt?: string;
@@ -364,6 +369,10 @@ const CARD_REPRESENTATION_VALUES = new Set<Part2CardRepresentation>([
 
 const INSTRUCTION_OBJECT_INTERACTION_VALUES = new Set<Part2InstructionObjectInteraction>([
   'movable', 'static'
+]);
+
+const INSTRUCTION_LAYOUT_VALUES = new Set<Part2InstructionLayout>([
+  'pull-stack', 'review-row', 'single-card', 'notebook-page'
 ]);
 
 const NOTEBOOK_VISUAL_LAYOUT_VALUES = new Set<Part2NotebookVisualLayout>([
@@ -703,6 +712,7 @@ const buildValidationError = (
 const actionValidationError = (
   actionType: Part2ActionType,
   displayType: Part2DisplayType,
+  layout: Part2InstructionLayout,
   objects: Part2InstructionObject[],
   cardRepresentation?: Part2CardRepresentation,
   notebookContext?: Part2NotebookContext,
@@ -710,8 +720,19 @@ const actionValidationError = (
   wordElementMeanings?: Part2WordElementMeaning[],
   studentPrompt?: string
 ): string | null => {
-  if (BUILD_ACTION_TYPES.has(actionType) && studentPrompt) {
-    return 'Build/read/manipulation steps may not supply a studentPrompt; keep answer-bearing directions teacher-private.';
+  // Only a supplied written-word marking surface may carry a student prompt.
+  // All build/read/manipulation and card-presentation wording stays private.
+  if (studentPrompt && !(actionType === 'MARK_WORDS' && displayType === 'WRITTEN_WORD')) {
+    return 'Only MARK_WORDS on a supplied written-word surface may supply a studentPrompt; keep answer-bearing directions teacher-private.';
+  }
+  if (BUILD_ACTION_TYPES.has(actionType) && layout !== 'pull-stack') {
+    return 'Build/read/manipulation steps require explicit pull-stack staging.';
+  }
+  if (actionType === 'NOTEBOOK' && layout !== 'notebook-page') {
+    return 'NOTEBOOK steps require the explicit notebook-page layout.';
+  }
+  if (actionType !== 'NOTEBOOK' && layout === 'notebook-page') {
+    return 'notebook-page layout may only be supplied for a NOTEBOOK step.';
   }
   if (actionType === 'READ_WORDS' && displayType === 'WRITTEN_WORD') {
     return 'READ_WORDS cannot fall back to WRITTEN_WORD; source-supplied card segmentation is required.';
@@ -767,6 +788,7 @@ const normalizeInteractiveStep = (
 
   const actionType = record.actionType as Part2ActionType | undefined;
   const displayType = record.displayType as Part2DisplayType | undefined;
+  const layout = record.layout as Part2InstructionLayout | undefined;
   const teacherCue = nonEmptyText(record.teacherCue);
   const teacherDirections = normalizeTextArray(record.teacherDirections);
   const objects = normalizeInstructionObjects(record.objects);
@@ -783,6 +805,7 @@ const normalizeInteractiveStep = (
 
   if (!actionType || !ACTION_TYPES.has(actionType)) return invalidInteractiveStep(id, 'Instructional actionType is missing or unsupported.');
   if (!displayType || !DISPLAY_TYPES.has(displayType)) return invalidInteractiveStep(id, 'Instructional displayType is missing or unsupported.');
+  if (!layout || !INSTRUCTION_LAYOUT_VALUES.has(layout)) return invalidInteractiveStep(id, 'Instructional layout is missing or unsupported.');
   if (!provenance || !PROVENANCE_VALUES.has(provenance)) return invalidInteractiveStep(id, 'Instructional provenance is missing or unsupported.');
   if (!teacherCue && !allowRedactedTeacherFields) return invalidInteractiveStep(id, 'A concise source-derived teacherCue is required.');
   if (!teacherDirections && !allowRedactedTeacherFields) return invalidInteractiveStep(id, 'Source-derived teacherDirections are required.');
@@ -806,6 +829,7 @@ const normalizeInteractiveStep = (
   const actionError = actionValidationError(
     actionType,
     displayType,
+    layout,
     objects,
     cardRepresentation,
     notebookContext || undefined,
@@ -818,7 +842,7 @@ const normalizeInteractiveStep = (
   if (buildError) return invalidInteractiveStep(id, buildError);
 
   return {
-    kind: 'step', id, provenance, actionType, displayType,
+    kind: 'step', id, provenance, actionType, displayType, layout,
     teacherCue: teacherCue || '', teacherDirections: teacherDirections || [],
     studentPrompt, objects, cardRepresentation,
     notebookContext: notebookContext || undefined,
@@ -894,7 +918,7 @@ export const sanitizePart2PresentationForStudent = (value: unknown): unknown => 
       ]) {
         delete studentStep[privateKey];
       }
-      if (!['MARK_WORDS', 'NOTEBOOK'].includes(studentStep.actionType as string)) {
+      if (!(studentStep.actionType === 'MARK_WORDS' && studentStep.displayType === 'WRITTEN_WORD')) {
         delete studentStep.studentPrompt;
       }
       if (Array.isArray(studentStep.wordElementMeanings)) {
