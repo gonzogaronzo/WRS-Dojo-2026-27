@@ -1,0 +1,32 @@
+name: Preview PR 32 Part 2 UX fix
+
+on:
+  pull_request:
+    branches:
+      - fix/part2-mission-import-stabilization
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1695effb441da0f74142d05f0d8157f3baf2a1a
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - run: npm ci
+      - run: npm ci --prefix functions
+      - run: npm test
+      - run: npm run build:standalone
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE }}
+          projectId: wrs-firebase
+          channelId: pr32-part2-ux-fix
+          expires: 7d
