@@ -205,7 +205,7 @@ test('keeps target-word build and read directions private from student projectio
     <Part2InteractiveRunner presentation={teacherPresentation} activeStepIndex={phoneIndex} />
   );
   assert.match(teacherHtml, /Full source directions/);
-  assert.match(teacherHtml, /Build the supplied phone example/);
+  assert.match(teacherHtml, /build phone/);
   assert.doesNotMatch(teacherHtml, /data-part2-teacher-cue/);
 
   const studentSource = sanitizePart2PresentationForStudent(fixture73);
