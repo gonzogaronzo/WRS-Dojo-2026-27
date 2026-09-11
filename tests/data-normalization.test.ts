@@ -170,6 +170,16 @@ test('imports the disposable 7.3 runtime fixture through the authoritative runti
       'ph-notebook', 'tch-notebook', 'latch-affix-manipulation', 'greek-word-element-build'
     ]
   );
+  for (const [id, pageNumber, targetRow] of [
+    ['ph-notebook', 2, 'ph-entry'],
+    ['tch-notebook', 3, 'tch-entry']
+  ] as const) {
+    const step = presentation?.steps.find(candidate => candidate.id === id);
+    assert.equal(step?.kind, 'step');
+    if (!step || step.kind !== 'step') throw new Error(`Missing ${id} after runtime adaptation.`);
+    assert.equal(step.notebookVisual?.pageNumber, pageNumber);
+    assert.ok(step.notebookVisual?.rows.some(row => row.id === targetRow && row.target));
+  }
 });
 
 test('rejects an incomplete runtime envelope before it can silently become an empty lesson', () => {
