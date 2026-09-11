@@ -1,3 +1,4 @@
+# Trigger the preview workflow after its initial creation.
 name: Preview PR 32 stabilization
 
 on:
