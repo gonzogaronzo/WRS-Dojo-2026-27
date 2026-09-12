@@ -28,6 +28,27 @@ Do not give the browser direct Google Sheets credentials. The browser writes aut
 
 The mirror uses stable source identifiers so retries and updates target the same record rather than creating duplicate rows. It writes observed lesson/session data only; it does not invent mastery decisions, scores, or instructional responses.
 
+## Sheets destination configuration
+
+Firebase Functions requires these environment values at deployment time:
+
+```dotenv
+WRS_DATA_LOG_SPREADSHEET_ID=replace-with-student-data-spreadsheet-id
+WRS_DATA_LOG_SHEET_NAME=Data Log
+WRS_DAILY_LOG_SPREADSHEET_ID=replace-with-daily-notes-spreadsheet-id
+WRS_DAILY_LOG_SHEET_NAME=Daily Log
+```
+
+Keep the production values in the ignored `functions/.env.wrs-firebase` file.
+The committed `functions/.env.example` documents the required keys without
+coupling another environment or checkout to the production destinations.
+
+For automated deployment, configure the GitHub Actions repository secrets
+`WRS_DATA_LOG_SPREADSHEET_ID` and `WRS_DAILY_LOG_SPREADSHEET_ID`. The production
+workflow validates them and creates the ignored Functions environment file on
+the runner. Sheet names continue to use the `Data Log` and `Daily Log` defaults
+unless explicitly configured for a manual deployment.
+
 ## Verify the live app
 
 1. Open `https://wrs-firebase.web.app/`.

@@ -60,4 +60,12 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
 
       - name: Deploy data-mirror Functions
-        run: npx --yes firebase-tools@14.15.2 deploy --only functions --project wrs-firebase --non-interactive
+        env:
+          WRS_DATA_LOG_SPREADSHEET_ID: ${{ secrets.WRS_DATA_LOG_SPREADSHEET_ID }}
+          WRS_DAILY_LOG_SPREADSHEET_ID: ${{ secrets.WRS_DAILY_LOG_SPREADSHEET_ID }}
+        run: |
+          test -n "$WRS_DATA_LOG_SPREADSHEET_ID"
+          test -n "$WRS_DAILY_LOG_SPREADSHEET_ID"
+          printf 'WRS_DATA_LOG_SPREADSHEET_ID=%s\n' "$WRS_DATA_LOG_SPREADSHEET_ID" > functions/.env.wrs-firebase
+          printf 'WRS_DAILY_LOG_SPREADSHEET_ID=%s\n' "$WRS_DAILY_LOG_SPREADSHEET_ID" >> functions/.env.wrs-firebase
+          npx --yes firebase-tools@14.15.2 deploy --only functions --project wrs-firebase --non-interactive
