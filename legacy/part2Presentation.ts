@@ -70,12 +70,23 @@ export type Part2DisplayType =
 
 export type Part2InstructionObjectRole = Part2BuildUnitRole | 'notebook' | 'statement';
 
+/**
+ * Objects are movable by default. A source/compiler may mark an object static
+ * only when the instructional move intentionally requires a fixed surface.
+ */
+export type Part2InstructionObjectInteraction = 'movable' | 'static';
+
+/** Source/compiler-owned staging: mobility does not imply a pull stack. */
+export type Part2InstructionLayout = 'pull-stack' | 'review-row' | 'single-card' | 'notebook-page';
+
 export interface Part2InstructionObject {
   id: string;
   text: string;
   role: Part2InstructionObjectRole;
   /** Required for build/manipulation moves; source order begins at 1. */
   stagingOrder?: number;
+  /** Explicit opt-out from the teacher work-surface drag interaction. */
+  interaction?: Part2InstructionObjectInteraction;
 }
 
 /**
@@ -111,6 +122,54 @@ export interface Part2NotebookContext {
 }
 
 /**
+ * Student-facing notebook facsimiles are data, not a layout inferred from
+ * teacher prose. The current renderer supports an Answer-Key verified
+ * sound-entry grid and deliberately refuses unsupported layouts.
+ */
+export type Part2NotebookVisualLayout = 'sound-entry-grid';
+export type Part2NotebookVisualRowKind = 'reference-panel' | 'entry';
+
+export interface Part2NotebookVisualRow {
+  id: string;
+  kind: Part2NotebookVisualRowKind;
+  /** Source order within the physical notebook page. */
+  sourceOrder: number;
+  /** Source-verified label for a nearby reference panel. */
+  label?: string;
+  /** Source-verified left-column spelling/symbol for an entry row. */
+  pattern?: string;
+  /** Source-verified keyword text in the entry row. */
+  keyword?: string;
+  /** Source-verified right-column sound/response. */
+  sound?: string;
+  /** Source-described visual cue label; no replacement image is invented. */
+  visualCue?: string;
+  /** Source-verified nearby lesson label when printed with the entry. */
+  stepLabel?: string;
+  /** The exact row/box for the new notebook entry. */
+  target?: boolean;
+  /** A source-verified shaded reference panel. */
+  shaded?: boolean;
+}
+
+/** A runtime-resolved private whole-page asset; never a repository file. */
+export interface Part2NotebookPageImage {
+  assetId: string;
+  sourcePageNumber: number;
+  aspectRatio: number;
+  /** Short-lived authenticated/signed URL, injected outside source control. */
+  imageUrl?: string;
+}
+
+export interface Part2NotebookVisual {
+  layout: Part2NotebookVisualLayout;
+  pageNumber: number;
+  section: string;
+  subheading: string;
+  rows: Part2NotebookVisualRow[];
+}
+
+/**
  * Student-safe meaning with teacher-private Answer Key context.  The runner
  * never derives these values from a spelling string or card label.
  */
@@ -140,6 +199,8 @@ export interface Part2InstructionStep {
   provenance: Part2PresentationProvenance;
   actionType: Part2ActionType;
   displayType: Part2DisplayType;
+  /** Explicit presentation/staging mode; never inferred from drag interaction. */
+  layout: Part2InstructionLayout;
   teacherCue: string;
   teacherDirections: string[];
   studentPrompt?: string;
@@ -148,6 +209,13 @@ export interface Part2InstructionStep {
   cardRepresentation?: Part2CardRepresentation;
   /** Kept private; stripped before a passive student projection is created. */
   notebookContext?: Part2NotebookContext;
+  /**
+   * Student-safe, Answer-Key-grounded page recreation. It contains no
+   * teacher locator prose and is retained in the passive projection.
+   */
+  notebookVisual?: Part2NotebookVisual;
+  /** Optional private full-page Answer Key asset; facsimile remains the fallback. */
+  notebookPageImage?: Part2NotebookPageImage;
   /**
    * Source-verified, student-friendly meanings for supplied Word Element
    * Cards.  sourceContext is stripped before passive projection, but the
@@ -310,6 +378,22 @@ const CARD_REPRESENTATION_VALUES = new Set<Part2CardRepresentation>([
   'single-syllable', 'multisyllabic', 'morphological', 'greek-latin'
 ]);
 
+const INSTRUCTION_OBJECT_INTERACTION_VALUES = new Set<Part2InstructionObjectInteraction>([
+  'movable', 'static'
+]);
+
+const INSTRUCTION_LAYOUT_VALUES = new Set<Part2InstructionLayout>([
+  'pull-stack', 'review-row', 'single-card', 'notebook-page'
+]);
+
+const NOTEBOOK_VISUAL_LAYOUT_VALUES = new Set<Part2NotebookVisualLayout>([
+  'sound-entry-grid'
+]);
+
+const NOTEBOOK_VISUAL_ROW_KIND_VALUES = new Set<Part2NotebookVisualRowKind>([
+  'reference-panel', 'entry'
+]);
+
 const SOURCE_SECTION_VALUES = new Set<Part2SourceSection>([
   'introductory-and-ongoing', 'subsequent-lessons'
 ]);
@@ -434,10 +518,18 @@ const normalizeInstructionObjects = (value: unknown): Part2InstructionObject[] |
     const objectText = nonEmptyText(record?.text);
     const role = record?.role as Part2InstructionObjectRole | undefined;
     const stagingOrder = record?.stagingOrder;
+    const interaction = record?.interaction as Part2InstructionObjectInteraction | undefined;
     if (!record || !id || !objectText || !role || !INSTRUCTION_OBJECT_ROLES.has(role) || ids.has(id)) return null;
     if (stagingOrder !== undefined && (!Number.isInteger(stagingOrder) || Number(stagingOrder) < 1)) return null;
+    if (interaction !== undefined && !INSTRUCTION_OBJECT_INTERACTION_VALUES.has(interaction)) return null;
     ids.add(id);
-    objects.push({ id, text: objectText, role, stagingOrder: stagingOrder as number | undefined });
+    objects.push({
+      id,
+      text: objectText,
+      role,
+      stagingOrder: stagingOrder as number | undefined,
+      interaction
+    });
   }
   return objects;
 };
@@ -491,6 +583,75 @@ const normalizeNotebookContext = (value: unknown): Part2NotebookContext | undefi
     purpose,
     visualReference
   };
+};
+
+const normalizeNotebookPageImage = (value: unknown): Part2NotebookPageImage | undefined | null => {
+  if (value === undefined) return undefined;
+  const record = asRecord(value);
+  const assetId = nonEmptyText(record?.assetId);
+  const sourcePageNumber = record?.sourcePageNumber;
+  const aspectRatio = record?.aspectRatio;
+  const imageUrl = optionalText(record?.imageUrl);
+  if (!record || !assetId || typeof sourcePageNumber !== 'number' || !Number.isInteger(sourcePageNumber) || sourcePageNumber < 1 || typeof aspectRatio !== 'number' || !Number.isFinite(aspectRatio) || aspectRatio <= 0) return null;
+  if (imageUrl && !(/^(?:https:\/\/|\/(?!\/))/.test(imageUrl))) return null;
+  return { assetId, sourcePageNumber, aspectRatio, imageUrl };
+};
+
+const normalizeNotebookVisual = (value: unknown): Part2NotebookVisual | undefined | null => {
+  if (value === undefined) return undefined;
+  const record = asRecord(value);
+  const layout = record?.layout as Part2NotebookVisualLayout | undefined;
+  const pageNumber = record?.pageNumber;
+  const section = optionalText(record?.section);
+  const subheading = optionalText(record?.subheading);
+  if (
+    !record
+    || !layout
+    || !NOTEBOOK_VISUAL_LAYOUT_VALUES.has(layout)
+    || typeof pageNumber !== 'number'
+    || !Number.isInteger(pageNumber)
+    || pageNumber < 1
+    || !section
+    || !subheading
+    || !Array.isArray(record.rows)
+    || record.rows.length === 0
+  ) return null;
+
+  const seenIds = new Set<string>();
+  const rows: Part2NotebookVisualRow[] = [];
+  for (const candidate of record.rows) {
+    const row = asRecord(candidate);
+    const id = nonEmptyText(row?.id);
+    const kind = row?.kind as Part2NotebookVisualRowKind | undefined;
+    const sourceOrder = row?.sourceOrder;
+    const label = optionalText(row?.label);
+    const pattern = optionalText(row?.pattern);
+    const keyword = optionalText(row?.keyword);
+    const sound = optionalText(row?.sound);
+    const visualCue = optionalText(row?.visualCue);
+    const stepLabel = optionalText(row?.stepLabel);
+    const target = row?.target === true;
+    const shaded = row?.shaded === true;
+    if (
+      !row
+      || !id
+      || seenIds.has(id)
+      || !kind
+      || !NOTEBOOK_VISUAL_ROW_KIND_VALUES.has(kind)
+      || !Number.isInteger(sourceOrder)
+      || Number(sourceOrder) < 1
+    ) return null;
+    if (kind === 'reference-panel' && !label) return null;
+    if (kind === 'entry' && (!pattern || !keyword || !sound)) return null;
+    if (kind === 'reference-panel' && (pattern || keyword || sound || visualCue || stepLabel || target)) return null;
+    seenIds.add(id);
+    rows.push({ id, kind, sourceOrder: Number(sourceOrder), label, pattern, keyword, sound, visualCue, stepLabel, target, shaded });
+  }
+
+  const ordered = [...rows].sort((left, right) => left.sourceOrder - right.sourceOrder);
+  if (ordered.some((row, index) => row.sourceOrder !== index + 1)) return null;
+  if (rows.filter(row => row.kind === 'entry' && row.target).length !== 1) return null;
+  return { layout, pageNumber, section, subheading, rows: ordered };
 };
 
 const normalizeWordElementMeanings = (
@@ -574,14 +735,28 @@ const buildValidationError = (
 const actionValidationError = (
   actionType: Part2ActionType,
   displayType: Part2DisplayType,
+  layout: Part2InstructionLayout,
   objects: Part2InstructionObject[],
   cardRepresentation?: Part2CardRepresentation,
   notebookContext?: Part2NotebookContext,
+  notebookVisual?: Part2NotebookVisual,
+  notebookPageImage?: Part2NotebookPageImage,
   wordElementMeanings?: Part2WordElementMeaning[],
   studentPrompt?: string
 ): string | null => {
-  if (BUILD_ACTION_TYPES.has(actionType) && studentPrompt) {
-    return 'Build/read/manipulation steps may not supply a studentPrompt; keep answer-bearing directions teacher-private.';
+  // Only a supplied written-word marking surface may carry a student prompt.
+  // All build/read/manipulation and card-presentation wording stays private.
+  if (studentPrompt && !(actionType === 'MARK_WORDS' && displayType === 'WRITTEN_WORD')) {
+    return 'Only MARK_WORDS on a supplied written-word surface may supply a studentPrompt; keep answer-bearing directions teacher-private.';
+  }
+  if (BUILD_ACTION_TYPES.has(actionType) && layout !== 'pull-stack') {
+    return 'Build/read/manipulation steps require explicit pull-stack staging.';
+  }
+  if (actionType === 'NOTEBOOK' && layout !== 'notebook-page') {
+    return 'NOTEBOOK steps require the explicit notebook-page layout.';
+  }
+  if (actionType !== 'NOTEBOOK' && layout === 'notebook-page') {
+    return 'notebook-page layout may only be supplied for a NOTEBOOK step.';
   }
   if (actionType === 'READ_WORDS' && displayType === 'WRITTEN_WORD') {
     return 'READ_WORDS cannot fall back to WRITTEN_WORD; source-supplied card segmentation is required.';
@@ -593,8 +768,20 @@ const actionValidationError = (
   if (actionType === 'NOTEBOOK') {
     if (displayType !== 'NOTEBOOK') return 'NOTEBOOK requires the NOTEBOOK display type.';
     if (!objects.every(object => object.role === 'notebook')) return 'NOTEBOOK requires explicit notebook-entry objects.';
-  } else if (notebookContext) {
-    return 'notebookContext may only be supplied for a NOTEBOOK step.';
+    if (notebookPageImage && notebookContext?.pageNumber && notebookPageImage.sourcePageNumber !== notebookContext.pageNumber) return 'notebookPageImage sourcePageNumber must match the source-verified notebookContext pageNumber.';
+    if (notebookVisual && notebookContext?.pageNumber && notebookVisual.pageNumber !== notebookContext.pageNumber) {
+      return 'notebookVisual pageNumber must match the source-verified notebookContext pageNumber.';
+    }
+    if (notebookVisual && notebookContext?.section && notebookVisual.section !== notebookContext.section) {
+      return 'notebookVisual section must match the source-verified notebookContext section.';
+    }
+    if (notebookVisual && notebookContext?.subheading && notebookVisual.subheading !== notebookContext.subheading) {
+      return 'notebookVisual subheading must match the source-verified notebookContext subheading.';
+    }
+  } else if (notebookContext || notebookVisual || notebookPageImage) {
+    return notebookVisual
+      ? 'notebookVisual may only be supplied for a NOTEBOOK step.'
+      : 'notebookContext may only be supplied for a NOTEBOOK step.';
   }
   if (wordElementMeanings) {
     if (displayType !== 'WORD_ELEMENT_CARDS') {
@@ -626,6 +813,7 @@ const normalizeInteractiveStep = (
 
   const actionType = record.actionType as Part2ActionType | undefined;
   const displayType = record.displayType as Part2DisplayType | undefined;
+  const layout = record.layout as Part2InstructionLayout | undefined;
   const teacherCue = nonEmptyText(record.teacherCue);
   const teacherDirections = normalizeTextArray(record.teacherDirections);
   const objects = normalizeInstructionObjects(record.objects);
@@ -635,12 +823,15 @@ const normalizeInteractiveStep = (
   const saveHints = normalizeSaveHints(record.saveHints);
   const cardRepresentation = record.cardRepresentation as Part2CardRepresentation | undefined;
   const notebookContext = normalizeNotebookContext(record.notebookContext);
+  const notebookVisual = normalizeNotebookVisual(record.notebookVisual);
+  const notebookPageImage = normalizeNotebookPageImage(record.notebookPageImage);
   const wordElementMeanings = normalizeWordElementMeanings(record.wordElementMeanings);
   const studentPrompt = optionalText(record.studentPrompt);
   const provenance = record.provenance as Part2PresentationProvenance | undefined;
 
   if (!actionType || !ACTION_TYPES.has(actionType)) return invalidInteractiveStep(id, 'Instructional actionType is missing or unsupported.');
   if (!displayType || !DISPLAY_TYPES.has(displayType)) return invalidInteractiveStep(id, 'Instructional displayType is missing or unsupported.');
+  if (!layout || !INSTRUCTION_LAYOUT_VALUES.has(layout)) return invalidInteractiveStep(id, 'Instructional layout is missing or unsupported.');
   if (!provenance || !PROVENANCE_VALUES.has(provenance)) return invalidInteractiveStep(id, 'Instructional provenance is missing or unsupported.');
   if (!teacherCue && !allowRedactedTeacherFields) return invalidInteractiveStep(id, 'A concise source-derived teacherCue is required.');
   if (!teacherDirections && !allowRedactedTeacherFields) return invalidInteractiveStep(id, 'Source-derived teacherDirections are required.');
@@ -658,14 +849,19 @@ const normalizeInteractiveStep = (
     return invalidInteractiveStep(id, 'cardRepresentation is not recognized.');
   }
   if (notebookContext === null) return invalidInteractiveStep(id, 'notebookContext must contain source-supplied notebook context.');
+  if (notebookVisual === null) return invalidInteractiveStep(id, 'notebookVisual must contain a complete source-supplied visual layout.');
+  if (notebookPageImage === null) return invalidInteractiveStep(id, 'notebookPageImage must contain a valid private source-page reference.');
   if (wordElementMeanings === null) return invalidInteractiveStep(id, 'wordElementMeanings must contain source-supplied meaning data.');
 
   const actionError = actionValidationError(
     actionType,
     displayType,
+    layout,
     objects,
     cardRepresentation,
     notebookContext || undefined,
+    notebookVisual || undefined,
+    notebookPageImage || undefined,
     wordElementMeanings || undefined,
     studentPrompt
   );
@@ -674,10 +870,12 @@ const normalizeInteractiveStep = (
   if (buildError) return invalidInteractiveStep(id, buildError);
 
   return {
-    kind: 'step', id, provenance, actionType, displayType,
+    kind: 'step', id, provenance, actionType, displayType, layout,
     teacherCue: teacherCue || '', teacherDirections: teacherDirections || [],
     studentPrompt, objects, cardRepresentation,
     notebookContext: notebookContext || undefined,
+    notebookVisual: notebookVisual || undefined,
+    notebookPageImage: notebookPageImage || undefined,
     wordElementMeanings: wordElementMeanings || undefined,
     expectedStudentAction: optionalText(record.expectedStudentAction),
     teachingPoint: optionalText(record.teachingPoint), sourceRef: sourceRef || { sourceIds: [] }, sourceSection,
@@ -749,7 +947,7 @@ export const sanitizePart2PresentationForStudent = (value: unknown): unknown => 
       ]) {
         delete studentStep[privateKey];
       }
-      if (!['MARK_WORDS', 'NOTEBOOK'].includes(studentStep.actionType as string)) {
+      if (!(studentStep.actionType === 'MARK_WORDS' && studentStep.displayType === 'WRITTEN_WORD')) {
         delete studentStep.studentPrompt;
       }
       if (Array.isArray(studentStep.wordElementMeanings)) {

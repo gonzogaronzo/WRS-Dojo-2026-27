@@ -25,11 +25,17 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const missionScrollRef = useRef<HTMLDivElement>(null);
 
   const cards = (lesson.wordCards || []).filter((card): card is WordCard => Boolean(card?.id));
   const validStudents = (students || []).filter((student): student is StudentProfile => Boolean(student?.id));
   const currentCard = cards[currentIndex];
   const currentStudent = validStudents[currentStudentIndex];
+
+  // The Mission overlay is its own scroll owner. Focusing it lets PageUp/PageDown and arrow-key scrolling work without relying on a hidden document root.
+  useEffect(() => {
+    missionScrollRef.current?.focus({ preventScroll: true });
+  }, [isFinished]);
 
   useEffect(() => {
     if (isActive && !isFinished) {
@@ -78,57 +84,71 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
 
   if (isFinished) {
     return (
-      <div className="fixed inset-0 z-[100] bg-stone-950 flex items-center justify-center p-6">
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="max-w-md w-full bg-stone-900 border-4 border-red-800 rounded-[3rem] p-10 text-center shadow-2xl"
-        >
-          <div className="w-24 h-24 bg-red-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(153,27,27,0.4)]">
-            <Trophy className="w-12 h-12 text-white" />
-          </div>
-          <h2 className="text-4xl font-black font-serif uppercase tracking-widest text-white mb-2">Mission Sealed</h2>
-          <p className="text-stone-400 text-sm uppercase tracking-widest mb-8">Training Session Concluded</p>
-          
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-stone-800 p-4 rounded-2xl border border-stone-700">
-              <div className="text-[10px] font-black text-stone-500 uppercase mb-1">Duration</div>
-              <div className="text-2xl font-black text-white">{formatTime(elapsed)}</div>
+      <div
+        ref={missionScrollRef}
+        tabIndex={-1}
+        className="fixed inset-0 z-[100] overflow-y-auto overscroll-y-contain touch-pan-y bg-stone-950 outline-none"
+        data-mission-scroll-container="true"
+        aria-label="Completed Mission workspace"
+      >
+        <div className="min-h-full flex items-center justify-center p-6" data-mission-scroll-content="true">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="max-w-md w-full bg-stone-900 border-4 border-red-800 rounded-[3rem] p-10 text-center shadow-2xl"
+          >
+            <div className="w-24 h-24 bg-red-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(153,27,27,0.4)]">
+              <Trophy className="w-12 h-12 text-white" />
             </div>
-            <div className="bg-stone-800 p-4 rounded-2xl border border-stone-700">
-              <div className="text-[10px] font-black text-stone-500 uppercase mb-1">Accuracy</div>
-              <div className="text-2xl font-black text-emerald-400">
-                {Math.round((scores.filter(s => s.status === 'correct').length / scores.length) * 100) || 0}%
+            <h2 className="text-4xl font-black font-serif uppercase tracking-widest text-white mb-2">Mission Sealed</h2>
+            <p className="text-stone-400 text-sm uppercase tracking-widest mb-8">Training Session Concluded</p>
+            
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="bg-stone-800 p-4 rounded-2xl border border-stone-700">
+                <div className="text-[10px] font-black text-stone-500 uppercase mb-1">Duration</div>
+                <div className="text-2xl font-black text-white">{formatTime(elapsed)}</div>
+              </div>
+              <div className="bg-stone-800 p-4 rounded-2xl border border-stone-700">
+                <div className="text-[10px] font-black text-stone-500 uppercase mb-1">Accuracy</div>
+                <div className="text-2xl font-black text-emerald-400">
+                  {Math.round((scores.filter(s => s.status === 'correct').length / scores.length) * 100) || 0}%
+                </div>
               </div>
             </div>
-          </div>
 
-          <button 
-            onClick={() => onComplete(scores)}
-            className="w-full py-4 bg-white text-stone-950 rounded-2xl font-black uppercase tracking-widest hover:bg-stone-200 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
-          >
-            Review Dossier <ChevronRight className="w-5 h-5" />
-          </button>
-        </motion.div>
+            <button 
+              onClick={() => onComplete(scores)}
+              className="w-full py-4 bg-white text-stone-950 rounded-2xl font-black uppercase tracking-widest hover:bg-stone-200 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
+            >
+              Review Dossier <ChevronRight className="w-5 h-5" />
+            </button>
+          </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-stone-950 flex flex-col overflow-hidden">
+    <div
+      ref={missionScrollRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[100] flex flex-col overflow-y-auto overscroll-y-contain touch-pan-y bg-stone-950 outline-none"
+      data-mission-scroll-container="true"
+      aria-label="Mission workspace"
+    >
       {/* Header */}
-      <div className="px-8 py-6 flex items-center justify-between border-b-2 border-stone-900 bg-stone-950/80 backdrop-blur-md">
-        <div className="flex items-center gap-4">
+      <div className="shrink-0 px-4 py-4 sm:px-8 sm:py-6 flex items-center justify-between gap-4 border-b-2 border-stone-900 bg-stone-950/80 backdrop-blur-md">
+        <div className="min-w-0 flex items-center gap-4">
           <div className="bg-red-800 p-2 rounded-lg shadow-lg">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-black uppercase tracking-widest text-sm">{lesson.title}</h1>
+            <h1 className="truncate text-white font-black uppercase tracking-widest text-sm">{lesson.title}</h1>
             <p className="text-stone-500 text-[10px] font-bold uppercase tracking-widest">Step {lesson.step}.{lesson.substep}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="shrink-0 flex items-center gap-3 sm:gap-6">
           <div className="flex items-center gap-2 bg-stone-900 px-4 py-2 rounded-full border border-stone-800">
             <Timer className="w-4 h-4 text-red-500" />
             <span className="text-white font-mono font-bold text-lg">{formatTime(elapsed)}</span>
@@ -143,7 +163,7 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
       </div>
 
       {/* Progress Bar */}
-      <div className="h-1.5 w-full bg-stone-900">
+      <div className="h-1.5 w-full shrink-0 bg-stone-900">
         <motion.div 
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
@@ -152,7 +172,7 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
       </div>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
+      <main className="relative flex min-h-[36rem] flex-1 flex-col items-center justify-center p-4 sm:p-8" data-mission-scroll-content="true">
         {/* Background Accents */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[40rem] font-black text-white select-none">
@@ -175,7 +195,7 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
         )}
 
         {/* Card Display */}
-        <div className="w-full max-w-5xl flex-1 min-h-0 flex items-center justify-center relative perspective-1000">
+        <div className="w-full max-w-5xl flex-1 min-h-[20rem] flex items-center justify-center relative perspective-1000">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentCard?.id || 'empty'}
@@ -207,7 +227,7 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
         </div>
 
         {/* Controls */}
-        <div className="mt-8 md:mt-16 flex items-center gap-4 md:gap-8 shrink-0">
+        <div className="relative z-10 mt-8 md:mt-16 flex items-center gap-4 md:gap-8 shrink-0">
           <button 
             onClick={() => handleScore('error')}
             className="group flex flex-col items-center gap-2 md:gap-3"
@@ -242,10 +262,10 @@ const MissionPlayer: React.FC<MissionPlayerProps> = ({ lesson, students, onCompl
             <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-stone-600 group-hover:text-white">Skip</span>
           </button>
         </div>
-      </div>
+      </main>
 
       {/* Footer / Navigation */}
-      <div className="px-8 py-6 bg-stone-900/30 border-t border-stone-900 flex justify-center gap-4">
+      <div className="shrink-0 px-4 py-4 sm:px-8 sm:py-6 bg-stone-900/30 border-t border-stone-900 flex justify-center gap-4">
         <button 
           onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
           disabled={currentIndex === 0}

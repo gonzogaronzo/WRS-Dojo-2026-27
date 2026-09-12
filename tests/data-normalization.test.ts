@@ -6,6 +6,9 @@ import {
   normalizeLesson,
   normalizeStoredStudents
 } from '../legacy/dataNormalization';
+import { normalizeRuntimeLessonPlan, runtimeLessonToLegacyLesson } from '../legacy/runtimeLesson';
+import { part2InteractivePresentationFromData } from '../legacy/part2Presentation';
+import disposableRuntime73 from './fixtures/disposable-wrs-runtime-7.3-part2.json';
 
 test('drops null nested records while preserving the usable group data', () => {
   const group = normalizeGroupProfile('group-1', {
@@ -139,4 +142,52 @@ test('repairs a usable unfinished lesson and rejects one without a lesson id', (
   assert.deepEqual(recovered.spellingMarks?.map(mark => mark.id), ['mark-2']);
   assert.equal(recovered.drawings?.sentence.length, 1);
   assert.equal(normalizeActiveSession({ lesson: null, currentPart: 4 }), null);
+});
+
+
+test('imports the disposable 7.3 runtime fixture through the authoritative runtime adapter without dropping Part 2 steps', () => {
+  const runtime = normalizeRuntimeLessonPlan(disposableRuntime73);
+  assert.ok(runtime);
+  assert.equal(runtime?.schemaVersion, 'wrs-runtime-v1');
+  assert.deepEqual(runtime?.parts.map(part => part.part), [1,2,3,4,5,6,7,8,9,10]);
+
+  const lesson = runtimeLessonToLegacyLesson(runtime!);
+  assert.equal(lesson.id, 'disposable-test-7-3-part2-interactive');
+  assert.equal(lesson.runtimePlan?.parts.length, 10);
+
+  const presentation = part2InteractivePresentationFromData(
+    lesson.runtimePlan?.parts.find(part => part.part === 2)?.data
+  );
+  assert.ok(presentation);
+  assert.equal(presentation?.steps.filter(step => step.kind === 'step').length, 18);
+  assert.deepEqual(
+    presentation?.steps.filter(step => step.kind === 'step').map(step => step.id),
+    [
+      'previous-substep-review', 'known-digraph-review', 'ph-card', 'phone-build',
+      'phase-reading-practice', 'graph-reading-practice', 'trophy-reading-practice',
+      'dolphin-reading-practice', 'dge-review-card', 'tch-card', 'catch-build',
+      'stretch-reading-practice', 'scratch-reading-practice', 'tch-short-vowel-check',
+      'ph-notebook', 'tch-notebook', 'latch-affix-manipulation', 'greek-word-element-build'
+    ]
+  );
+  for (const [id, pageNumber, targetRow] of [
+    ['ph-notebook', 2, 'ph-entry'],
+    ['tch-notebook', 3, 'tch-entry']
+  ] as const) {
+    const step = presentation?.steps.find(candidate => candidate.id === id);
+    assert.equal(step?.kind, 'step');
+    if (!step || step.kind !== 'step') throw new Error(`Missing ${id} after runtime adaptation.`);
+    assert.equal(step.notebookVisual?.pageNumber, pageNumber);
+    assert.ok(step.notebookVisual?.rows.some(row => row.id === targetRow && row.target));
+  }
+});
+
+test('rejects an incomplete runtime envelope before it can silently become an empty lesson', () => {
+  const malformed = { ...disposableRuntime73, parts: [] };
+  const runtime = normalizeRuntimeLessonPlan(malformed);
+  assert.ok(runtime);
+  assert.throws(
+    () => runtimeLessonToLegacyLesson(runtime!),
+    /must contain exactly Parts 1-10 once each/
+  );
 });

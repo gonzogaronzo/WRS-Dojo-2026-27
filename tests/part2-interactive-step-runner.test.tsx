@@ -166,7 +166,63 @@ test('shows one movable review card at a time and keeps Next runner-owned', () =
   assert.doesNotMatch(html, /data-part2-word-sequence-controls|Previous word|Next word|Quick Practice/);
 });
 
-test('uses source-verified notebook page, location, entry, purpose, and nearby context privately', () => {
+test('keeps source-supplied and already-placed Letter-Sound tiles draggable on the teacher surface', () => {
+  const presentation = runnerPresentation(fixture73);
+  const suppliedIndex = presentation.steps.findIndex(step => step.id === 'known-digraph-review');
+  assert.ok(suppliedIndex >= 0);
+  const suppliedHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={presentation} activeStepIndex={suppliedIndex} />
+  );
+  const suppliedWh = suppliedHtml.slice(Math.max(0, suppliedHtml.indexOf('data-part2-object-id="wh"') - 220), suppliedHtml.indexOf('data-part2-object-id="wh"') + 140);
+  assert.match(suppliedWh, /data-part2-manipulative/);
+  assert.match(suppliedWh, /data-part2-draggable="true"/);
+  assert.match(suppliedWh, /data-part2-drag-enabled="true"/);
+
+  const phoneIndex = presentation.steps.findIndex(step => step.id === 'phone-build');
+  assert.ok(phoneIndex >= 0);
+  const placedHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner
+      presentation={presentation}
+      activeStepIndex={phoneIndex}
+      objectStates={{
+        [phoneIndex]: {
+          'part2:phone-build:ph': { x: 640, y: 410, scale: 1, placed: true }
+        }
+      }}
+    />
+  );
+  const placedPh = placedHtml.slice(Math.max(0, placedHtml.indexOf('data-part2-object-id="ph"') - 220), placedHtml.indexOf('data-part2-object-id="ph"') + 140);
+  assert.match(placedPh, /data-part2-draggable="true"/);
+  assert.match(placedPh, /data-part2-drag-enabled="true"/);
+}); 
+
+test('keeps target-word build and read directions private from student projections', () => {
+  const teacherPresentation = runnerPresentation(fixture73);
+  const phoneIndex = teacherPresentation.steps.findIndex(step => step.id === 'phone-build');
+  const phaseIndex = teacherPresentation.steps.findIndex(step => step.id === 'phase-reading-practice');
+  assert.ok(phoneIndex >= 0 && phaseIndex >= 0);
+  const teacherHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={teacherPresentation} activeStepIndex={phoneIndex} />
+  );
+  assert.match(teacherHtml, /Full source directions/);
+  assert.match(teacherHtml, /build phone/);
+  assert.doesNotMatch(teacherHtml, /data-part2-teacher-cue/);
+
+  const studentSource = sanitizePart2PresentationForStudent(fixture73);
+  const studentPresentation = runnerPresentation(studentSource);
+  const phoneHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={studentPresentation} activeStepIndex={phoneIndex} readOnly />
+  );
+  const phaseHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={studentPresentation} activeStepIndex={phaseIndex} readOnly />
+  );
+  const studentSerialized = JSON.stringify(studentSource);
+  assert.doesNotMatch(studentSerialized, /Build the supplied phone example|build phone|Read phase with the supplied Letter-Sound Tiles|for phase in order/i);
+  assert.doesNotMatch(phoneHtml, /Build the supplied phone example|build phone|data-part2-teacher-cue|data-part2-teacher-directions/i);
+  assert.doesNotMatch(phaseHtml, /Read phase with the supplied Letter-Sound Tiles|for phase in order|data-part2-teacher-cue|data-part2-teacher-directions/i);
+});
+
+test('renders an Answer-Key-grounded notebook facsimile while keeping locator prose private', () => {
   const presentation = runnerPresentation(fixture73);
   const notebookIndex = presentation.steps.findIndex(step => step.id === 'ph-notebook');
   const notebookStep = suppliedStep(presentation, 'ph-notebook');
@@ -176,33 +232,52 @@ test('uses source-verified notebook page, location, entry, purpose, and nearby c
   assert.match(notebookStep.notebookContext?.pageLocation || '', /first unshaded entry box/);
   assert.match(notebookStep.notebookContext?.entryAppearance || '', /telephone picture/);
   assert.match(notebookStep.notebookContext?.purpose || '', /Step 7.3 ph digraph/);
+  assert.deepEqual(notebookStep.notebookVisual?.rows.map(row => [row.id, row.sourceOrder, row.target]), [
+    ['ph-previously-taught', 1, false],
+    ['ph-entry', 2, true],
+    ['ch-k-chorus-entry', 3, false]
+  ]);
 
   const teacherHtml = renderToStaticMarkup(
     <Part2InteractiveRunner presentation={presentation} activeStepIndex={notebookIndex} />
   );
+  assert.match(teacherHtml, /data-part2-notebook-page/);
+  assert.match(teacherHtml, /data-part2-notebook-entry-grid/);
+  assert.match(teacherHtml, /data-part2-notebook-target-row="true"/);
+  assert.match(teacherHtml, /Previously Taught/);
+  assert.match(teacherHtml, /Visual cue · telephone/);
   assert.match(teacherHtml, /data-part2-notebook-note/);
-  assert.match(teacherHtml, /Consonant Combinations — Digraphs/);
+  assert.match(teacherHtml, /Notebook source details/);
   assert.match(teacherHtml, /first unshaded entry box/);
   assert.match(teacherHtml, /telephone drawing/);
 
-  const missingContext = JSON.parse(JSON.stringify(fixture73));
-  delete missingContext.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook').notebookContext;
-  const missingPresentation = runnerPresentation(missingContext);
-  const missingIndex = missingPresentation.steps.findIndex(step => step.id === 'ph-notebook');
-  const missingHtml = renderToStaticMarkup(
-    <Part2InteractiveRunner presentation={missingPresentation} activeStepIndex={missingIndex} />
+  const noVisual = JSON.parse(JSON.stringify(fixture73));
+  delete noVisual.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook').notebookVisual;
+  const noVisualPresentation = runnerPresentation(noVisual);
+  const noVisualIndex = noVisualPresentation.steps.findIndex(step => step.id === 'ph-notebook');
+  const noVisualStudent = runnerPresentation(sanitizePart2PresentationForStudent(noVisual));
+  const noVisualHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={noVisualStudent} activeStepIndex={noVisualIndex} readOnly />
   );
-  assert.match(missingHtml, /Notebook location is not verified in this source payload/);
-  assert.match(missingHtml, /do not infer a page or layout/);
+  assert.match(noVisualHtml, /data-part2-notebook-page-unavailable/);
+  assert.match(noVisualHtml, /Notebook page view unavailable/);
+
+  const malformedVisual = JSON.parse(JSON.stringify(fixture73));
+  malformedVisual.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook').notebookVisual.rows[1].target = false;
+  const malformedStep = runnerPresentation(malformedVisual).steps.find(step => step.id === 'ph-notebook');
+  assert.equal(malformedStep?.kind, 'invalid');
 
   const studentSource = sanitizePart2PresentationForStudent(fixture73);
   const studentPresentation = runnerPresentation(studentSource);
   const studentHtml = renderToStaticMarkup(
     <Part2InteractiveRunner presentation={studentPresentation} activeStepIndex={notebookIndex} readOnly />
   );
-  assert.doesNotMatch(JSON.stringify(studentSource), /notebookContext|Consonant Combinations — Digraphs|first unshaded entry box/);
-  assert.doesNotMatch(studentHtml, /data-part2-notebook-note/);
-  assert.doesNotMatch(studentHtml, /Consonant Combinations — Digraphs/);
+  assert.match(JSON.stringify(studentSource), /notebookVisual/);
+  assert.doesNotMatch(JSON.stringify(studentSource), /notebookContext|first unshaded entry box|telephone drawing/);
+  assert.match(studentHtml, /data-part2-notebook-page/);
+  assert.match(studentHtml, /Consonant Combinations — Digraphs/);
+  assert.match(studentHtml, /data-part2-notebook-target-row="true"/);
+  assert.doesNotMatch(studentHtml, /data-part2-notebook-note|first unshaded entry box|telephone drawing/);
 });
 
 test('shows Answer Key word-element meanings while stripping the private source context from students', () => {
@@ -270,7 +345,8 @@ test('renders only one source-owned move, an ordered teacher stack, and a passiv
     <Part2InteractiveRunner presentation={teacherPresentation} activeStepIndex={catchIndex} />
   );
   assert.match(teacherHtml, /data-part2-staging-stack/);
-  assert.match(teacherHtml, /Build the supplied catch example/);
+  assert.match(teacherHtml, /Full source directions/);
+  assert.doesNotMatch(teacherHtml, /data-part2-teacher-cue/);
   assert.match(teacherHtml, /Full source directions/);
   assert.match(teacherHtml, /data-part2-runner-controls/);
   const cPosition = teacherHtml.indexOf('data-part2-object-id="c"');
@@ -365,4 +441,84 @@ test('writes only the concise Part 2 lesson record into the existing session not
   assert.match(twice, /trouble spots=misses tch/);
   assert.match(twice, /step=catch-build/);
   assert.doesNotMatch(twice, /studentId|score|assessment/i);
+});
+
+
+test('uses explicit layout to keep draggable review sets readable while retaining source-ordered pull stacks', () => {
+  const presentation = runnerPresentation(fixture73);
+  const reviewIndex = presentation.steps.findIndex(step => step.id === 'known-digraph-review');
+  const buildIndex = presentation.steps.findIndex(step => step.id === 'phone-build');
+  assert.ok(reviewIndex >= 0 && buildIndex >= 0);
+
+  const reviewHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={presentation} activeStepIndex={reviewIndex} />
+  );
+  assert.match(reviewHtml, /data-part2-layout="review-row"/);
+  assert.doesNotMatch(reviewHtml, /data-part2-staging-stack/);
+  for (const card of ['wh', 'ch', 'sh', 'th', 'ck']) {
+    const cardHtml = reviewHtml.slice(Math.max(0, reviewHtml.indexOf(`data-part2-object-id="${card}"`) - 180), reviewHtml.indexOf(`data-part2-object-id="${card}"`) + 180);
+    assert.match(cardHtml, /data-part2-draggable="true"/);
+    assert.match(cardHtml, /data-part2-drag-enabled="true"/);
+  }
+
+  const buildHtml = renderToStaticMarkup(
+    <Part2InteractiveRunner presentation={presentation} activeStepIndex={buildIndex} />
+  );
+  assert.match(buildHtml, /data-part2-staging-stack/);
+  assert.match(buildHtml, /data-staging-order="1"/);
+});
+
+test('scans every 7.3 answer-bearing move to keep target directions out of passive rendering', () => {
+  const teacher = runnerPresentation(fixture73);
+  const passiveSource = sanitizePart2PresentationForStudent(fixture73);
+  const passive = runnerPresentation(passiveSource);
+  const answerBearing = teacher.steps.filter((step): step is Part2InstructionStep => (
+    step.kind === 'step' && ['BUILD_WORD', 'PRACTICE_BUILD', 'READ_WORDS', 'AFFIX_MANIPULATION', 'WORD_ELEMENT_BUILD'].includes(step.actionType)
+  ));
+  assert.ok(answerBearing.length > 0);
+  for (const step of answerBearing) {
+    const passiveStep = suppliedStep(passive, step.id);
+    assert.equal(passiveStep.studentPrompt, undefined, `${step.id} must not carry a passive prompt`);
+    const stepIndex = passive.steps.findIndex(candidate => candidate.id === step.id);
+    const html = renderToStaticMarkup(<Part2InteractiveRunner presentation={passive} activeStepIndex={stepIndex} readOnly />);
+    assert.doesNotMatch(html, new RegExp(step.teacherCue.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&'), 'i'));
+    for (const direction of step.teacherDirections) {
+      assert.doesNotMatch(html, new RegExp(direction.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&'), 'i'));
+    }
+  }
+});
+
+test('keeps both Answer-Key notebook visuals through the runtime lesson path and renders them instead of fallback', () => {
+  const lesson = lessonWithPart2Source(fixture73);
+  const presentation = part2InteractivePresentationFromData(lesson.runtimePlan?.parts.find(part => part.part === 2)?.data);
+  assert.ok(presentation);
+  for (const notebookId of ['ph-notebook', 'tch-notebook']) {
+    const step = suppliedStep(presentation, notebookId);
+    assert.equal(step.layout, 'notebook-page');
+    assert.ok(step.notebookVisual, `${notebookId} visual must survive runtime adaptation`);
+    const index = presentation.steps.findIndex(candidate => candidate.id === notebookId);
+    const html = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={index} readOnly />);
+    assert.match(html, /data-part2-notebook-page/);
+    assert.match(html, /data-part2-notebook-visual-status="facsimile-fallback"/);
+    assert.doesNotMatch(html, /Notebook page view unavailable/);
+  }
+});
+
+
+test('uses a private whole-page notebook asset when runtime supplies it and otherwise keeps the verified facsimile', () => {
+  const withAsset = JSON.parse(JSON.stringify(fixture73));
+  const notebook = withAsset.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook');
+  notebook.notebookPageImage.imageUrl = '/notebook-assets/wrs-notebook-7-12-answer-key-page-002.png';
+  const presentation = runnerPresentation(withAsset);
+  const index = presentation.steps.findIndex(step => step.id === 'ph-notebook');
+  const imageHtml = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={index} readOnly />);
+  assert.match(imageHtml, /data-part2-notebook-page-image/);
+  assert.match(imageHtml, /wrs-notebook-7-12-answer-key-page-002\.png/);
+  assert.doesNotMatch(imageHtml, /Private notebook page image is unavailable/);
+
+  const fallback = runnerPresentation(fixture73);
+  const fallbackIndex = fallback.steps.findIndex(step => step.id === 'ph-notebook');
+  const fallbackHtml = renderToStaticMarkup(<Part2InteractiveRunner presentation={fallback} activeStepIndex={fallbackIndex} readOnly />);
+  assert.match(fallbackHtml, /data-part2-notebook-image-unavailable/);
+  assert.match(fallbackHtml, /verified page facsimile/);
 });

@@ -405,16 +405,36 @@ const LessonForm: React.FC<LessonFormProps> = ({ initialLesson, activeGroup, onS
   const scrollToSection = (id: string) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 
   const [importText, setImportText] = useState('');
+  const [importError, setImportError] = useState('');
   const [showImport, setShowImport] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImport = () => {
+    let data: any;
     try {
-      // Try JSON first
-      const data = JSON.parse(importText);
-      const runtimePlan = normalizeRuntimeLessonPlan(
-        data?.schemaVersion === 'wrs-runtime-v1' ? data : data?.runtimePlan
-      );
+      data = JSON.parse(importText);
+    } catch {
+      // Plain text remains a supported import format.
+      const parsed = parseLessonText(importText, formData.step, formData.substep);
+      setFormData(prev => ({ ...prev, ...parsed }));
+      setShowImport(false);
+      setImportText('');
+      setImportError('');
+      return;
+    }
+
+    const runtimeCandidate = data?.schemaVersion === 'wrs-runtime-v1'
+      ? data
+      : data?.runtimePlan;
+    const looksLikeRuntime = Boolean(runtimeCandidate && typeof runtimeCandidate === 'object');
+    const runtimePlan = normalizeRuntimeLessonPlan(runtimeCandidate);
+
+    if (looksLikeRuntime && !runtimePlan) {
+      setImportError('Runtime lesson was not accepted: expected a wrs-runtime-v1 lesson with id, valid focus, and Parts 1–10.');
+      return;
+    }
+
+    try {
       const importedData = runtimePlan
         ? { ...data, ...runtimeLessonToLegacyLesson(runtimePlan), runtimePlan }
         : data;
@@ -451,16 +471,14 @@ const LessonForm: React.FC<LessonFormProps> = ({ initialLesson, activeGroup, onS
         });
         setShowImport(false);
         setImportText('');
+        setImportError('');
         return;
       }
-    } catch (e) {
-      // Not JSON, continue to text parsing
+      setImportError('JSON lesson was not accepted: it needs step/substep fields, or a complete wrs-runtime-v1 runtimePlan.');
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : 'Unknown runtime validation error.';
+      setImportError(`Runtime lesson was not accepted: ${detail}`);
     }
-
-    const parsed = parseLessonText(importText, formData.step, formData.substep);
-    setFormData(prev => ({ ...prev, ...parsed }));
-    setShowImport(false);
-    setImportText('');
   };
 
   const handleDownload = () => {
@@ -972,7 +990,7 @@ const LessonForm: React.FC<LessonFormProps> = ({ initialLesson, activeGroup, onS
           <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b flex justify-between items-center bg-stone-50">
               <h3 className="text-lg font-black uppercase tracking-widest text-stone-800">Import Scroll Data</h3>
-              <button onClick={() => setShowImport(false)} className="text-stone-400 hover:text-stone-600"><X className="w-6 h-6" /></button>
+              <button onClick={() => { setShowImport(false); setImportError(''); }} className="text-stone-400 hover:text-stone-600"><X className="w-6 h-6" /></button>
             </div>
             <div className="p-8">
               <div className="flex justify-between items-center mb-4">
@@ -995,6 +1013,7 @@ const LessonForm: React.FC<LessonFormProps> = ({ initialLesson, activeGroup, onS
                       reader.onload = (event) => {
                         const content = event.target?.result as string;
                         setImportText(content);
+                        setImportError('');
                       };
                       reader.readAsText(file);
                     }
@@ -1003,12 +1022,13 @@ const LessonForm: React.FC<LessonFormProps> = ({ initialLesson, activeGroup, onS
               </div>
               <textarea 
                 value={importText}
-                onChange={e => setImportText(e.target.value)}
+                onChange={e => { setImportText(e.target.value); setImportError(''); }}
                 className="w-full h-64 p-4 border-2 border-stone-200 rounded-2xl font-mono text-sm text-stone-900 focus:border-red-800 outline-none mb-6"
                 placeholder="Paste here..."
               />
+              {importError ? <div role="alert" data-runtime-import-error className="mb-4 rounded-xl border-2 border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-950">{importError}</div> : null}
               <div className="flex gap-4">
-                <button onClick={() => setShowImport(false)} className="flex-1 py-4 border-2 border-stone-200 rounded-xl font-bold uppercase tracking-widest text-stone-400 hover:bg-stone-50 transition-all">Cancel</button>
+                <button onClick={() => { setShowImport(false); setImportError(''); }} className="flex-1 py-4 border-2 border-stone-200 rounded-xl font-bold uppercase tracking-widest text-stone-400 hover:bg-stone-50 transition-all">Cancel</button>
                 <button onClick={handleImport} className="flex-1 py-4 bg-red-800 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-red-900 transition-all shadow-lg">Process Import</button>
               </div>
             </div>
