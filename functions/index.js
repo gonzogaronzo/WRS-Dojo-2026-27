@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { setGlobalOptions } from 'firebase-functions/v2';
 import { google } from 'googleapis';
 import {
   dailyNoteSource,
@@ -12,11 +12,18 @@ import {
   missionToStudentDataRows,
   studentDataSourcePrefix
 } from './sheetRows.js';
+import { createFirestoreSheetLock } from './sheetLock.js';
+import { createSheetSynchronizer } from './sheetSync.js';
 
-initializeApp();
-setGlobalOptions({
+const app = initializeApp();
+const firestore = getFirestore(app);
+const triggerOptions = document => ({
+  document,
   region: 'us-central1',
   maxInstances: 3,
+  concurrency: 1,
+  timeoutSeconds: 60,
+  retry: true,
   serviceAccount: 'wrs-firebase@appspot.gserviceaccount.com'
 });
 
@@ -39,64 +46,12 @@ const getSheets = () => {
   return sheetsPromise;
 };
 
-const quoteSheet = sheetName => `'${String(sheetName).replaceAll("'", "''")}'`;
+const syncRows = createSheetSynchronizer({
+  getSheets,
+  withSheetLock: createFirestoreSheetLock({ firestore })
+});
 
-const assertConfig = (spreadsheetId, sheetName, label) => {
-  if (!spreadsheetId) throw new Error(`${label} spreadsheet ID is not configured.`);
-  if (!sheetName) throw new Error(`${label} sheet name is not configured.`);
-};
-
-async function syncRows({ spreadsheetId, sheetName, sourceColumn, sourcePrefix, rows, label }) {
-  assertConfig(spreadsheetId, sheetName, label);
-  const sheets = await getSheets();
-  const sheet = quoteSheet(sheetName);
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range: `${sheet}!A:Z`,
-    majorDimension: 'ROWS'
-  });
-  const existing = response.data.values || [];
-  const matchingRows = [];
-  for (let index = 1; index < existing.length; index += 1) {
-    const sourceValue = String(existing[index]?.[sourceColumn] || '');
-    if (sourceValue.startsWith(sourcePrefix)) matchingRows.push(index + 1);
-  }
-
-  const reuseCount = Math.min(matchingRows.length, rows.length);
-  if (reuseCount > 0) {
-    await sheets.spreadsheets.values.batchUpdate({
-      spreadsheetId,
-      requestBody: {
-        valueInputOption: 'RAW',
-        data: rows.slice(0, reuseCount).map((row, index) => ({
-          range: `${sheet}!A${matchingRows[index]}`,
-          majorDimension: 'ROWS',
-          values: [row]
-        }))
-      }
-    });
-  }
-
-  for (const rowNumber of matchingRows.slice(reuseCount)) {
-    await sheets.spreadsheets.values.clear({
-      spreadsheetId,
-      range: `${sheet}!A${rowNumber}:Z${rowNumber}`
-    });
-  }
-
-  const newRows = rows.slice(reuseCount);
-  if (newRows.length > 0) {
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: `${sheet}!A:Z`,
-      valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: { values: newRows }
-    });
-  }
-}
-
-export const syncCompletedMissionToSheet = onDocumentWritten('missions/{missionId}', async event => {
+export const syncCompletedMissionToSheet = onDocumentWritten(triggerOptions('missions/{missionId}'), async event => {
   const missionId = event.params.missionId;
   const mission = event.data?.after?.exists ? event.data.after.data() : null;
   await Promise.all([
@@ -119,7 +74,7 @@ export const syncCompletedMissionToSheet = onDocumentWritten('missions/{missionI
   ]);
 });
 
-export const syncDailyNoteToSheet = onDocumentWritten('daily_notes/{noteId}', async event => {
+export const syncDailyNoteToSheet = onDocumentWritten(triggerOptions('daily_notes/{noteId}'), async event => {
   const noteId = event.params.noteId;
   const note = event.data?.after?.exists ? event.data.after.data() : null;
   await syncRows({
@@ -132,7 +87,7 @@ export const syncDailyNoteToSheet = onDocumentWritten('daily_notes/{noteId}', as
   });
 });
 
-export const syncGroupNoteToSheet = onDocumentWritten('group_notes/{noteId}', async event => {
+export const syncGroupNoteToSheet = onDocumentWritten(triggerOptions('group_notes/{noteId}'), async event => {
   const noteId = event.params.noteId;
   const note = event.data?.after?.exists ? event.data.after.data() : null;
   await syncRows({
