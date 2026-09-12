@@ -68,4 +68,4 @@ jobs:
           test -n "$WRS_DAILY_LOG_SPREADSHEET_ID"
           printf 'WRS_DATA_LOG_SPREADSHEET_ID=%s\n' "$WRS_DATA_LOG_SPREADSHEET_ID" > functions/.env.wrs-firebase
           printf 'WRS_DAILY_LOG_SPREADSHEET_ID=%s\n' "$WRS_DAILY_LOG_SPREADSHEET_ID" >> functions/.env.wrs-firebase
-          npx --yes firebase-tools@14.15.2 deploy --only functions --project wrs-firebase --non-interactive
+          npx --yes firebase-tools@14.15.2 deploy --only functions:syncCompletedMissionToSheet,functions:syncDailyNoteToSheet,functions:syncGroupNoteToSheet --project wrs-firebase --non-interactive --force
