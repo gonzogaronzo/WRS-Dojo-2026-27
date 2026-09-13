@@ -14,7 +14,11 @@ const loadAtlas = async () => {
   const parts = await Promise.all(atlasPartNames.map(name =>
     readFile(fileURLToPath(new URL(`../functions/assets/word-element-mnemonic-atlas/${name}`, import.meta.url)), 'utf8')
   ));
-  return Buffer.from(parts.join(''), 'base64');
+  const canonicalParts = parts.map((part, index) => {
+    const compact = part.replace(/\s+/g, '');
+    return index < atlasPartNames.length - 1 ? compact.slice(0, 8000) : compact;
+  });
+  return Buffer.from(canonicalParts.join(''), 'base64');
 };
 
 test('protected word-element mnemonic atlas reconstructs byte-for-byte', async () => {

@@ -57,11 +57,15 @@ const mnemonicAtlasParts = [
   'atlas-01.b64', 'atlas-02.b64', 'atlas-03.b64', 'atlas-04.b64',
   'atlas-05.b64', 'atlas-06.b64', 'atlas-07.b64', 'atlas-08.b64'
 ];
+const normalizeMnemonicAtlasPart = (part, index) => {
+  const compact = part.replace(/\s+/g, '');
+  return index < mnemonicAtlasParts.length - 1 ? compact.slice(0, 8000) : compact;
+};
 let mnemonicAtlasPromise;
 const getMnemonicAtlas = () => {
   mnemonicAtlasPromise ||= Promise.all(
     mnemonicAtlasParts.map(name => readFile(fileURLToPath(new URL(`./assets/word-element-mnemonic-atlas/${name}`, import.meta.url)), 'utf8'))
-  ).then(parts => Buffer.from(parts.join(''), 'base64'));
+  ).then(parts => Buffer.from(parts.map(normalizeMnemonicAtlasPart).join(''), 'base64'));
   return mnemonicAtlasPromise;
 };
 
