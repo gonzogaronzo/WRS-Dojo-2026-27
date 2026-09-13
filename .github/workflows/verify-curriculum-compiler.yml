@@ -5,6 +5,12 @@ on:
     paths:
       - 'curriculum-compiler/**'
       - '.github/workflows/verify-curriculum-compiler.yml'
+  push:
+    branches:
+      - 'curriculum-release-1-0-1-integration-v2'
+    paths:
+      - 'curriculum-compiler/**'
+      - '.github/workflows/verify-curriculum-compiler.yml'
   workflow_dispatch:
 
 jobs:
