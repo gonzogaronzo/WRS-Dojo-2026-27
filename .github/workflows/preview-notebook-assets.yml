@@ -1,0 +1,47 @@
+name: Preview notebook Answer Key assets
+
+on:
+  push:
+    branches:
+      - preview/notebook-answer-key-page-assets
+
+jobs:
+  verify-and-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out asset commit
+        uses: actions/checkout@v4
+        with:
+          ref: 84dd60ecb51d775bcc9595e6dd78701a3905fd44
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Install Firebase Functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Run verification suite
+        run: npm test
+
+      - name: Validate Firebase Functions source
+        run: node --check functions/index.js
+
+      - name: Build standalone Firebase app
+        run: npm run build:standalone
+
+      - name: Deploy Firebase Hosting preview channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE }}'
+          projectId: wrs-firebase
+          channelId: notebook-assets-84dd60ec
+          expires: 7d
