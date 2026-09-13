@@ -7,6 +7,7 @@ import {
   validatePart2RuntimePresentation,
   validateRuntimeLessonCompatibility
 } from '../legacy/runtimeLesson';
+import { validateCanonicalLessonGate } from '../legacy/canonicalLessonGate';
 import { normalizeLesson } from '../legacy/dataNormalization';
 import { nextLessonPart } from '../legacy/lessonRules';
 import { studentChartingWordDistributionForLesson } from '../legacy/wordDistribution';
@@ -32,7 +33,7 @@ test('fails Part 7 when old previousSubstepWords is present but reviewWords is m
   delete part7.data.reviewWords;
   part7.data.previousSubstepWords = ['phone', 'match', 'photograph'];
 
-  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 7 reviewWords\/currentWords missing/);
+  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /part7_previous_words_count_failed|Part 7 reviewWords\/currentWords missing/);
 });
 
 test('fails Part 2 when an unsupported card role is supplied', () => {
@@ -49,11 +50,11 @@ test('fails Part 2 when a step provenance is invalid', () => {
   assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 2 interactive presentation invalid/);
 });
 
-test('fails Part 2 when a semantic frame cites an unknown source', () => {
+test('fails Part 2 when an interactive step cites an unknown source', () => {
   const runtime = runtimeOf(lesson1);
-  partOf(runtime, 2).data.part2Presentation.frames[0].sourceIds = ['not-in-manifest'];
+  partOf(runtime, 2).data.part2Presentation.interactiveSteps[0].sourceRef.sourceIds = ['not-in-manifest'];
 
-  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 2 semantic frame cites unregistered source IDs/);
+  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /cites unregistered source IDs/);
 });
 
 test('flags a populated Part 4 projection when legacy Wordlist Reading is empty', () => {
@@ -72,7 +73,7 @@ test('fails Part 9 when questions are stranded in an unsupported field', () => {
   delete part9.data.questions;
   part9.data.followUpQuestions = 'This must not be silently projected.';
 
-  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 9 passage\/questions missing or unsupported/);
+  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /part9_question_ladder_failed|Part 9 passage\/questions missing or unsupported/);
 });
 
 test('retains a valid Part 9 title, passage, and ten questions through projection and reload', () => {
@@ -111,7 +112,7 @@ test('fails a bare Part 6 expected response', () => {
   const runtime = runtimeOf(lesson1);
   partOf(runtime, 6).data.quickDrillReverse = ['/a/ → a'];
 
-  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 6 invalid or ambiguous vowel\/response prompt/);
+  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 6|part6/);
 });
 
 test('passes the full classroom runtime gate and keeps every intended mission part navigable', () => {
@@ -126,7 +127,7 @@ test('passes the full classroom runtime gate and keeps every intended mission pa
   }
 });
 
-test('keeps the known-good 7.3 interactive Part 2 fixture supported', () => {
+test('keeps the known-good 7.3 interactive Part 2 fixture supported by the Part 2 renderer validator', () => {
   const runtime = normalizeRuntimeLessonPlan(disposableRuntime73);
   assert.ok(runtime);
   const part2 = runtime?.parts.find(part => part.part === 2);
@@ -134,8 +135,38 @@ test('keeps the known-good 7.3 interactive Part 2 fixture supported', () => {
   assert.deepEqual(validatePart2RuntimePresentation(part2?.data), []);
 });
 
-test('all five regenerated 5A 7.4 lessons pass the complete compatibility gate', () => {
-  for (const runtime of [lesson1, lesson2, lesson3, lesson4, lesson5]) {
-    assert.doesNotThrow(() => validateRuntimeLessonCompatibility(runtimeOf(runtime)));
+test('all five regenerated 5A 7.4 lessons pass canonical and compatibility gates', () => {
+  for (const source of [lesson1, lesson2, lesson3, lesson4, lesson5]) {
+    const runtime = runtimeOf(source);
+    const canonical = validateCanonicalLessonGate(runtime);
+    assert.equal(canonical.ok, true, canonical.issues.map(issue => `${issue.code}: ${issue.message}`).join('\n'));
+    assert.doesNotThrow(() => validateRuntimeLessonCompatibility(runtime));
+  }
+});
+
+test('all five lessons survive import projection, JSON save, full reload, and reopen data checks', () => {
+  for (const source of [lesson1, lesson2, lesson3, lesson4, lesson5]) {
+    const compatibility = validateRuntimeLessonCompatibility(runtimeOf(source));
+    const savedJson = JSON.stringify(compatibility.lesson);
+    const reloaded = normalizeLesson(JSON.parse(savedJson));
+    assert.ok(reloaded);
+
+    const reopenedRuntime = reloaded?.runtimePlan;
+    assert.ok(reopenedRuntime);
+    const reopenedCanonical = validateCanonicalLessonGate(reopenedRuntime!);
+    assert.equal(reopenedCanonical.ok, true, reopenedCanonical.issues.map(issue => `${issue.code}: ${issue.message}`).join('\n'));
+
+    assert.deepEqual(reopenedRuntime?.plannedParts, [1,2,3,4,5,6,7,8,9,10]);
+    assert.equal(reloaded?.wordCards.length, 6);
+    assert.equal(reloaded?.wordListChartingByStudent?.length, 3);
+    assert.ok(reloaded?.wordListChartingByStudent?.every(list => list.words.length === 15));
+    assert.equal((reopenedRuntime?.parts.find(part => part.part === 5)?.data as any)?.weaveQuestions?.length, 10);
+    assert.equal((reopenedRuntime?.parts.find(part => part.part === 7)?.data as any)?.currentWords?.length, 6);
+    assert.equal(reloaded?.dictation.sounds.length, 5);
+    assert.equal(reloaded?.dictation.wordElements.length, 5);
+    assert.equal(reloaded?.dictation.realWords.length, 5);
+    assert.equal(reloaded?.dictation.nonsenseWords.length, 3);
+    assert.equal(reloaded?.dictation.phrases.length, 3);
+    assert.equal(reloaded?.passageQuestions?.length, 10);
   }
 });

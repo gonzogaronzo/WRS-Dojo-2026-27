@@ -20,6 +20,7 @@ import {
   part2InteractivePresentationFromData,
   part2PresentationToSlides
 } from './part2Presentation';
+import { validateInstructionalLessonContract } from './instructionalLessonContract';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -33,8 +34,6 @@ const text = (value: unknown) => typeof value === 'string' ? value : '';
 const strings = (value: unknown) => Array.isArray(value)
   ? value.filter((entry): entry is string => typeof entry === 'string')
   : [];
-
-
 
 const nonEmptyStrings = (value: unknown): string[] => strings(value).map(entry => entry.trim()).filter(Boolean);
 const hasOwn = (record: UnknownRecord | null | undefined, key: string) => Boolean(record && Object.prototype.hasOwnProperty.call(record, key));
@@ -392,7 +391,6 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
   };
 };
 
-
 export const validatePart2RuntimePresentation = (partData: unknown): string[] => {
   const data = asRecord(partData);
   const presentation = asRecord(data?.part2Presentation);
@@ -467,8 +465,6 @@ const expectedReversePrompt = (value: string) => {
   const segments = value.split('→');
   if (segments.length !== 2 || !segments[0].trim() || !segments[1].trim()) return false;
   const response = segments[1].split('-').map(segment => segment.trim()).filter(Boolean);
-  // A full response identifies the spelling and its explicit phoneme. Some
-  // source-controlled drill items have no keyword, so a keyword is optional.
   return response.length >= 2 && /^\/.+\/$/.test(response[response.length - 1]);
 };
 
@@ -483,13 +479,18 @@ export interface RuntimeCompatibilityResult {
 }
 
 /**
- * Fail-closed import/export gate.  runtimePlan remains authoritative; the
+ * Fail-closed import/export gate. runtimePlan remains authoritative; the
  * legacy Lesson shape is a deterministic compatibility projection only.
  */
 export const validateRuntimeLessonCompatibility = (
   input: WRSRuntimeLessonPlan
 ): RuntimeCompatibilityResult => {
   const runtime = validateRuntimeLesson(input);
+  const instructional = validateInstructionalLessonContract(runtime);
+  if (!instructional.ok) {
+    throw new Error(instructional.issues.map(issue => `${issue.code}: ${issue.message}`).join('\n'));
+  }
+
   const byPart = (number: RuntimeLessonPart['part']) => runtime.parts.find(part => part.part === number)!;
   const errors = sourceManifestErrors(runtime);
   const expectedParts = Array.from({ length: 10 }, (_, index) => index + 1) as RuntimeLessonPart['part'][];
@@ -595,8 +596,6 @@ export const validateRuntimeLessonCompatibility = (
   const legacyLesson = runtimeLessonToLegacyLesson(runtime);
   const lesson: Lesson = {
     ...legacyLesson,
-    // Only a full, accepted runtime import receives this compatibility view.
-    // The authoritative runtime plan itself remains the source of planning truth.
     wrsPlan: runtimeLessonToCompatibilityWrsPlan(runtime)
   };
   errors.push(...validateLessonModuleReadiness(lesson, runtime));
