@@ -55,7 +55,7 @@ import {
 import { useCloudPresenter } from './useCloudPresenter';
 import { DrawingStroke, updateDrawingSurface } from './drawingSync';
 import { clearSafeBootMode, isSafeBootMode } from './safeBoot';
-import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
+import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, studentChartingWordDistributionForLesson, targetWordCount } from './wordDistribution';
 
 const App: React.FC = () => {
   const { 
@@ -464,16 +464,22 @@ const App: React.FC = () => {
 
   const changeLessonPart = useCallback((nextPart: LessonPart) => {
     if (isStudentView) return;
-    if (nextPart === LessonPart.Part4 && baseReadingCards.length > 0 && rosterSessionStudents.length > 0) {
+    if (nextPart === LessonPart.Part4 && currentLesson && baseReadingCards.length > 0 && rosterSessionStudents.length > 0) {
       const wordsPerStudent = targetWordCount(baseReadingCards);
       if (!hasCompleteWordDistribution(sessionDistribution, rosterSessionStudents.length, wordsPerStudent)) {
-        setSessionDistribution(buildWordDistribution(baseReadingCards, rosterSessionStudents.length, wordsPerStudent));
+        const studentSpecificDistribution = studentChartingWordDistributionForLesson(currentLesson, rosterSessionStudents);
+        const requiresStudentSpecificLists = Boolean(currentLesson?.wordListChartingByStudent?.length);
+        setSessionDistribution(
+          requiresStudentSpecificLists
+            ? (studentSpecificDistribution || [])
+            : buildWordDistribution(baseReadingCards, rosterSessionStudents.length, wordsPerStudent)
+        );
         setSessionWordlistPage(0);
         setSessionScores([]);
       }
     }
     setCurrentPart(nextPart);
-  }, [baseReadingCards, isStudentView, rosterSessionStudents.length, sessionDistribution, setSessionDistribution, setSessionScores, setSessionWordlistPage]);
+  }, [baseReadingCards, currentLesson, isStudentView, rosterSessionStudents, sessionDistribution, setSessionDistribution, setSessionScores, setSessionWordlistPage]);
 
   // Keep activeGroup in sync with the latest data from the groups array
   useEffect(() => {
@@ -694,7 +700,7 @@ const App: React.FC = () => {
       case LessonPart.Part3: 
         return (
           <WordCards 
-            cards={baseReadingCards} 
+            cards={currentLesson.wordCards.length ? currentLesson.wordCards : baseReadingCards} 
             hfw={currentLesson.hfwList} 
             students={sessionStudents.map(s => s.name)}
             state={sessionWordCards}
@@ -706,6 +712,7 @@ const App: React.FC = () => {
         return (
           <WordlistReading 
             cards={baseReadingCards} 
+            preassigned={Boolean(currentLesson.wordListChartingByStudent?.length)}
             students={sessionStudents} 
             scores={sessionScores} 
             onUpdateScores={setSessionScores} 
@@ -819,6 +826,10 @@ const App: React.FC = () => {
         return (
           <PassageReading 
             text={currentLesson.passage || ""} 
+            title={currentLesson.passageTitle}
+            sourceLabel={[currentLesson.passageStudentReader, currentLesson.passagePage].filter(Boolean).join(' • ')}
+            questions={currentLesson.passageQuestions}
+            historyNote={currentLesson.passageHistoryStatus === 'uncertain-flagged' ? currentLesson.passageHistoryNote : undefined}
             currentIndex={sessionPassageIndex}
             onUpdateIndex={setSessionPassageIndex}
             rulerEnabled={sessionPassageRulerEnabled}

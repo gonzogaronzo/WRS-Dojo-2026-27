@@ -7,7 +7,7 @@ import {
   StudentProfile
 } from './types';
 import { normalizeWrsLessonPlan } from './wrsLessonPlan';
-import { normalizeRuntimeLessonPlan, runtimeLessonToLegacyLesson } from './runtimeLesson';
+import { normalizeRuntimeLessonPlan, runtimeLessonToLegacyLesson, validateRuntimeLessonCompatibility } from './runtimeLesson';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -78,6 +78,24 @@ const normalizeWordCards = (value: unknown): Lesson['wordCards'] => (
   })) as Lesson['wordCards']
 );
 
+
+
+const normalizeStudentChartingLists = (value: unknown): NonNullable<Lesson['wordListChartingByStudent']> => (
+  recordArray(value).flatMap(entry => {
+    const studentName = nonEmptyString(entry.studentName);
+    const words = stringArray(entry.words);
+    return studentName ? [{ studentName, words }] : [];
+  })
+);
+
+const normalizePassageQuestions = (value: unknown): NonNullable<Lesson['passageQuestions']> => (
+  recordArray(value).flatMap(entry => {
+    const question = nonEmptyString(entry.question);
+    const level = typeof entry.level === 'string' ? entry.level : '';
+    return question && level ? [{ question, level: level as NonNullable<Lesson['passageQuestions']>[number]['level'] }] : [];
+  })
+);
+
 const normalizeAffixes = (value: unknown): Lesson['affixPractice'] => (
   identifiedRecordArray(value).map(affix => ({
     ...affix,
@@ -116,7 +134,19 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
   const runtimePlan = normalizeRuntimeLessonPlan(
     data.schemaVersion === 'wrs-runtime-v1' ? data : data.runtimePlan
   );
-  const projection = runtimePlan ? runtimeLessonToLegacyLesson(runtimePlan) : null;
+  let projection: Lesson | null = null;
+  if (runtimePlan) {
+    try {
+      // New full-path runtime plans are only loadable when their deterministic
+      // projection is classroom-compatible. Older partial runtime objects retain
+      // their existing compatibility path until they are explicitly re-imported.
+      projection = runtimePlan.lessonPath === 'full'
+        ? validateRuntimeLessonCompatibility(runtimePlan).lesson
+        : runtimeLessonToLegacyLesson(runtimePlan);
+    } catch {
+      return null;
+    }
+  }
   const lessonData: UnknownRecord = projection ? { ...data, ...projection, id } : data;
   const dictation = asRecord(lessonData.dictation) || {};
 
@@ -138,6 +168,7 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
     wordListReading: stringArray(lessonData.wordListReading),
     wordListPractice: stringArray(lessonData.wordListPractice),
     wordListCharting: stringArray(lessonData.wordListCharting),
+    wordListChartingByStudent: normalizeStudentChartingLists(lessonData.wordListChartingByStudent),
     sentences: stringArray(lessonData.sentences),
     dictation: {
       sounds: stringArray(dictation.sounds),
@@ -149,8 +180,18 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
     },
     hfwList: stringArray(lessonData.hfwList),
     affixPractice: normalizeAffixes(lessonData.affixPractice),
+    passageTitle: typeof lessonData.passageTitle === 'string' ? lessonData.passageTitle : undefined,
+    passageStudentReader: typeof lessonData.passageStudentReader === 'string' ? lessonData.passageStudentReader : undefined,
+    passagePage: typeof lessonData.passagePage === 'string' ? lessonData.passagePage : undefined,
+    passageQuestions: normalizePassageQuestions(lessonData.passageQuestions),
+    passageHistoryStatus: lessonData.passageHistoryStatus === 'verified-next-unread' || lessonData.passageHistoryStatus === 'uncertain-flagged'
+      ? lessonData.passageHistoryStatus
+      : undefined,
+    passageHistoryNote: typeof lessonData.passageHistoryNote === 'string' ? lessonData.passageHistoryNote : undefined,
     runtimePlan: runtimePlan || undefined,
-    wrsPlan: normalizeWrsLessonPlan(data.wrsPlan)
+    wrsPlan: runtimePlan
+      ? normalizeWrsLessonPlan(projection?.wrsPlan)
+      : normalizeWrsLessonPlan(data.wrsPlan)
   } as Lesson;
 };
 

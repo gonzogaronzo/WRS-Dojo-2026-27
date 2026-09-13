@@ -10,6 +10,8 @@ interface WordlistReadingProps {
   scores: WordlistScore[];
   onUpdateScores: (scores: WordlistScore[]) => void;
   isStudentView?: boolean;
+  /** A runtime lesson supplied roster-bound lists; never substitute a shared reshuffle. */
+  preassigned?: boolean;
   distribution: WordInstance[][];
   onUpdateDistribution: (dist: WordInstance[][]) => void;
   page: number;
@@ -17,7 +19,7 @@ interface WordlistReadingProps {
 }
 
 const WordlistReading: React.FC<WordlistReadingProps> = ({ 
-  cards, students = [], scores, onUpdateScores, isStudentView,
+  cards, students = [], scores, onUpdateScores, isStudentView, preassigned = false,
   distribution = [], onUpdateDistribution, page = 0, onUpdatePage
 }) => {
   const [teacherPlayerCount, setTeacherPlayerCount] = useState<number>(students.length > 0 ? students.length : 0);
@@ -33,7 +35,7 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
 
   // Initialize or Reset Distribution
   const initializeDistribution = (count: number) => {
-    if (isStudentView || cards.length === 0) return;
+    if (isStudentView || preassigned || cards.length === 0) return;
 
     const newDistribution = buildWordDistribution(cards, count, targetTotalWords);
 
@@ -81,6 +83,21 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
     );
   }
 
+  const preassignedMismatch = preassigned && (
+    safeDistribution.length !== students.length ||
+    safeDistribution.some(studentList => studentList.length !== targetTotalWords)
+  );
+
+  if (preassignedMismatch) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-stone-500 p-8 text-center">
+        <Scroll className="w-16 h-16 mb-4 opacity-20" />
+        <h2 className="font-serif font-black text-xl text-stone-900">Part 4 lists are roster-bound</h2>
+        <p className="max-w-lg mt-2">This runtime lesson has separate 15-word charting lists. Match the active roster to the named lesson lists before running Part 4; a shared reshuffle is intentionally unavailable.</p>
+      </div>
+    );
+  }
+
   if (numPlayers === 0) {
     return (
       <div className="h-full flex flex-col bg-[#fcfbf9] font-sans items-center justify-center p-8">
@@ -119,7 +136,7 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
           </div>
         </div>
 
-        {!isStudentView && <div className="flex items-center gap-4">
+        {!isStudentView && !preassigned && <div className="flex items-center gap-4">
            <button onClick={() => setTeacherPlayerCount(0)} className="text-[10px] text-stone-400 hover:text-stone-900 uppercase font-black tracking-widest mr-4">
              Reset Party
            </button>

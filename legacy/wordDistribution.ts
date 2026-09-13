@@ -23,7 +23,10 @@ export const uniqueWordCards = (cards: WordCard[]): WordCard[] => {
 export const targetWordCount = (_cards: WordCard[]): number => 15;
 
 export const chartingWordCardsForLesson = (lesson: Lesson): WordCard[] => {
-  const explicitChartingPool = (lesson.wordListCharting || []).map((text, index) => ({
+  const explicitChartingPool = [
+    ...(lesson.wordListCharting || []),
+    ...(lesson.wordListChartingByStudent || []).flatMap(list => list.words)
+  ].map((text, index) => ({
     id: `charting-${index}`,
     text,
     type: 'regular' as const
@@ -52,6 +55,38 @@ export const chartingWordCardsForLesson = (lesson: Lesson): WordCard[] => {
   });
 
   return dictationPool.length > 0 ? dictationPool : wordCardPool;
+};
+
+
+
+/**
+ * A generated runtime lesson may carry separate 15-word Part 4 charting lists
+ * keyed by the student names visible in the teacher's active roster. Existing
+ * single-pool lessons continue through buildWordDistribution unchanged.
+ */
+export const studentChartingWordDistributionForLesson = (
+  lesson: Lesson,
+  students: Array<{ name: string }>,
+  createId: CreateId = generateId
+): WordInstance[][] | null => {
+  const configured = lesson.wordListChartingByStudent || [];
+  if (!configured.length) return null;
+
+  const configuredNames = new Set(configured.map(list => list.studentName));
+  const rosterMatches = students.length === configured.length
+    && students.every(student => configuredNames.has(student.name));
+  if (!rosterMatches) return null;
+
+  return students.map((student, studentIndex) => {
+    const list = configured.find(candidate => candidate.studentName === student.name);
+    if (!list || list.words.length !== 15) return [];
+    return list.words.filter(word => word.trim()).map((text, wordIndex) => ({
+      id: 'student-charting-' + studentIndex + '-' + wordIndex,
+      instanceId: createId(),
+      text,
+      type: 'regular' as const
+    }));
+  });
 };
 
 export const normalizeWordDistribution = (value: unknown): WordInstance[][] => {

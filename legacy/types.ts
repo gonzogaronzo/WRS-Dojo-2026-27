@@ -45,6 +45,31 @@ export interface RuntimePlanningContext {
   troubleSpots: string;
 }
 
+export interface RuntimeStudentChartingList {
+  studentName: string;
+  words: string[];
+}
+
+export type RuntimePassageHistoryStatus = 'verified-next-unread' | 'uncertain-flagged';
+
+export type RuntimePassageQuestionLevel =
+  | 'direct-recall'
+  | 'sequence'
+  | 'cause-effect'
+  | 'important-detail'
+  | 'vocabulary-in-context'
+  | 'relationship'
+  | 'reasoning'
+  | 'explanation'
+  | 'inference'
+  | 'evidence-based-interpretation'
+  | 'synthesis';
+
+export interface RuntimePassageQuestion {
+  question: string;
+  level: RuntimePassageQuestionLevel;
+}
+
 export interface ListeningComprehensionPlan {
   mode: 'teacher-selected';
   title: string;
@@ -68,6 +93,7 @@ export interface RuntimeLessonPartData {
   practiceWords?: string[];
   chartingWords?: string[];
   chartingType?: 'real' | 'nonsense';
+  studentChartingLists?: RuntimeStudentChartingList[];
   sentences?: string[];
   quickDrillReverse?: string[];
   wordElements?: string[];
@@ -79,6 +105,10 @@ export interface RuntimeLessonPartData {
   passageTitle?: string;
   studentReader?: string;
   page?: string;
+  questions?: RuntimePassageQuestion[];
+  historyStatus?: RuntimePassageHistoryStatus;
+  historyNote?: string;
+  teacherPlanStatus?: 'TBD' | 'PLANNED';
   listeningComprehension?: ListeningComprehensionPlan;
 }
 
@@ -248,12 +278,19 @@ export interface Lesson {
   wordListReading?: string[];
   wordListPractice?: string[];
   wordListCharting?: string[];
+  wordListChartingByStudent?: RuntimeStudentChartingList[];
   wordListReadingAuto?: boolean;
   sentences: string[];
   dictation: DictationSection;
   hfwList: string[];
   affixPractice: AffixEntry[];
   passage?: string;
+  passageTitle?: string;
+  passageStudentReader?: string;
+  passagePage?: string;
+  passageQuestions?: RuntimePassageQuestion[];
+  passageHistoryStatus?: RuntimePassageHistoryStatus;
+  passageHistoryNote?: string;
   lessonFocus?: LessonFocus;
   sourceMetadata?: LessonSourceReference[];
   runtimePlan?: WRSRuntimeLessonPlan;

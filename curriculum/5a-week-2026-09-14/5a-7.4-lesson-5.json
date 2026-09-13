@@ -1,0 +1,952 @@
+{
+  "focus": "accuracy",
+  "id": "5a-2026-09-14-7-4-lesson-5",
+  "lessonPath": "full",
+  "parts": [
+    {
+      "data": {
+        "eligibleVowels": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/"
+        ],
+        "newAfterInstruction": [
+          "tion-vacation-/shən/",
+          "sion-mansion-/shən/, sion-television-/zhən/"
+        ],
+        "newCardsRequiredAfterPart2": true,
+        "quickDrill": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/",
+          "dge-fudge-/j/",
+          "ph-phone-/f/",
+          "tch-catch-/ch/",
+          "tion-vacation-/shən/",
+          "sion-mansion-/shən/, sion-television-/zhən/"
+        ],
+        "selectedReview": [
+          "dge-fudge-/j/",
+          "ph-phone-/f/",
+          "tch-catch-/ch/"
+        ],
+        "vowels": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/"
+        ]
+      },
+      "part": 1,
+      "sourceIds": [
+        "IM-7.4-140-151"
+      ],
+      "teacherDirections": [
+        "Select cumulative cards and include tion and sion only after they have been taught in Part 2."
+      ],
+      "title": "Sounds Quick Drill"
+    },
+    {
+      "data": {
+        "conceptNotes": "Review final stable syllables with tion and sion, then reconnect -ion as the suffix within the welded final stable syllable. Do not have students read the word twice.",
+        "currentExamples": [
+          "notation",
+          "adaptation",
+          "isolation",
+          "decision",
+          "explanation",
+          "division"
+        ],
+        "currentWords": [
+          "notation",
+          "adaptation",
+          "isolation",
+          "decision",
+          "explanation",
+          "division"
+        ],
+        "part2Presentation": {
+          "focus": "accuracy",
+          "frames": [
+            {
+              "id": "final-stable-overview",
+              "kind": "explanation",
+              "provenance": "source-paraphrase",
+              "sourceIds": [
+                "IM-7.4-140-151"
+              ],
+              "teacherCue": "Review the final stable syllable and the suffix relationship without having students read a word twice.",
+              "text": "tion says /shən/. sion says /shən/ or /zhən/. The -ion is a suffix within the final stable syllable.",
+              "title": "Final Stable Syllables"
+            },
+            {
+              "annotation": "/shən/",
+              "id": "tion-card",
+              "kind": "tile-row",
+              "provenance": "source-paraphrase",
+              "sourceIds": [
+                "IM-7.4-140-151"
+              ],
+              "teacherCue": "Use the tion Letter-Sound Card with vacation.",
+              "tiles": [
+                {
+                  "role": "welded",
+                  "text": "tion"
+                }
+              ],
+              "title": "tion"
+            },
+            {
+              "annotation": "/shən/ or /zhən/",
+              "id": "sion-card",
+              "kind": "tile-row",
+              "provenance": "source-paraphrase",
+              "sourceIds": [
+                "IM-7.4-140-151"
+              ],
+              "teacherCue": "Use the sion Letter-Sound Card with mansion and television.",
+              "tiles": [
+                {
+                  "role": "welded",
+                  "text": "sion"
+                }
+              ],
+              "title": "sion"
+            },
+            {
+              "id": "multisyllabic-build",
+              "kind": "word-build",
+              "provenance": "source-paraphrase",
+              "sourceIds": [
+                "IM-7.4-140-151"
+              ],
+              "steps": [
+                {
+                  "label": "notation",
+                  "units": [
+                    {
+                      "text": "no",
+                      "role": "syllable"
+                    },
+                    {
+                      "text": "ta",
+                      "role": "syllable"
+                    },
+                    {
+                      "text": "tion",
+                      "role": "syllable"
+                    }
+                  ]
+                }
+              ],
+              "teacherCue": "Build the supplied source example with Syllable Cards and mark the final stable syllable.",
+              "title": "notation"
+            },
+            {
+              "annotation": "act + -ion",
+              "elements": [
+                {
+                  "role": "base-element",
+                  "text": "act"
+                },
+                {
+                  "role": "suffix",
+                  "text": "-ion"
+                }
+              ],
+              "id": "ion-suffix",
+              "kind": "word-elements",
+              "provenance": "source-paraphrase",
+              "sourceIds": [
+                "IM-7.4-140-151"
+              ],
+              "teacherCue": "Show the suffix within the welded final stable syllable without asking the student to read the word twice.",
+              "title": "The -ion suffix"
+            }
+          ],
+          "interactiveSteps": [
+            {
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "id": "previous-substep-review",
+              "layout": "single-card",
+              "objects": [
+                {
+                  "id": "review-0",
+                  "role": "word",
+                  "text": "condition"
+                },
+                {
+                  "id": "review-1",
+                  "role": "word",
+                  "text": "location"
+                },
+                {
+                  "id": "review-2",
+                  "role": "word",
+                  "text": "conclusion"
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "Substep 7.3 review",
+                "sourceIds": [
+                  "IM-7.3-128-139"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Read the supplied previous-substep words before targeted final-stable-syllable review.",
+              "teacherDirections": [
+                "Present the supplied previous-substep words one at a time and use only the needed review prompt."
+              ]
+            },
+            {
+              "actionType": "TEACH_CARD",
+              "displayType": "LETTER_SOUND_TILES",
+              "id": "tion-card-runner",
+              "layout": "single-card",
+              "objects": [
+                {
+                  "id": "tion",
+                  "role": "welded",
+                  "text": "tion"
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "p. 140",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Review the supplied tion Letter-Sound Card and its keyword connection.",
+              "teacherDirections": [
+                "Present tion-vacation-/shən/ and have the student state the supplied response."
+              ]
+            },
+            {
+              "actionType": "TEACH_CARD",
+              "displayType": "LETTER_SOUND_TILES",
+              "id": "sion-card-runner",
+              "layout": "single-card",
+              "objects": [
+                {
+                  "id": "sion",
+                  "role": "welded",
+                  "text": "sion"
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "pp. 140-141",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Review the supplied sion Letter-Sound Card and both sourced sound options.",
+              "teacherDirections": [
+                "Present sion-mansion-/shən/ and sion-television-/zhən/."
+              ]
+            },
+            {
+              "actionType": "READ_WORDS",
+              "cardRepresentation": "multisyllabic",
+              "displayType": "SYLLABLE_CARDS",
+              "id": "current-word-build",
+              "layout": "pull-stack",
+              "objects": [
+                {
+                  "id": "current-0",
+                  "text": "no",
+                  "role": "syllable",
+                  "stagingOrder": 1
+                },
+                {
+                  "id": "current-1",
+                  "text": "ta",
+                  "role": "syllable",
+                  "stagingOrder": 2
+                },
+                {
+                  "id": "current-2",
+                  "text": "tion",
+                  "role": "syllable",
+                  "stagingOrder": 3
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "pp. 141-143",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Build and read the selected current example with supplied Syllable Cards.",
+              "teacherDirections": [
+                "Pull the supplied Syllable Cards in order, read the completed word, and identify the final stable syllable."
+              ]
+            },
+            {
+              "actionType": "READ_WORDS",
+              "cardRepresentation": "multisyllabic",
+              "displayType": "SYLLABLE_CARDS",
+              "id": "sion-word-build",
+              "layout": "pull-stack",
+              "objects": [
+                {
+                  "id": "sion-0",
+                  "text": "vi",
+                  "role": "syllable",
+                  "stagingOrder": 1
+                },
+                {
+                  "id": "sion-1",
+                  "text": "sion",
+                  "role": "syllable",
+                  "stagingOrder": 2
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "p. 141",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Build and read the selected sion example with supplied Syllable Cards.",
+              "teacherDirections": [
+                "Pull the Syllable Cards in source order, read the word, and name the sion sound used in this word."
+              ]
+            },
+            {
+              "actionType": "WORD_ELEMENT_BUILD",
+              "cardRepresentation": "morphological",
+              "displayType": "WORD_ELEMENT_CARDS",
+              "id": "ion-word-element-build",
+              "layout": "pull-stack",
+              "objects": [
+                {
+                  "id": "base-element",
+                  "role": "base-element",
+                  "stagingOrder": 1,
+                  "text": "act"
+                },
+                {
+                  "id": "ion-suffix",
+                  "role": "suffix",
+                  "stagingOrder": 2,
+                  "text": "-ion"
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "pp. 142-143",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Show the base plus -ion relationship with the supplied Word Element Cards.",
+              "teacherDirections": [
+                "Pull the supplied base-element and suffix cards in order, then connect the suffix to the welded final stable syllable."
+              ]
+            }
+          ],
+          "version": 1
+        },
+        "previousSubstepWords": [
+          "condition",
+          "location",
+          "conclusion"
+        ],
+        "reviewWords": [
+          "condition",
+          "location",
+          "conclusion"
+        ],
+        "troubleSpotTargets": [
+          "Finn: contrast notation with related tion forms.",
+          "Maya: identify the final stable syllable before recombining the word."
+        ]
+      },
+      "part": 2,
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "IM-7.3-128-139"
+      ],
+      "teacherDirections": [
+        "Use only source-supplied cards and source order; target the documented trouble spots without introducing unverified material."
+      ],
+      "title": "Teach & Review Concepts for Reading"
+    },
+    {
+      "data": {
+        "currentCards": [
+          "notation",
+          "adaptation",
+          "isolation",
+          "decision",
+          "explanation",
+          "division"
+        ],
+        "expectedCurrentHfw": [
+          "national",
+          "question",
+          "themselves",
+          "half",
+          "suggestion"
+        ],
+        "fatStackReference": "Existing previous-substep 7.3 fat stack",
+        "hfwList": [
+          "national",
+          "question",
+          "themselves",
+          "half",
+          "suggestion"
+        ],
+        "wordCards": [
+          {
+            "id": "card-1-notation",
+            "text": "notation",
+            "type": "regular"
+          },
+          {
+            "id": "card-2-adaptation",
+            "text": "adaptation",
+            "type": "regular"
+          },
+          {
+            "id": "card-3-isolation",
+            "text": "isolation",
+            "type": "regular"
+          },
+          {
+            "id": "card-4-decision",
+            "text": "decision",
+            "type": "regular"
+          },
+          {
+            "id": "card-5-explanation",
+            "text": "explanation",
+            "type": "regular"
+          },
+          {
+            "id": "card-6-division",
+            "text": "division",
+            "type": "regular"
+          }
+        ],
+        "wordElements": [
+          "-ion"
+        ]
+      },
+      "part": 3,
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "SR7-7.4-102-133"
+      ],
+      "teacherDirections": [
+        "Use the previous-substep fat stack first, then the selected 7.4 cards; sort /shən/ and /zhən/ as needed."
+      ],
+      "title": "Word Cards"
+    },
+    {
+      "data": {
+        "chartingByStudent": {
+          "Alex": [
+            "pension",
+            "suspension",
+            "repulsion",
+            "tension",
+            "extension",
+            "revulsion",
+            "impulsion",
+            "convulsion",
+            "expulsion",
+            "compulsion",
+            "pretension",
+            "propulsion",
+            "vision",
+            "evasion",
+            "invasion"
+          ],
+          "Finn": [
+            "notation",
+            "tension",
+            "extension",
+            "intention",
+            "decision",
+            "vision",
+            "division",
+            "conclusion",
+            "suspension",
+            "pension",
+            "location",
+            "station",
+            "vacation",
+            "regulation",
+            "definition"
+          ],
+          "Maya": [
+            "isolation",
+            "adaptation",
+            "relocation",
+            "position",
+            "combination",
+            "explanation",
+            "tension",
+            "extension",
+            "vision",
+            "invasion",
+            "conclusion",
+            "decision",
+            "division",
+            "condition",
+            "motion"
+          ]
+        },
+        "chartingPlanned": true,
+        "chartingType": "real",
+        "chartingWords": [
+          "pension",
+          "suspension",
+          "repulsion",
+          "tension",
+          "extension",
+          "revulsion",
+          "impulsion",
+          "convulsion",
+          "expulsion",
+          "compulsion",
+          "pretension",
+          "propulsion",
+          "vision",
+          "evasion",
+          "invasion",
+          "notation",
+          "intention",
+          "decision",
+          "division",
+          "conclusion",
+          "location",
+          "station",
+          "vacation",
+          "regulation",
+          "definition",
+          "isolation",
+          "adaptation",
+          "relocation",
+          "position",
+          "combination",
+          "explanation",
+          "condition",
+          "motion"
+        ],
+        "page": "102-104",
+        "practiceWords": [
+          "notation",
+          "adaptation",
+          "isolation",
+          "decision",
+          "explanation",
+          "division"
+        ],
+        "studentChartingLists": [
+          {
+            "studentName": "Alex",
+            "words": [
+              "pension",
+              "suspension",
+              "repulsion",
+              "tension",
+              "extension",
+              "revulsion",
+              "impulsion",
+              "convulsion",
+              "expulsion",
+              "compulsion",
+              "pretension",
+              "propulsion",
+              "vision",
+              "evasion",
+              "invasion"
+            ]
+          },
+          {
+            "studentName": "Finn",
+            "words": [
+              "notation",
+              "tension",
+              "extension",
+              "intention",
+              "decision",
+              "vision",
+              "division",
+              "conclusion",
+              "suspension",
+              "pension",
+              "location",
+              "station",
+              "vacation",
+              "regulation",
+              "definition"
+            ]
+          },
+          {
+            "studentName": "Maya",
+            "words": [
+              "isolation",
+              "adaptation",
+              "relocation",
+              "position",
+              "combination",
+              "explanation",
+              "tension",
+              "extension",
+              "vision",
+              "invasion",
+              "conclusion",
+              "decision",
+              "division",
+              "condition",
+              "motion"
+            ]
+          }
+        ],
+        "studentReader": "Student Reader Seven"
+      },
+      "part": 4,
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "SR7-7.4-102-133",
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "Give each named student the separately selected 15-word charting list; correct and discuss errors before moving on."
+      ],
+      "title": "Wordlist Reading"
+    },
+    {
+      "data": {
+        "page": "116",
+        "sentences": [
+          "Elsa motioned that she knew the answer to the question in music class.",
+          "Caleb had to reposition his desk so it would fit next to his bed.",
+          "The jet plane’s midsection was full.",
+          "Half of the students selected a nonfiction book.",
+          "There are no exceptions to this rule.",
+          "The hotel provides a snack, but we must make provisions for lunch ourselves.",
+          "Do you have a suggestion for our store relocation?",
+          "The whole problem came down to a disconnection of wires.",
+          "The instructions were packed inside the box.",
+          "There were no objections to the new rules by the students, many of whom were in the fifth grade."
+        ],
+        "studentReader": "Student Reader Seven",
+        "weaveQuestions": [
+          "Which final stable syllable, if any, do you see in: Elsa motioned that she knew the answer to the question in music class.",
+          "Which final stable syllable, if any, do you see in: Caleb had to reposition his desk so it would fit next to his bed.",
+          "Which final stable syllable, if any, do you see in: The jet plane’s midsection was full.",
+          "Which final stable syllable, if any, do you see in: Half of the students selected a nonfiction book.",
+          "Which final stable syllable, if any, do you see in: There are no exceptions to this rule.",
+          "Which final stable syllable, if any, do you see in: The hotel provides a snack, but we must make provisions for lunch ourselves.",
+          "Which final stable syllable, if any, do you see in: Do you have a suggestion for our store relocation?",
+          "Which final stable syllable, if any, do you see in: The whole problem came down to a disconnection of wires.",
+          "Which final stable syllable, if any, do you see in: The instructions were packed inside the box.",
+          "Which final stable syllable, if any, do you see in: There were no objections to the new rules by the students, many of whom were in the fifth grade."
+        ]
+      },
+      "part": 5,
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "SR7-7.4-102-133"
+      ],
+      "teacherDirections": [
+        "Have students read each source sentence silently, then aloud; weave the final stable syllable question where useful."
+      ],
+      "title": "Sentence Reading"
+    },
+    {
+      "data": {
+        "quickDrillReverse": [
+          "/ă/ → a-apple-/ă/",
+          "/ā/ → a-apron-/ā/",
+          "/ä/ → a-/ä/",
+          "/ĕ/ → e-Ed-/ĕ/",
+          "/ē/ → e-equal-/ē/",
+          "/ĭ/ → i-itch-/ĭ/",
+          "/ī/ → i-ice-/ī/",
+          "/ŏ/ → o-octopus-/ŏ/",
+          "/ō/ → o-open-/ō/",
+          "/ŭ/ → u-up-/ŭ/",
+          "/ū/ → u-uniform-/ū/",
+          "/k/ → c-cat-/k/, k-kite-/k/",
+          "/s/ → s-sun-/s/, c-cent-/s/",
+          "/z/ → z-zebra-/z/, s-/z/",
+          "/j/ → j-jar-/j/, g-gem-/j/, dge-fudge-/j/",
+          "/f/ → f-fan-/f/, ph-phone-/f/",
+          "/ch/ → ch-chip-/ch/, tch-catch-/ch/",
+          "/shən/ → tion-vacation-/shən/, sion-mansion-/shən/",
+          "/zhən/ → sion-television-/zhən/",
+          "/m/ → m-map-/m/"
+        ],
+        "wordElements": [
+          "-ion"
+        ]
+      },
+      "part": 6,
+      "sourceIds": [
+        "IM-7.4-140-151"
+      ],
+      "teacherDirections": [
+        "Dictate each selected sound and require the full expected response while pointing to the appropriate tiles."
+      ],
+      "title": "Quick Drill in Reverse"
+    },
+    {
+      "data": {
+        "conceptNotes": "Spell current 7.4 words one syllable at a time. For /shən/, compare tion and sion with the spelling-option procedure. For /zhən/, use sion. Reconnect -ion as a suffix without reading the word twice.",
+        "currentSubstepWords": [
+          "notation",
+          "adaptation",
+          "isolation",
+          "decision",
+          "explanation",
+          "division"
+        ],
+        "currentWords": [
+          "notation",
+          "adaptation",
+          "isolation",
+          "decision",
+          "explanation",
+          "division"
+        ],
+        "previousSubstepWords": [
+          "condition",
+          "location",
+          "conclusion"
+        ],
+        "reviewWords": [
+          "condition",
+          "location",
+          "conclusion"
+        ],
+        "troubleSpotTargets": [
+          "Finn: notation spelling decision.",
+          "Maya: isolate and recombine the final stable syllable before spelling."
+        ],
+        "wordElements": [
+          "-ion"
+        ]
+      },
+      "part": 7,
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "Use the spelling-option procedure for /shən/ and the supplied sion /zhən/ pattern. Keep explicit student targets visible."
+      ],
+      "title": "Teach & Review Concepts for Spelling"
+    },
+    {
+      "data": {
+        "dictation": {
+          "nonsenseWords": [],
+          "phrases": [],
+          "realWords": [
+            "pension",
+            "suspension",
+            "repulsion",
+            "tension",
+            "extension"
+          ],
+          "sentences": [
+            "Joseph will get a decent pension after his retirement.",
+            "Bob had to take exact dimensions to make a kitchen cabinet."
+          ],
+          "sounds": [
+            "tion-vacation-/shən/",
+            "sion-mansion-/shən/",
+            "sion-television-/zhən/"
+          ],
+          "wordElements": [
+            "-ion"
+          ]
+        },
+        "phraseSelectionNote": "No source-verified 7.4 phrase selection is supplied in the available Dictation Book excerpt; no phrase is invented."
+      },
+      "part": 8,
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "DB-7.4-14-18"
+      ],
+      "teacherDirections": [
+        "Use the selected source words and sentences. No source-verified 7.4 nonsense-word or phrase set is supplied here, so those categories remain explicitly empty."
+      ],
+      "title": "Written Work Dictation"
+    },
+    {
+      "data": {
+        "historyNote": "No verified class passage-history record establishes the next unread Substep 7.4 passage. This source-grounded selection is a proposed sequence and requires teacher confirmation before Part 9.",
+        "historyStatus": "uncertain-flagged",
+        "page": "132-133",
+        "passage": "Ginny filled out the long application for a job with Judge Phillips. Judge Phillips was a magistrate judge whose job was to handle each criminal or civil case with integrity. Ginny felt that working for this judge would give her the chance to do some important work.\n\nGinny knew there were many applications landing on Judge Phillips’ desk. She reflected on how she might get hers to the top of the pile. Then, it hit her. She had half a mind to introduce herself to the judge to get an edge in the process.\n\nGinny found out that a reception was to be held at the city hall and the judge would be attending. Ginny made plans to go and make a face-to-face introduction. She would then be able to mention to the judge that she was an applicant for the open position.\n\nAlthough she did not wish to be an imposition on the judge, Ginny had the strong intention of bumping into her at the reception. At last, Ginny saw the judge standing alone. This was her one chance. Ginny went up to the judge and extended her hand. The judge was friendly and impressed with Ginny’s motivation.\n\nThe next day, Ginny got a call from the judge whom she had met in person the evening before. The judge had been struck by Ginny’s passion for the constitution. She made the suggestion that Ginny set up a time to connect with her once again. Things were looking good for Ginny’s application!",
+        "passageTitle": "A Position with Judge Phillips",
+        "questions": [
+          {
+            "level": "direct-recall",
+            "question": "What job did Ginny apply for?"
+          },
+          {
+            "level": "direct-recall",
+            "question": "What kind of judge was Judge Phillips?"
+          },
+          {
+            "level": "direct-recall",
+            "question": "Why did Ginny want to work for Judge Phillips?"
+          },
+          {
+            "level": "sequence",
+            "question": "What problem did Ginny see with the applications on the judge’s desk?"
+          },
+          {
+            "level": "cause-effect",
+            "question": "What plan did Ginny make after learning about the reception?"
+          },
+          {
+            "level": "important-detail",
+            "question": "What did Ginny do when she saw the judge standing alone?"
+          },
+          {
+            "level": "relationship",
+            "question": "How did the judge respond to Ginny?"
+          },
+          {
+            "level": "reasoning",
+            "question": "Why did the judge contact Ginny the next day?"
+          },
+          {
+            "level": "inference",
+            "question": "What can you infer about Ginny’s motivation from her actions?"
+          },
+          {
+            "level": "synthesis",
+            "question": "Do you think Ginny’s decision to attend the reception helped her application? Use details from the passage."
+          }
+        ],
+        "studentReader": "Student Reader Seven"
+      },
+      "part": 9,
+      "sourceIds": [
+        "SR7-7.4-102-133",
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "Read the complete selected controlled passage, then use all ten teacher-created comprehension questions."
+      ],
+      "title": "Passage Reading"
+    },
+    {
+      "data": {
+        "teacherPlanStatus": "TBD"
+      },
+      "part": 10,
+      "sourceIds": [
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "TBD — no source-verified Part 10 payload is represented by the current runtime module."
+      ],
+      "title": "Listening/Reading Fluency & Comprehension"
+    }
+  ],
+  "plannedParts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "planningContext": {
+    "conceptsToWeave": "tion = /shən/; sion = /shən/ or /zhən/; -ion is a suffix within the final stable syllable.",
+    "troubleSpots": "Alex: build automaticity after a 14/15 competition check. Finn: distinguish notation from related forms. Maya: reinforce isolation/adaptation and stress/recombination work."
+  },
+  "schemaVersion": "wrs-runtime-v1",
+  "sources": [
+    {
+      "edition": "Fourth Edition",
+      "id": "IM-7.4-140-151",
+      "kind": "instructor-manual",
+      "label": "Wilson Reading System Step 7 Instructor Manual",
+      "locator": "Substep 7.4, pp. 140-151",
+      "notes": "Final stable syllables tion and sion; -ion suffix; Parts 1-8 procedures."
+    },
+    {
+      "edition": "Fourth Edition",
+      "id": "IM-7.3-128-139",
+      "kind": "instructor-manual",
+      "label": "Wilson Reading System Step 7 Instructor Manual",
+      "locator": "Substep 7.3, pp. 128-139",
+      "notes": "Previous-substep review words."
+    },
+    {
+      "edition": "Third Edition",
+      "id": "DB-7.4-14-18",
+      "kind": "dictation-book",
+      "label": "WRS Dictation Book Steps 7-12",
+      "locator": "Substep 7.4 A/B Words and Sentences, PDF pp. 14-18",
+      "notes": "Dictation selections."
+    },
+    {
+      "edition": "Fourth Edition",
+      "id": "SR7-7.4-102-133",
+      "kind": "student-reader",
+      "label": "WRS Student Reader Seven",
+      "locator": "Substep 7.4, printed pp. 102-133",
+      "notes": "Word lists, sentence-reading pages, and controlled passages."
+    },
+    {
+      "id": "TEACHER-SELECTION",
+      "kind": "teacher-selection",
+      "label": "Teacher-selected data-informed grouping",
+      "locator": "Group 5A, September 11 check-in notes",
+      "notes": "Separate Alex, Finn, and Maya Part 4 charting selections and explicit practice targets."
+    }
+  ],
+  "step": "7",
+  "substep": "4",
+  "title": "5A · 7.4 Final Stable Syllables · Lesson 5 — accuracy and recombination"
+}

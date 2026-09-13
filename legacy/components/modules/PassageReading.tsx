@@ -3,9 +3,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, PenTool, MousePointer2, Trash2, FileText, ToggleLeft, ToggleRight, Layout } from 'lucide-react';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
 import { useSyncState } from '../../hooks/useSyncState';
+import { RuntimePassageQuestion } from '../../types';
 
 interface PassageReadingProps {
   text: string;
+  title?: string;
+  sourceLabel?: string;
+  questions?: RuntimePassageQuestion[];
+  historyNote?: string;
   currentIndex?: number;
   onUpdateIndex?: (index: number) => void;
   strokes?: DrawingStroke[];
@@ -19,6 +24,10 @@ interface PassageReadingProps {
 
 const PassageReading: React.FC<PassageReadingProps> = ({
   text,
+  title,
+  sourceLabel,
+  questions = [],
+  historyNote,
   currentIndex: syncedIndex,
   onUpdateIndex,
   strokes,
@@ -40,6 +49,7 @@ const PassageReading: React.FC<PassageReadingProps> = ({
     else setLocalIndex(next);
   };
   const [tool, setTool] = useState<'cursor' | 'pen-blue' | 'pen-red'>('pen-blue');
+  const [showQuestions, setShowQuestions] = useState(false);
   const [useRuler, setUseRuler] = useSyncState(syncedRulerEnabled, onUpdateRulerEnabled, false);
   const [rulerY, setRulerY] = useSyncState(syncedRulerY, onUpdateRulerY, 0);
 
@@ -188,10 +198,19 @@ const PassageReading: React.FC<PassageReadingProps> = ({
     <div className="min-h-full flex flex-col bg-[#fcfbf9] text-stone-900">
       <div className="h-20 bg-white border-b border-stone-100 flex items-center justify-between px-8 shadow-sm z-30 flex-shrink-0">
         <div className="flex items-center gap-6">
-          <h2 className="text-xl font-bold text-stone-900 flex items-center gap-3 font-serif uppercase tracking-wider">
-            <FileText className="w-5 h-5 text-red-800" />
-            Passage Reading
-          </h2>
+          <div>
+            <h2 className="text-xl font-bold text-stone-900 flex items-center gap-3 font-serif uppercase tracking-wider">
+              <FileText className="w-5 h-5 text-red-800" />
+              {title || 'Passage Reading'}
+            </h2>
+            {sourceLabel && <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-stone-400">{sourceLabel}</p>}
+          </div>
+          {!readOnly && questions.length > 0 && <button
+             onClick={() => setShowQuestions(value => !value)}
+             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${showQuestions ? 'bg-red-800 border-red-800 text-white' : 'bg-white border-stone-200 text-stone-600 hover:text-stone-900'}`}
+          >
+             {showQuestions ? 'Hide Questions' : `Questions (${questions.length})`}
+          </button>}
           {!readOnly && <button
              onClick={() => setUseRuler(!useRuler)}
              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${useRuler ? 'bg-amber-50 border-amber-200 text-amber-900 shadow-sm' : 'bg-white border-stone-100 text-stone-300 hover:text-stone-900'}`}
@@ -239,6 +258,21 @@ const PassageReading: React.FC<PassageReadingProps> = ({
         ref={containerRef}
         onMouseMove={handleMouseMove}
       >
+        {!readOnly && showQuestions && (
+          <aside className="absolute top-5 right-5 z-50 w-[min(30rem,calc(100%-2.5rem))] max-h-[calc(100%-2.5rem)] overflow-y-auto rounded-2xl border border-stone-200 bg-white/95 p-5 shadow-2xl backdrop-blur">
+            <h3 className="text-sm font-black uppercase tracking-widest text-stone-900">Comprehension Questions</h3>
+            {historyNote && <p className="mt-2 rounded-lg bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">{historyNote}</p>}
+            <ol className="mt-4 space-y-3 pl-5 text-sm leading-relaxed text-stone-700">
+              {questions.map((item, index) => (
+                <li key={index}>
+                  <span>{item.question}</span>
+                  <span className="ml-2 text-[9px] font-black uppercase tracking-wider text-stone-400">{item.level}</span>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        )}
+
         {useRuler && (
           <div
             className="absolute left-0 right-0 h-16 bg-amber-400/5 border-y border-amber-400/20 z-10 pointer-events-none transition-all duration-75"
