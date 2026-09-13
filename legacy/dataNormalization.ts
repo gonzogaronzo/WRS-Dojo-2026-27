@@ -157,6 +157,16 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
     wordListPractice: stringArray(lessonData.wordListPractice),
     wordListCharting: stringArray(lessonData.wordListCharting),
     wordListChartingByStudent: normalizeStudentChartingLists(lessonData.wordListChartingByStudent),
+    wordListMode: lessonData.wordListMode === 'charting' || lessonData.wordListMode === 'practice'
+      ? lessonData.wordListMode
+      : undefined,
+    wordListTargetCount: typeof lessonData.wordListTargetCount === 'number' &&
+      Number.isInteger(lessonData.wordListTargetCount) && lessonData.wordListTargetCount > 0
+        ? lessonData.wordListTargetCount
+        : undefined,
+    wordListReadingAuto: typeof lessonData.wordListReadingAuto === 'boolean'
+      ? lessonData.wordListReadingAuto
+      : undefined,
     sentences: stringArray(lessonData.sentences),
     dictation: {
       sounds: stringArray(dictation.sounds),

@@ -1,1 +1,789 @@
-{"schemaVersion":"wrs-runtime-v1","id":"5a-2026-09-14-7-4-lesson-3","title":"5A · 7.4 Final Stable Syllables · Lesson 3 — sion sound options","step":"7","substep":"4","focus":"accuracy","lessonPath":"full","plannedParts":[1,2,3,4,5,6,7,8,9,10],"planningContext":{"conceptsToWeave":"tion = /shən/; sion = /shən/ or /zhən/; -ion is a suffix within the final stable syllable.","troubleSpots":"Alex: complete decoding/syllabication before guessing. Finn: attend to exact print and notation/notion-type substitutions. Maya: maintain accurate syllables while recombining with correct whole-word stress."},"sources":[{"edition":"Fourth Edition","id":"IM-7.4-140-151","kind":"instructor-manual","label":"Wilson Reading System Step 7 Instructor Manual","locator":"Substep 7.4, pp. 140-151","notes":"Final stable syllables tion and sion; -ion suffix; Parts 1-8 procedures."},{"edition":"Fourth Edition","id":"IM-7.3-128-139","kind":"instructor-manual","label":"Wilson Reading System Step 7 Instructor Manual","locator":"Substep 7.3, pp. 128-139","notes":"Previous-substep ph/tch review words."},{"edition":"Fourth Edition","id":"IM-6.1-356-363","kind":"instructor-manual","label":"Wilson Reading System Instructor Manual Steps 1-6","locator":"Substep 6.1, pp. 356-363","notes":"Previously taught cumulative suffixes used as Word Element review."},{"edition":"Fourth Edition","id":"DB4-7.4-14-30","kind":"dictation-book","label":"WRS Dictation Book Steps 7-12","locator":"Substep 7.4 words printed pp. 14-17, phrases p. 21, sentences pp. 29-30","notes":"Fourth Edition source for Part 8 words, HFW phrases, and sentences."},{"edition":"Fourth Edition","id":"SR7-7.4-102-133","kind":"student-reader","label":"WRS Student Reader Seven","locator":"Substep 7.4, printed pp. 102-133","notes":"Word lists, sentence-reading pages, and controlled passages."},{"edition":"Fourth Edition","id":"SR7-7.1N-3","kind":"student-reader","label":"WRS Student Reader Seven","locator":"Substep 7.1N, printed p. 3","notes":"Verified cumulative WRS nonsense words used for review in 7.4 Part 8."},{"id":"TEACHER-SELECTION","kind":"teacher-selection","label":"Teacher-selected data-informed grouping","locator":"Group 5A, September 11 check-in notes","notes":"Selections target Alex guessing, Finn exact-print/notation, and Maya stress/recombination needs."}],"parts":[{"part":1,"title":"Sounds Quick Drill","sourceIds":["IM-7.4-140-151"],"teacherDirections":["Drill the listed cumulative cards. Keep tion and sion in the active set because they were already taught before this Accuracy lesson."],"data":{"eligibleVowels":["a-apple-/ă/","a-apron-/ā/","a-/ä/","e-Ed-/ĕ/","e-equal-/ē/","i-itch-/ĭ/","i-ice-/ī/","o-octopus-/ŏ/","o-open-/ō/","u-up-/ŭ/","u-uniform-/ū/"],"vowels":["a-apple-/ă/","a-apron-/ā/","a-/ä/","e-Ed-/ĕ/","e-equal-/ē/","i-itch-/ĭ/","i-ice-/ī/","o-octopus-/ŏ/","o-open-/ō/","u-up-/ŭ/","u-uniform-/ū/"],"selectedReview":["dge-fudge-/j/","ph-phone-/f/","tch-catch-/ch/"],"newCardsRequiredAfterPart2":false,"newAfterInstruction":[],"quickDrill":["a-apple-/ă/","a-apron-/ā/","a-/ä/","e-Ed-/ĕ/","e-equal-/ē/","i-itch-/ĭ/","i-ice-/ī/","o-octopus-/ŏ/","o-open-/ō/","u-up-/ŭ/","u-uniform-/ū/","dge-fudge-/j/","ph-phone-/f/","tch-catch-/ch/","tion-vacation-/shən/","sion-mansion-/shən/, sion-television-/zhən/"]}},{"part":2,"title":"Teach & Review Concepts for Reading","sourceIds":["IM-7.4-140-151","IM-7.3-128-139","TEACHER-SELECTION"],"teacherDirections":["Use the three supplied 7.3 words, the explicit 7.4 card responses, and the current examples; target documented student trouble spots."],"data":{"conceptNotes":"Review tion /shən/ and sion /shən/ or /zhən/. Reconnect -ion as a suffix within the final stable syllable without reading a word twice.","previousSubstepWords":["phone","match","photograph"],"reviewWords":["phone","match","photograph"],"currentExamples":["conclusion","expansion","vision","confusion","television","division"],"currentWords":["conclusion","expansion","vision","confusion","television","division"],"troubleSpotTargets":["Alex: complete the decode before guessing.","Finn: compare exact print before naming the word.","Maya: recombine the whole word with accurate stress after syllabication."],"part2Presentation":{"version":1,"focus":"accuracy","interactiveSteps":[{"actionType":"TEACH_CARD","displayType":"WRITTEN_WORD","id":"previous-substep-review","layout":"review-row","objects":[{"id":"review-0","role":"word","text":"phone"},{"id":"review-1","role":"word","text":"match"},{"id":"review-2","role":"word","text":"photograph"}],"provenance":"source-paraphrase","sourceRef":{"locator":"Substep 7.3 review","sourceIds":["IM-7.3-128-139"]},"sourceSection":"introductory-and-ongoing","teacherCue":"Read the three supplied 7.3 words accurately.","teacherDirections":["Present the three supplied 7.3 words one at a time; require exact print before moving on."]},{"actionType":"TEACH_CARD","displayType":"LETTER_SOUND_TILES","id":"tion-card-runner","layout":"single-card","objects":[{"id":"tion","role":"welded","text":"tion"}],"provenance":"source-paraphrase","sourceRef":{"locator":"pp. 140-141","sourceIds":["IM-7.4-140-151"]},"sourceSection":"introductory-and-ongoing","teacherCue":"Review tion-vacation-/shən/.","teacherDirections":["Present tion-vacation-/shən/ and require the complete response."]},{"actionType":"TEACH_CARD","displayType":"LETTER_SOUND_TILES","id":"sion-card-runner","layout":"single-card","objects":[{"id":"sion","role":"welded","text":"sion"}],"provenance":"source-paraphrase","sourceRef":{"locator":"pp. 140-141","sourceIds":["IM-7.4-140-151"]},"sourceSection":"introductory-and-ongoing","teacherCue":"Review both sourced sion responses.","teacherDirections":["Present sion-mansion-/shən/ and sion-television-/zhən/."]},{"actionType":"READ_WORDS","displayType":"SYLLABLE_CARDS","cardRepresentation":"multisyllabic","id":"current-word-build","layout":"pull-stack","objects":[{"id":"build-0","text":"con","role":"syllable","stagingOrder":1},{"id":"build-1","text":"fu","role":"syllable","stagingOrder":2},{"id":"build-2","text":"sion","role":"syllable","stagingOrder":3}],"provenance":"source-paraphrase","sourceRef":{"locator":"pp. 141-143","sourceIds":["IM-7.4-140-151"]},"sourceSection":"introductory-and-ongoing","teacherCue":"Build and read confusion with the supplied Syllable Cards.","teacherDirections":["Pull the supplied Syllable Cards in source order, read the whole word once, and identify the final stable syllable."]},{"actionType":"WORD_ELEMENT_BUILD","displayType":"WORD_ELEMENT_CARDS","cardRepresentation":"morphological","id":"ion-word-element-build","layout":"pull-stack","objects":[{"id":"base-element","role":"base-element","text":"act","stagingOrder":1},{"id":"ion-suffix","role":"suffix","text":"-ion","stagingOrder":2}],"provenance":"source-paraphrase","sourceRef":{"locator":"pp. 142-144","sourceIds":["IM-7.4-140-151"]},"sourceSection":"introductory-and-ongoing","teacherCue":"Reconnect -ion as the suffix inside the final stable syllable.","teacherDirections":["Use the supplied base-element and -ion cards; do not have the student read the word twice."]}]}}},{"part":3,"title":"Word Cards","sourceIds":["IM-7.4-140-151","SR7-7.4-102-133","DB4-7.4-14-30"],"teacherDirections":["Read the existing 7.3 fat stack first, then the six listed 7.4 Word Cards; read the complete 7.4 High Frequency Word packet separately."],"data":{"fatStackReference":"Existing previous-substep 7.3 fat stack","currentCards":["conclusion","expansion","vision","confusion","television","division"],"wordCards":[{"id":"card-1-conclusion","text":"conclusion","type":"regular"},{"id":"card-2-expansion","text":"expansion","type":"regular"},{"id":"card-3-vision","text":"vision","type":"regular"},{"id":"card-4-confusion","text":"confusion","type":"regular"},{"id":"card-5-television","text":"television","type":"regular"},{"id":"card-6-division","text":"division","type":"regular"}],"expectedCurrentHfw":["national","themselves","ourselves","half","whole","whom","whose","question","suggestion"],"hfwList":["national","themselves","ourselves","half","whole","whom","whose","question","suggestion"],"wordElements":["-ion"]}},{"part":4,"title":"Wordlist Reading","sourceIds":["IM-7.4-140-151","SR7-7.4-102-133","TEACHER-SELECTION"],"teacherDirections":["Read the six listed practice words, then give Alex, Finn, and Maya their separately named 15-word charting lists; discuss and correct every error."],"data":{"studentReader":"Student Reader Seven","page":"103","practiceWords":["conclusion","expansion","vision","confusion","television","division"],"chartingPlanned":true,"chartingType":"real","studentChartingLists":[{"studentName":"Alex","words":["conclusion","expansion","vision","collision","confusion","intension","precision","extension","television","invasion","tension","occasion","erosion","suspension","division"]},{"studentName":"Finn","words":["tension","extension","decision","conclusion","vision","division","precision","suspension","occasion","invasion","confusion","expansion","television","erosion","collision"]},{"studentName":"Maya","words":["expansion","invasion","confusion","conclusion","vision","decision","division","extension","suspension","tension","erosion","collision","precision","occasion","television"]}]}},{"part":5,"title":"Sentence Reading","sourceIds":["IM-7.4-140-151","SR7-7.4-102-133","TEACHER-SELECTION"],"teacherDirections":["Read each of the ten source sentences silently and then aloud. Use the paired teacher-created weave question to vary attention to concept, structure, vocabulary, phrasing, and meaning."],"data":{"studentReader":"Student Reader Seven","page":"114","sentences":["My mom made sure there was an even division of chores in our house.","The whole class jumped after the explosion in the science lab.","My father has the combination to the safe.","Mrs. Silva asked a difficult question about condensation in science class.","The children think they can make the decision themselves.","Holly had to complete a job application for the national sales job.","Mr. Feldman made a suggestion to check my capitalization.","Who did you hire to complete the construction job?","We can sketch a draft of the invitation ourselves.","Whose decision was it to go on this last-minute vacation?"],"weaveQuestions":["What sound does sion represent in division?","Which word in the explosion sentence contains a final stable syllable?","How does combination function in this sentence?","In condensation, which letters spell the final /shən/ sound?","Which High Frequency Word refers to the children?","What does application mean in the job sentence?","Read the suggestion sentence with expression. Which word deserves emphasis?","Where would you scoop construction into syllables?","Which High Frequency Word signals that the group will do the work on its own?","Compare decision and vacation. What spelling do they use for the final /shən/ or /zhən/ syllable?"]}},{"part":6,"title":"Quick Drill in Reverse","sourceIds":["IM-7.4-140-151"],"teacherDirections":["Dictate all twenty listed prompts and require the complete expected response; include -ion as the explicit current Word Element."],"data":{"quickDrillReverse":["/ă/ → a-apple-/ă/","/ā/ → a-apron-/ā/","/ä/ → a-/ä/","/ĕ/ → e-Ed-/ĕ/","/ē/ → e-equal-/ē/","/ĭ/ → i-itch-/ĭ/","/ī/ → i-ice-/ī/","/ŏ/ → o-octopus-/ŏ/","/ō/ → o-open-/ō/","/ŭ/ → u-up-/ŭ/","/ū/ → u-uniform-/ū/","/k/ → c-cat-/k/, k-kite-/k/","/s/ → s-sun-/s/, c-cent-/s/","/z/ → z-zebra-/z/, s-/z/","/j/ → j-jar-/j/, g-gem-/j/, dge-fudge-/j/","/f/ → f-fan-/f/, ph-phone-/f/","/ch/ → ch-chip-/ch/, tch-catch-/ch/","/shən/ → tion-vacation-/shən/, sion-mansion-/shən/","/zhən/ → sion-television-/zhən/","/m/ → m-map-/m/"],"wordElements":["-ion"]}},{"part":7,"title":"Teach & Review Concepts for Spelling","sourceIds":["IM-7.4-140-151","IM-7.3-128-139","TEACHER-SELECTION"],"teacherDirections":["Spell the three listed 7.3 words and the six listed 7.4 words. Apply the spelling-option procedure for /shən/ and the supplied sion /zhən/ pattern."],"data":{"conceptNotes":"Spell 7.4 words one syllable at a time. For /shən/, compare tion and sion; for /zhən/, use sion. Reconnect -ion without reading the word twice.","previousSubstepWords":["phone","match","photograph"],"reviewWords":["phone","match","photograph"],"currentSubstepWords":["conclusion","expansion","vision","confusion","television","division"],"currentWords":["conclusion","expansion","vision","confusion","television","division"],"wordElements":["-ion"],"troubleSpotTargets":["Alex: finish the syllable analysis before committing to a spelling.","Finn: verify exact letter sequence, especially notation/notion-type forms.","Maya: say the whole word naturally after accurate syllable spelling."]}},{"part":8,"title":"Written Work Dictation","sourceIds":["IM-7.4-140-151","IM-7.3-128-139","IM-6.1-356-363","DB4-7.4-14-30","SR7-7.1N-3"],"teacherDirections":["Use the five listed sounds, five cumulative Word Elements, five source words, three verified cumulative Wilson nonsense words, three 7.4 High Frequency Word phrases, and two 7.4 source sentences. Mark the stated target and proofread."],"data":{"wordElementsApplicable":true,"expectedSentenceCount":2,"markReinforce":"Mark the final stable syllable and circle -ion within tion/sion; scoop each sentence into phrases.","phraseSelectionNote":"The three phrases come from the Fourth Edition Substep 7.4 High Frequency Word phrase table. Nonsense words are verified cumulative review from Student Reader Seven 7.1N.","dictation":{"sounds":["tion-vacation-/shən/","sion-mansion-/shən/","sion-television-/zhən/","ph-phone-/f/","tch-catch-/ch/"],"wordElements":["-ion","-ment","-ly","-ness","-able"],"realWords":["instruction","protection","vision","division","television"],"nonsenseWords":["glont","sploce","cliz"],"phrases":["all by themselves","could use half","had a question"],"sentences":["If Ralph does not pass the vision test, he will get glasses.","I made a good impression when I met the principal."]}}},{"part":9,"title":"Passage Reading","sourceIds":["SR7-7.4-102-133","TEACHER-SELECTION"],"teacherDirections":["Read the complete controlled passage. Passage history is explicitly unverified, so confirm it has not already been completed before using it. Ask all ten teacher-created questions in the required ladder."],"data":{"studentReader":"Student Reader Seven","page":"126-127","passageTitle":"The Inca Civilization","passage":"Hundreds of years ago, over 2,000 miles of roads were built that stretched along the Pacific shores of South America. To whom do we give the credit for this connection of roads? The Inca civilization, that’s who!\n\nThe people of the Inca civilization were especially skilled at other things too. They could craft a bridge, a tunnel, or even a whole city. They could work with cloth, stone, and all kinds of metals. These talents led to the evolution of a massive kingdom. The Inca had special traditions. They had skill with math computations. And, they had great drive which led to many successes during their rule.\n\nThe Inca people planted many crops. In addition, these wise people could cure themselves of sickness long before medical science existed. Conditions such as physical illnesses and problems with emotions were addressed by the Inca in their own special ways.\n\nThe Inca people did not write down their legends like ourselves. However, mothers and fathers still passed along their collection of tales and traditions. They retold them to their children.\n\nThere is no question that the Inca was a nation of people with many skills. We may find ourselves thinking about contributions of the Inca for a long time.","historyStatus":"uncertain-flagged","historyNote":"Current records do not establish the next unread 7.4 passage. This passage follows the source sequence provisionally; repeat the last unread passage instead if classroom history shows otherwise.","questions":[{"level":"direct-recall","question":"What was built along the Pacific shores of South America?"},{"level":"direct-recall","question":"Which civilization is credited with the connected roads?"},{"level":"direct-recall","question":"Name one thing the Inca people could craft."},{"level":"important-detail","question":"What materials could the Inca work with?"},{"level":"cause-effect","question":"How did the Inca people’s talents affect their kingdom?"},{"level":"relationship","question":"How were the Inca people’s skills connected to the success of their society?"},{"level":"explanation","question":"Explain how tales and traditions were passed to children without being written down."},{"level":"inference","question":"What can you infer about the importance of oral storytelling to the Inca?"},{"level":"evidence-based-interpretation","question":"Which details support the statement that the Inca were a nation of people with many skills?"},{"level":"synthesis","question":"What overall picture of Inca civilization does the passage create?"}]}},{"part":10,"title":"Listening/Reading Fluency & Comprehension","sourceIds":["TEACHER-SELECTION"],"teacherDirections":["TBD — no Part 10 selection is preplanned for this lesson."],"data":{"teacherPlanStatus":"TBD"}}]}
+{
+  "schemaVersion": "wrs-runtime-v1",
+  "id": "5a-2026-09-14-7-4-lesson-3",
+  "title": "5A · 7.4 Final Stable Syllables · Lesson 3 — sion sound options",
+  "step": "7",
+  "substep": "4",
+  "focus": "accuracy",
+  "lessonPath": "full",
+  "plannedParts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "planningContext": {
+    "conceptsToWeave": "tion = /shən/; sion = /shən/ or /zhən/; -ion is a suffix within the final stable syllable.",
+    "troubleSpots": "Alex: complete decoding/syllabication before guessing. Finn: attend to exact print and notation/notion-type substitutions. Maya: maintain accurate syllables while recombining with correct whole-word stress."
+  },
+  "sources": [
+    {
+      "edition": "Fourth Edition",
+      "id": "IM-7.4-140-151",
+      "kind": "instructor-manual",
+      "label": "Wilson Reading System Step 7 Instructor Manual",
+      "locator": "Substep 7.4, pp. 140-151",
+      "notes": "Final stable syllables tion and sion; -ion suffix; Parts 1-8 procedures."
+    },
+    {
+      "edition": "Fourth Edition",
+      "id": "IM-7.3-128-139",
+      "kind": "instructor-manual",
+      "label": "Wilson Reading System Step 7 Instructor Manual",
+      "locator": "Substep 7.3, pp. 128-139",
+      "notes": "Previous-substep ph/tch review words."
+    },
+    {
+      "edition": "Fourth Edition",
+      "id": "IM-6.1-356-363",
+      "kind": "instructor-manual",
+      "label": "Wilson Reading System Instructor Manual Steps 1-6",
+      "locator": "Substep 6.1, pp. 356-363",
+      "notes": "Previously taught cumulative suffixes used as Word Element review."
+    },
+    {
+      "edition": "Fourth Edition",
+      "id": "DB4-7.4-14-30",
+      "kind": "dictation-book",
+      "label": "WRS Dictation Book Steps 7-12",
+      "locator": "Substep 7.4 words printed pp. 14-17, phrases p. 21, sentences pp. 29-30",
+      "notes": "Required Fourth Edition Part 8 source. The named Dictation Book 7-12 (4th Ed. Complete) is not currently retrievable from Project Sources; these draft entries must not be exported until source verification is completed.",
+      "verification": "needs-verification"
+    },
+    {
+      "edition": "Fourth Edition",
+      "id": "SR7-7.4-102-133",
+      "kind": "student-reader",
+      "label": "WRS Student Reader Seven",
+      "locator": "Substep 7.4, printed pp. 102-133",
+      "notes": "Word lists, sentence-reading pages, and controlled passages."
+    },
+    {
+      "edition": "Fourth Edition",
+      "id": "SR7-7.1N-3",
+      "kind": "student-reader",
+      "label": "WRS Student Reader Seven",
+      "locator": "Substep 7.1N, printed p. 3",
+      "notes": "Cumulative nonsense-word claim awaiting source verification. The inspected Fourth Edition Student Reader Seven p. 3 is not a 7.1N nonsense list; do not use or export this draft category until its exact source is retrieved.",
+      "verification": "needs-verification"
+    },
+    {
+      "id": "TEACHER-SELECTION",
+      "kind": "teacher-selection",
+      "label": "Teacher-selected data-informed grouping",
+      "locator": "Group 5A, September 11 check-in notes",
+      "notes": "Selections target Alex guessing, Finn exact-print/notation, and Maya stress/recombination needs."
+    }
+  ],
+  "parts": [
+    {
+      "part": 1,
+      "title": "Sounds Quick Drill",
+      "sourceIds": [
+        "IM-7.4-140-151"
+      ],
+      "teacherDirections": [
+        "Drill the listed cumulative cards. Keep tion and sion in the active set because they were already taught before this Accuracy lesson."
+      ],
+      "data": {
+        "eligibleVowels": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/"
+        ],
+        "vowels": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/"
+        ],
+        "selectedReview": [
+          "dge-fudge-/j/",
+          "ph-phone-/f/",
+          "tch-catch-/ch/"
+        ],
+        "newCardsRequiredAfterPart2": false,
+        "newAfterInstruction": [],
+        "quickDrill": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/",
+          "dge-fudge-/j/",
+          "ph-phone-/f/",
+          "tch-catch-/ch/",
+          "tion-vacation-/shən/",
+          "sion-mansion-/shən/, sion-television-/zhən/"
+        ]
+      }
+    },
+    {
+      "part": 2,
+      "title": "Teach & Review Concepts for Reading",
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "IM-7.3-128-139",
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "Use the three supplied 7.3 words, the explicit 7.4 card responses, and the current examples; target documented student trouble spots."
+      ],
+      "data": {
+        "conceptNotes": "Review tion /shən/ and sion /shən/ or /zhən/. Reconnect -ion as a suffix within the final stable syllable without reading a word twice.",
+        "previousSubstepWords": [
+          "phone",
+          "match",
+          "photograph"
+        ],
+        "reviewWords": [
+          "phone",
+          "match",
+          "photograph"
+        ],
+        "currentExamples": [
+          "conclusion",
+          "expansion",
+          "vision",
+          "confusion",
+          "television",
+          "division"
+        ],
+        "currentWords": [
+          "conclusion",
+          "expansion",
+          "vision",
+          "confusion",
+          "television",
+          "division"
+        ],
+        "troubleSpotTargets": [
+          "Alex: complete the decode before guessing.",
+          "Finn: compare exact print before naming the word.",
+          "Maya: recombine the whole word with accurate stress after syllabication."
+        ],
+        "part2Presentation": {
+          "version": 1,
+          "focus": "accuracy",
+          "interactiveSteps": [
+            {
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "id": "previous-substep-review",
+              "layout": "review-row",
+              "objects": [
+                {
+                  "id": "review-0",
+                  "role": "word",
+                  "text": "phone"
+                },
+                {
+                  "id": "review-1",
+                  "role": "word",
+                  "text": "match"
+                },
+                {
+                  "id": "review-2",
+                  "role": "word",
+                  "text": "photograph"
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "Substep 7.3 review",
+                "sourceIds": [
+                  "IM-7.3-128-139"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Read the three supplied 7.3 words accurately.",
+              "teacherDirections": [
+                "Present the three supplied 7.3 words one at a time; require exact print before moving on."
+              ]
+            },
+            {
+              "actionType": "TEACH_CARD",
+              "displayType": "LETTER_SOUND_TILES",
+              "id": "tion-card-runner",
+              "layout": "single-card",
+              "objects": [
+                {
+                  "id": "tion",
+                  "role": "welded",
+                  "text": "tion"
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "pp. 140-141",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Review tion-vacation-/shən/.",
+              "teacherDirections": [
+                "Present tion-vacation-/shən/ and require the complete response."
+              ]
+            },
+            {
+              "actionType": "TEACH_CARD",
+              "displayType": "LETTER_SOUND_TILES",
+              "id": "sion-card-runner",
+              "layout": "single-card",
+              "objects": [
+                {
+                  "id": "sion",
+                  "role": "welded",
+                  "text": "sion"
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "pp. 140-141",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Review both sourced sion responses.",
+              "teacherDirections": [
+                "Present sion-mansion-/shən/ and sion-television-/zhən/."
+              ]
+            },
+            {
+              "actionType": "READ_WORDS",
+              "displayType": "SYLLABLE_CARDS",
+              "cardRepresentation": "multisyllabic",
+              "id": "current-word-build",
+              "layout": "pull-stack",
+              "objects": [
+                {
+                  "id": "build-0",
+                  "text": "con",
+                  "role": "syllable",
+                  "stagingOrder": 1
+                },
+                {
+                  "id": "build-1",
+                  "text": "fu",
+                  "role": "syllable",
+                  "stagingOrder": 2
+                },
+                {
+                  "id": "build-2",
+                  "text": "sion",
+                  "role": "syllable",
+                  "stagingOrder": 3
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "pp. 141-143",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Build and read confusion with the supplied Syllable Cards.",
+              "teacherDirections": [
+                "Pull the supplied Syllable Cards in source order, read the whole word once, and identify the final stable syllable."
+              ]
+            },
+            {
+              "actionType": "WORD_ELEMENT_BUILD",
+              "displayType": "WORD_ELEMENT_CARDS",
+              "cardRepresentation": "morphological",
+              "id": "ion-word-element-build",
+              "layout": "pull-stack",
+              "objects": [
+                {
+                  "id": "base-element",
+                  "role": "base-element",
+                  "text": "act",
+                  "stagingOrder": 1
+                },
+                {
+                  "id": "ion-suffix",
+                  "role": "suffix",
+                  "text": "-ion",
+                  "stagingOrder": 2
+                }
+              ],
+              "provenance": "source-paraphrase",
+              "sourceRef": {
+                "locator": "pp. 142-144",
+                "sourceIds": [
+                  "IM-7.4-140-151"
+                ]
+              },
+              "sourceSection": "introductory-and-ongoing",
+              "teacherCue": "Reconnect -ion as the suffix inside the final stable syllable.",
+              "teacherDirections": [
+                "Use the supplied base-element and -ion cards; do not have the student read the word twice."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "part": 3,
+      "title": "Word Cards",
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "SR7-7.4-102-133"
+      ],
+      "teacherDirections": [
+        "Read the existing 7.3 fat stack first, then the six listed 7.4 Word Cards; read the complete 7.4 High Frequency Word packet separately."
+      ],
+      "data": {
+        "fatStackReference": "Existing previous-substep 7.3 fat stack",
+        "currentCards": [
+          "conclusion",
+          "expansion",
+          "vision",
+          "confusion",
+          "television",
+          "division"
+        ],
+        "wordCards": [
+          {
+            "id": "card-1-conclusion",
+            "text": "conclusion",
+            "type": "regular"
+          },
+          {
+            "id": "card-2-expansion",
+            "text": "expansion",
+            "type": "regular"
+          },
+          {
+            "id": "card-3-vision",
+            "text": "vision",
+            "type": "regular"
+          },
+          {
+            "id": "card-4-confusion",
+            "text": "confusion",
+            "type": "regular"
+          },
+          {
+            "id": "card-5-television",
+            "text": "television",
+            "type": "regular"
+          },
+          {
+            "id": "card-6-division",
+            "text": "division",
+            "type": "regular"
+          }
+        ],
+        "expectedCurrentHfw": [
+          "national",
+          "themselves",
+          "ourselves",
+          "half",
+          "whole",
+          "whom",
+          "whose",
+          "question",
+          "suggestion"
+        ],
+        "hfwList": [
+          "national",
+          "themselves",
+          "ourselves",
+          "half",
+          "whole",
+          "whom",
+          "whose",
+          "question",
+          "suggestion"
+        ],
+        "wordElements": [
+          "-ion"
+        ]
+      }
+    },
+    {
+      "part": 4,
+      "title": "Wordlist Reading",
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "SR7-7.4-102-133",
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "Read the six listed practice words. Provide targeted practice: Alex completes decoding before guessing; Finn matches each spoken syllable to exact print to prevent added-syllable or word-shape substitution; Maya recombines syllables with natural whole-word stress. Do not run a formal 15-word charting event today."
+      ],
+      "data": {
+        "studentReader": "Student Reader Seven",
+        "page": "103",
+        "practiceWords": [
+          "conclusion",
+          "expansion",
+          "vision",
+          "confusion",
+          "television",
+          "division"
+        ],
+        "chartingPlanned": false,
+        "weeklyInstructionRationale": "The Sep 11 7.4 real-word charting results (Alex 14/15, Finn 14/15, Maya 13/15) already establish the week's purpose. Use selected source-backed practice and error correction; do not repeat a daily formal 15-word charting event without new procedural or data need.",
+        "studentPracticeTargets": [
+          {
+            "studentName": "Alex",
+            "focus": "Require full decoding and syllable analysis before guessing.",
+            "words": [
+              "conclusion",
+              "confusion"
+            ]
+          },
+          {
+            "studentName": "Finn",
+            "focus": "Prevent added-syllable and word-shape substitution by matching each spoken syllable to exact print.",
+            "words": [
+              "expansion",
+              "television"
+            ]
+          },
+          {
+            "studentName": "Maya",
+            "focus": "Use accurate syllable recombination with natural whole-word stress.",
+            "words": [
+              "vision",
+              "division"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "part": 5,
+      "title": "Sentence Reading",
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "SR7-7.4-102-133",
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "Read each of the ten source sentences silently and then aloud. Use the paired teacher-created weave question to vary attention to concept, structure, vocabulary, phrasing, and meaning."
+      ],
+      "data": {
+        "studentReader": "Student Reader Seven",
+        "page": "114",
+        "sentences": [
+          "My mom made sure there was an even division of chores in our house.",
+          "The whole class jumped after the explosion in the science lab.",
+          "My father has the combination to the safe.",
+          "Mrs. Silva asked a difficult question about condensation in science class.",
+          "The children think they can make the decision themselves.",
+          "Holly had to complete a job application for the national sales job.",
+          "Mr. Feldman made a suggestion to check my capitalization.",
+          "Who did you hire to complete the construction job?",
+          "We can sketch a draft of the invitation ourselves.",
+          "Whose decision was it to go on this last-minute vacation?"
+        ],
+        "weaveQuestions": [
+          "What sound does sion represent in division?",
+          "Which word in the explosion sentence contains a final stable syllable?",
+          "How does combination function in this sentence?",
+          "In condensation, which letters spell the final /shən/ sound?",
+          "Which High Frequency Word refers to the children?",
+          "What does application mean in the job sentence?",
+          "Read the suggestion sentence with expression. Which word deserves emphasis?",
+          "Where would you scoop construction into syllables?",
+          "Which High Frequency Word signals that the group will do the work on its own?",
+          "Compare decision and vacation. What spelling do they use for the final /shən/ or /zhən/ syllable?"
+        ],
+        "weaveQuestionCategories": [
+          "current-concept",
+          "current-concept",
+          "vocabulary-meaning",
+          "syllable-word-structure",
+          "cumulative-structure",
+          "vocabulary-meaning",
+          "phrasing-expression",
+          "syllable-word-structure",
+          "cumulative-structure",
+          "current-concept"
+        ]
+      }
+    },
+    {
+      "part": 6,
+      "title": "Quick Drill in Reverse",
+      "sourceIds": [
+        "IM-7.4-140-151"
+      ],
+      "teacherDirections": [
+        "Dictate all twenty listed prompts and require the complete expected response; include -ion as the explicit current Word Element."
+      ],
+      "data": {
+        "quickDrillReverse": [
+          "/ă/ → a-apple-/ă/",
+          "/ā/ → a-apron-/ā/",
+          "/ä/ → a-/ä/",
+          "/ĕ/ → e-Ed-/ĕ/",
+          "/ē/ → e-equal-/ē/",
+          "/ĭ/ → i-itch-/ĭ/",
+          "/ī/ → i-ice-/ī/",
+          "/ŏ/ → o-octopus-/ŏ/",
+          "/ō/ → o-open-/ō/",
+          "/ŭ/ → u-up-/ŭ/",
+          "/ū/ → u-uniform-/ū/",
+          "/k/ → c-cat-/k/, k-kite-/k/",
+          "/s/ → s-sun-/s/, c-cent-/s/",
+          "/z/ → z-zebra-/z/, s-/z/",
+          "/j/ → j-jar-/j/, g-gem-/j/, dge-fudge-/j/",
+          "/f/ → f-fan-/f/, ph-phone-/f/",
+          "/ch/ → ch-chip-/ch/, tch-catch-/ch/",
+          "/shən/ → tion-vacation-/shən/, sion-mansion-/shən/",
+          "/zhən/ → sion-television-/zhən/",
+          "/m/ → m-map-/m/"
+        ],
+        "wordElements": [
+          "-ion"
+        ]
+      }
+    },
+    {
+      "part": 7,
+      "title": "Teach & Review Concepts for Spelling",
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "IM-7.3-128-139",
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "Spell the three listed 7.3 words and the six listed 7.4 words. Apply the spelling-option procedure for /shən/ and the supplied sion /zhən/ pattern."
+      ],
+      "data": {
+        "conceptNotes": "Spell 7.4 words one syllable at a time. For /shən/, compare tion and sion; for /zhən/, use sion. Reconnect -ion without reading the word twice.",
+        "previousSubstepWords": [
+          "phone",
+          "match",
+          "photograph"
+        ],
+        "reviewWords": [
+          "phone",
+          "match",
+          "photograph"
+        ],
+        "currentSubstepWords": [
+          "conclusion",
+          "expansion",
+          "vision",
+          "confusion",
+          "television",
+          "division"
+        ],
+        "currentWords": [
+          "conclusion",
+          "expansion",
+          "vision",
+          "confusion",
+          "television",
+          "division"
+        ],
+        "wordElements": [
+          "-ion"
+        ],
+        "troubleSpotTargets": [
+          "Alex: finish the syllable analysis before committing to a spelling.",
+          "Finn: verify exact letter sequence, especially notation/notion-type forms.",
+          "Maya: say the whole word naturally after accurate syllable spelling."
+        ]
+      }
+    },
+    {
+      "part": 8,
+      "title": "Written Work Dictation",
+      "sourceIds": [
+        "IM-7.4-140-151",
+        "IM-7.3-128-139",
+        "IM-6.1-356-363",
+        "DB4-7.4-14-30",
+        "SR7-7.1N-3"
+      ],
+      "teacherDirections": [
+        "The complete Part 8 structure is drafted as five sounds, five Word Elements, five real words, three nonsense words, three High Frequency Word phrases, and two source-justified sentences. Do not use or export this Part 8 until the named Fourth Edition Dictation Book and the exact cumulative nonsense source are retrieved and verified."
+      ],
+      "data": {
+        "wordElementsApplicable": true,
+        "expectedSentenceCount": 2,
+        "markReinforce": "Mark the final stable syllable and circle -ion within tion/sion; scoop each sentence into phrases.",
+        "phraseSelectionNote": "The listed phrases, sentences, and cumulative nonsense words remain blocked pending exact source retrieval and verification. They are not classroom-exportable on the strength of a source label alone.",
+        "dictation": {
+          "sounds": [
+            "tion-vacation-/shən/",
+            "sion-mansion-/shən/",
+            "sion-television-/zhən/",
+            "ph-phone-/f/",
+            "tch-catch-/ch/"
+          ],
+          "wordElements": [
+            "-ion",
+            "-ment",
+            "-ly",
+            "-ness",
+            "-able"
+          ],
+          "realWords": [
+            "instruction",
+            "protection",
+            "vision",
+            "division",
+            "television"
+          ],
+          "nonsenseWords": [
+            "glont",
+            "sploce",
+            "cliz"
+          ],
+          "phrases": [
+            "all by themselves",
+            "could use half",
+            "had a question"
+          ],
+          "sentences": [
+            "If Ralph does not pass the vision test, he will get glasses.",
+            "I made a good impression when I met the principal."
+          ]
+        },
+        "dictationCategorySourceIds": {
+          "sounds": [
+            "IM-7.4-140-151"
+          ],
+          "wordElements": [
+            "IM-7.4-140-151",
+            "IM-6.1-356-363"
+          ],
+          "realWords": [
+            "DB4-7.4-14-30"
+          ],
+          "nonsenseWords": [
+            "SR7-7.1N-3"
+          ],
+          "phrases": [
+            "DB4-7.4-14-30"
+          ],
+          "sentences": [
+            "DB4-7.4-14-30"
+          ]
+        },
+        "dictationExceptions": [
+          {
+            "category": "sentences",
+            "allowedCount": 2,
+            "sourceIds": [
+              "DB4-7.4-14-30"
+            ],
+            "rationale": "A two-sentence plan is permitted only if the Fourth Edition Dictation Book source confirms that this 7.4 instructional need supports two rather than the normal three sentences."
+          }
+        ]
+      }
+    },
+    {
+      "part": 9,
+      "title": "Passage Reading",
+      "sourceIds": [
+        "SR7-7.4-102-133",
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "Read the complete controlled passage. Passage history is explicitly unverified, so confirm it has not already been completed before using it. Ask all ten teacher-created questions in the required ladder."
+      ],
+      "data": {
+        "studentReader": "Student Reader Seven",
+        "page": "126-127",
+        "passageTitle": "The Inca Civilization",
+        "passage": "Hundreds of years ago, over 2,000 miles of roads were built that stretched along the Pacific shores of South America. To whom do we give the credit for this connection of roads? The Inca civilization, that’s who!\n\nThe people of the Inca civilization were especially skilled at other things too. They could craft a bridge, a tunnel, or even a whole city. They could work with cloth, stone, and all kinds of metals. These talents led to the evolution of a massive kingdom. The Inca had special traditions. They had skill with math computations. And, they had great drive which led to many successes during their rule.\n\nThe Inca people planted many crops. In addition, these wise people could cure themselves of sickness long before medical science existed. Conditions such as physical illnesses and problems with emotions were addressed by the Inca in their own special ways.\n\nThe Inca people did not write down their legends like ourselves. However, mothers and fathers still passed along their collection of tales and traditions. They retold them to their children.\n\nThere is no question that the Inca was a nation of people with many skills. We may find ourselves thinking about contributions of the Inca for a long time.",
+        "historyStatus": "uncertain-flagged",
+        "historyNote": "Current records do not establish the next unread 7.4 passage. This passage follows the source sequence provisionally; repeat the last unread passage instead if classroom history shows otherwise.",
+        "questions": [
+          {
+            "level": "direct-recall",
+            "question": "What was built along the Pacific shores of South America?"
+          },
+          {
+            "level": "direct-recall",
+            "question": "Which civilization is credited with the connected roads?"
+          },
+          {
+            "level": "direct-recall",
+            "question": "Name one thing the Inca people could craft."
+          },
+          {
+            "level": "important-detail",
+            "question": "What materials could the Inca work with?"
+          },
+          {
+            "level": "cause-effect",
+            "question": "How did the Inca people’s talents affect their kingdom?"
+          },
+          {
+            "level": "relationship",
+            "question": "How were the Inca people’s skills connected to the success of their society?"
+          },
+          {
+            "level": "explanation",
+            "question": "Explain how tales and traditions were passed to children without being written down."
+          },
+          {
+            "level": "inference",
+            "question": "What can you infer about the importance of oral storytelling to the Inca?"
+          },
+          {
+            "level": "evidence-based-interpretation",
+            "question": "Which details support the statement that the Inca were a nation of people with many skills?"
+          },
+          {
+            "level": "synthesis",
+            "question": "What overall picture of Inca civilization does the passage create?"
+          }
+        ]
+      }
+    },
+    {
+      "part": 10,
+      "title": "Listening/Reading Fluency & Comprehension",
+      "sourceIds": [
+        "TEACHER-SELECTION"
+      ],
+      "teacherDirections": [
+        "TBD — no Part 10 selection is preplanned for this lesson."
+      ],
+      "data": {
+        "teacherPlanStatus": "TBD"
+      }
+    }
+  ]
+}

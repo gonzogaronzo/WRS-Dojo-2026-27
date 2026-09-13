@@ -25,10 +25,17 @@ const runtimeOf = (value: unknown) => {
   assert.ok(runtime);
   return runtime!;
 };
+const sourceVerifiedRuntimeOf = (value: unknown) => {
+  const runtime = runtimeOf(value);
+  for (const source of runtime.sources) {
+    if (source.verification === 'needs-verification') source.verification = 'verified';
+  }
+  return runtime;
+};
 const partOf = (runtime: any, number: number) => runtime.parts.find((part: any) => part.part === number);
 
 test('fails Part 7 when old previousSubstepWords is present but reviewWords is missing', () => {
-  const runtime = runtimeOf(lesson1);
+  const runtime = sourceVerifiedRuntimeOf(lesson1);
   const part7 = partOf(runtime, 7);
   delete part7.data.reviewWords;
   part7.data.previousSubstepWords = ['phone', 'match', 'photograph'];
@@ -37,38 +44,38 @@ test('fails Part 7 when old previousSubstepWords is present but reviewWords is m
 });
 
 test('fails Part 2 when an unsupported card role is supplied', () => {
-  const runtime = runtimeOf(lesson1);
+  const runtime = sourceVerifiedRuntimeOf(lesson1);
   partOf(runtime, 2).data.part2Presentation.interactiveSteps[0].objects[0].role = 'final-stable-syllable';
 
   assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 2 interactive presentation invalid/);
 });
 
 test('fails Part 2 when a step provenance is invalid', () => {
-  const runtime = runtimeOf(lesson1);
+  const runtime = sourceVerifiedRuntimeOf(lesson1);
   partOf(runtime, 2).data.part2Presentation.interactiveSteps[0].provenance = 'unverified';
 
   assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 2 interactive presentation invalid/);
 });
 
 test('fails Part 2 when an interactive step cites an unknown source', () => {
-  const runtime = runtimeOf(lesson1);
+  const runtime = sourceVerifiedRuntimeOf(lesson1);
   partOf(runtime, 2).data.part2Presentation.interactiveSteps[0].sourceRef.sourceIds = ['not-in-manifest'];
 
   assert.throws(() => validateRuntimeLessonCompatibility(runtime), /cites unregistered source IDs/);
 });
 
 test('flags a populated Part 4 projection when legacy Wordlist Reading is empty', () => {
-  const projected = runtimeLessonToLegacyLesson(runtimeOf(lesson1));
+  const projected = runtimeLessonToLegacyLesson(sourceVerifiedRuntimeOf(lesson1));
   projected.wordListReading = [];
 
   assert.match(
     validateLessonModuleReadiness(projected, projected.runtimePlan).join('\n'),
-    /Part 4 practice\/charting missing or incompatible with legacy Wordlist Reading/
+    /Part 4 targeted practice missing|Part 4 practice\/charting missing/
   );
 });
 
 test('fails Part 9 when questions are stranded in an unsupported field', () => {
-  const runtime = runtimeOf(lesson1);
+  const runtime = sourceVerifiedRuntimeOf(lesson1);
   const part9 = partOf(runtime, 9);
   delete part9.data.questions;
   part9.data.followUpQuestions = 'This must not be silently projected.';
@@ -77,7 +84,7 @@ test('fails Part 9 when questions are stranded in an unsupported field', () => {
 });
 
 test('retains a valid Part 9 title, passage, and ten questions through projection and reload', () => {
-  const compatibility = validateRuntimeLessonCompatibility(runtimeOf(lesson1));
+  const compatibility = validateRuntimeLessonCompatibility(sourceVerifiedRuntimeOf(lesson1));
   const reloaded = normalizeLesson(JSON.parse(JSON.stringify(compatibility.lesson)));
 
   assert.ok(reloaded);
@@ -88,35 +95,26 @@ test('retains a valid Part 9 title, passage, and ten questions through projectio
   assert.equal(reloaded?.wrsPlan?.lessonFocus, 'accuracy');
 });
 
-test('keeps Part 4 roster-bound 15-word lists separate and rejects a roster mismatch', () => {
-  const compatibility = validateRuntimeLessonCompatibility(runtimeOf(lesson1));
+test('projects Part 4 as targeted practice without fabricating another formal 15-word charting event', () => {
+  const compatibility = validateRuntimeLessonCompatibility(sourceVerifiedRuntimeOf(lesson1));
   const roster = [{ name: 'Alex' }, { name: 'Finn' }, { name: 'Maya' }];
-  const distribution = studentChartingWordDistributionForLesson(compatibility.lesson, roster, (() => {
-    let index = 0;
-    return () => 'instance-' + (++index);
-  })());
 
-  assert.ok(distribution);
-  assert.deepEqual(
-    distribution?.map(studentList => studentList.map(card => card.text)),
-    compatibility.lesson.wordListChartingByStudent?.map(list => list.words)
-  );
-  assert.ok(distribution?.every(studentList => studentList.length === 15));
-  assert.equal(
-    studentChartingWordDistributionForLesson(compatibility.lesson, [{ name: 'Alex' }, { name: 'Finn' }]),
-    null
-  );
+  assert.equal(compatibility.lesson.wordListMode, 'practice');
+  assert.equal(compatibility.lesson.wordListTargetCount, 6);
+  assert.deepEqual(compatibility.lesson.wordListCharting, []);
+  assert.deepEqual(compatibility.lesson.wordListChartingByStudent, []);
+  assert.equal(studentChartingWordDistributionForLesson(compatibility.lesson, roster), null);
 });
 
 test('fails a bare Part 6 expected response', () => {
-  const runtime = runtimeOf(lesson1);
+  const runtime = sourceVerifiedRuntimeOf(lesson1);
   partOf(runtime, 6).data.quickDrillReverse = ['/a/ → a'];
 
   assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 6|part6/);
 });
 
 test('passes the full classroom runtime gate and keeps every intended mission part navigable', () => {
-  const compatibility = validateRuntimeLessonCompatibility(runtimeOf(lesson1));
+  const compatibility = validateRuntimeLessonCompatibility(sourceVerifiedRuntimeOf(lesson1));
 
   assert.deepEqual(compatibility.runtime.plannedParts, [1,2,3,4,5,6,7,8,9,10]);
   for (let current = LessonPart.Part1; current < LessonPart.Part10; current += 1) {
@@ -135,18 +133,18 @@ test('keeps the known-good 7.3 interactive Part 2 fixture supported by the Part 
   assert.deepEqual(validatePart2RuntimePresentation(part2?.data), []);
 });
 
-test('all five regenerated 5A 7.4 lessons pass canonical and compatibility gates', () => {
+test('all five regenerated 5A 7.4 lessons pass canonical and compatibility gates after required source records are verified', () => {
   for (const source of [lesson1, lesson2, lesson3, lesson4, lesson5]) {
-    const runtime = runtimeOf(source);
+    const runtime = sourceVerifiedRuntimeOf(source);
     const canonical = validateCanonicalLessonGate(runtime);
     assert.equal(canonical.ok, true, canonical.issues.map(issue => `${issue.code}: ${issue.message}`).join('\n'));
     assert.doesNotThrow(() => validateRuntimeLessonCompatibility(runtime));
   }
 });
 
-test('all five lessons survive import projection, JSON save, full reload, and reopen data checks', () => {
+test('all five lessons survive import projection, JSON save, full reload, and reopen data checks after required source records are verified', () => {
   for (const source of [lesson1, lesson2, lesson3, lesson4, lesson5]) {
-    const compatibility = validateRuntimeLessonCompatibility(runtimeOf(source));
+    const compatibility = validateRuntimeLessonCompatibility(sourceVerifiedRuntimeOf(source));
     const savedJson = JSON.stringify(compatibility.lesson);
     const reloaded = normalizeLesson(JSON.parse(savedJson));
     assert.ok(reloaded);
@@ -158,8 +156,10 @@ test('all five lessons survive import projection, JSON save, full reload, and re
 
     assert.deepEqual(reopenedRuntime?.plannedParts, [1,2,3,4,5,6,7,8,9,10]);
     assert.equal(reloaded?.wordCards.length, 6);
-    assert.equal(reloaded?.wordListChartingByStudent?.length, 3);
-    assert.ok(reloaded?.wordListChartingByStudent?.every(list => list.words.length === 15));
+    assert.equal(reloaded?.wordListMode, 'practice');
+    assert.equal(reloaded?.wordListTargetCount, reloaded?.wordListPractice.length);
+    assert.equal(reloaded?.wordListChartingByStudent?.length, 0);
+    assert.deepEqual(reloaded?.wordListCharting, []);
     assert.equal((reopenedRuntime?.parts.find(part => part.part === 5)?.data as any)?.weaveQuestions?.length, 10);
     assert.equal((reopenedRuntime?.parts.find(part => part.part === 7)?.data as any)?.currentWords?.length, 6);
     assert.equal(reloaded?.dictation.sounds.length, 5);

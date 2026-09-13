@@ -12,6 +12,9 @@ interface WordlistReadingProps {
   isStudentView?: boolean;
   /** A runtime lesson supplied roster-bound lists; never substitute a shared reshuffle. */
   preassigned?: boolean;
+  /** Practice-only Part 4 remains a selected short practice set, not a formal chart. */
+  mode?: 'charting' | 'practice';
+  targetCount?: number;
   distribution: WordInstance[][];
   onUpdateDistribution: (dist: WordInstance[][]) => void;
   page: number;
@@ -20,7 +23,7 @@ interface WordlistReadingProps {
 
 const WordlistReading: React.FC<WordlistReadingProps> = ({ 
   cards, students = [], scores, onUpdateScores, isStudentView, preassigned = false,
-  distribution = [], onUpdateDistribution, page = 0, onUpdatePage
+  mode = 'charting', targetCount, distribution = [], onUpdateDistribution, page = 0, onUpdatePage
 }) => {
   const [teacherPlayerCount, setTeacherPlayerCount] = useState<number>(students.length > 0 ? students.length : 0);
   const safeDistribution = normalizeWordDistribution(distribution);
@@ -31,7 +34,7 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
   // Constants
   const WORDS_PER_PAGE = 5;
   
-  const targetTotalWords = targetWordCount(cards);
+  const targetTotalWords = targetWordCount(cards, targetCount);
 
   // Initialize or Reset Distribution
   const initializeDistribution = (count: number) => {
@@ -102,8 +105,8 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
     return (
       <div className="h-full flex flex-col bg-[#fcfbf9] font-sans items-center justify-center p-8">
          <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif font-black text-stone-900 mb-2 italic">Wordlist Reading</h2>
-            <p className="text-stone-400 uppercase tracking-widest text-[10px] font-black">How many students are reading today?</p>
+            <h2 className="text-3xl font-serif font-black text-stone-900 mb-2 italic">{mode === 'practice' ? 'Targeted Word Practice' : 'Wordlist Reading'}</h2>
+            <p className="text-stone-400 uppercase tracking-widest text-[10px] font-black">{mode === 'practice' ? 'Use the selected practice set; this is not a formal 15-word chart.' : 'How many students are reading today?'}</p>
          </div>
          
          <div className="grid grid-cols-3 gap-6 mb-8">
@@ -127,7 +130,7 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
       <div className="h-20 bg-white border-b border-stone-100 flex items-center justify-between px-8 shadow-sm z-10 shrink-0">
         <div className={`flex items-center gap-4 ${isStudentView ? 'mx-auto' : ''}`}>
           <h2 className="text-xl font-bold text-stone-900 font-serif uppercase tracking-wider hidden md:block">
-            Wordlist Reading
+            {mode === 'practice' ? 'Targeted Word Practice' : 'Wordlist Reading'}
           </h2>
           <div className="flex gap-1">
              {Array.from({ length: Math.ceil(targetTotalWords / WORDS_PER_PAGE) }).map((_, i) => (

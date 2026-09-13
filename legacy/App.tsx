@@ -460,7 +460,7 @@ const App: React.FC = () => {
   const changeLessonPart = useCallback((nextPart: LessonPart) => {
     if (isStudentView) return;
     if (nextPart === LessonPart.Part4 && currentLesson && baseReadingCards.length > 0 && rosterSessionStudents.length > 0) {
-      const wordsPerStudent = targetWordCount(baseReadingCards);
+      const wordsPerStudent = targetWordCount(baseReadingCards, currentLesson.wordListTargetCount);
       if (!hasCompleteWordDistribution(sessionDistribution, rosterSessionStudents.length, wordsPerStudent)) {
         const studentSpecificDistribution = studentChartingWordDistributionForLesson(currentLesson, rosterSessionStudents);
         const requiresStudentSpecificLists = Boolean(currentLesson?.wordListChartingByStudent?.length);
@@ -700,7 +700,9 @@ const App: React.FC = () => {
       case LessonPart.Part4:
         return (
           <WordlistReading 
-            cards={baseReadingCards} 
+            cards={baseReadingCards}
+            mode={currentLesson.wordListMode}
+            targetCount={currentLesson.wordListTargetCount}
             preassigned={Boolean(currentLesson.wordListChartingByStudent?.length)}
             students={sessionStudents} 
             scores={sessionScores} 

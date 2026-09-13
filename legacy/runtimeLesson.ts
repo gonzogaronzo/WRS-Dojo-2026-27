@@ -77,7 +77,11 @@ const sourceForCompatibilityPlan = (source: LessonSourceReference): WrsSourceRef
   title: source.label,
   edition: source.edition || '',
   locator: source.locator || '',
-  verification: source.kind === 'teacher-selection' ? 'teacher-created' : 'verified',
+  verification: source.verification === 'needs-verification'
+    ? 'needs-verification'
+    : source.kind === 'teacher-selection'
+      ? 'teacher-created'
+      : 'verified',
   notes: source.notes || ''
 });
 
@@ -245,7 +249,8 @@ const normalizeSource = (value: unknown): LessonSourceReference | null => {
     kind,
     edition: text(source.edition) || undefined,
     locator: text(source.locator) || undefined,
-    notes: text(source.notes) || undefined
+    notes: text(source.notes) || undefined,
+    verification: source.verification === 'needs-verification' ? 'needs-verification' : 'verified'
   };
 };
 
@@ -345,7 +350,11 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
   const semanticPart2Slides = hasOwn(part2Presentation, 'frames')
     ? part2PresentationToSlides(part2?.data) || []
     : part2?.data.slides || [];
-  const studentChartingLists = studentChartingListsFrom(part4?.data.studentChartingLists);
+  const practiceWords = nonEmptyStrings(part4?.data.practiceWords);
+  const chartingPlanned = part4?.data.chartingPlanned === true;
+  const studentChartingLists = chartingPlanned
+    ? studentChartingListsFrom(part4?.data.studentChartingLists)
+    : [];
   const chartingPool = uniqueStrings([
     ...nonEmptyStrings(part4?.data.chartingWords),
     ...studentChartingLists.flatMap(list => list.words)
@@ -365,11 +374,13 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
     quickDrill: part1?.data.quickDrill || [],
     quickDrillReverse: part6?.data.quickDrillReverse || part6?.data.quickDrill || [],
     wordCards: part3?.data.wordCards || [],
-    wordListPractice: nonEmptyStrings(part4?.data.practiceWords),
-    wordListCharting: chartingPool,
-    wordListReading: chartingPool,
+    wordListPractice: practiceWords,
+    wordListCharting: chartingPlanned ? chartingPool : [],
+    wordListReading: chartingPlanned ? chartingPool : practiceWords,
     wordListChartingByStudent: studentChartingLists,
-    wordListReadingAuto: true,
+    wordListMode: chartingPlanned ? 'charting' : 'practice',
+    wordListTargetCount: chartingPlanned ? 15 : practiceWords.length,
+    wordListReadingAuto: chartingPlanned,
     sentences: part5?.data.sentences || [],
     dictation: part8?.data.dictation || emptyDictation(),
     hfwList: part3?.data.hfwList || [],
@@ -428,8 +439,16 @@ export const validateLessonModuleReadiness = (
   if (includes(1) && !lesson.quickDrill.length) errors.push('Part 1 Quick Drill missing.');
   if (includes(2) && !lesson.slides.length && !runtime) errors.push('Part 2 interactive presentation invalid or unavailable.');
   if (includes(3) && !lesson.wordCards.length) errors.push('Part 3 Word Cards unavailable.');
-  if (includes(4) && (!lesson.wordListPractice?.length || !lesson.wordListCharting?.length || !lesson.wordListReading?.length)) {
-    errors.push('Part 4 practice/charting missing or incompatible with legacy Wordlist Reading.');
+  const plannedPart4 = runtime?.parts.find(part => part.part === 4);
+  const chartingRequired = plannedPart4?.data.chartingPlanned === true || lesson.wordListMode === 'charting';
+  if (includes(4) && (
+    !lesson.wordListPractice?.length ||
+    !lesson.wordListReading?.length ||
+    (chartingRequired && !lesson.wordListCharting?.length)
+  )) {
+    errors.push(chartingRequired
+      ? 'Part 4 practice/charting missing or incompatible with legacy Wordlist Reading.'
+      : 'Part 4 targeted practice missing or incompatible with legacy Wordlist Reading.');
   }
   if (includes(5) && lesson.sentences.length !== 10) errors.push('Part 5 needs exactly 10 sentences.');
   if (includes(6) && !(lesson.quickDrillReverse || []).length) errors.push('Part 6 reverse Quick Drill missing.');
@@ -541,8 +560,14 @@ export const validateRuntimeLessonCompatibility = (
   const practiceWords = nonEmptyStrings(part4.data.practiceWords);
   const chartingWords = nonEmptyStrings(part4.data.chartingWords);
   const chartingLists = studentChartingListsFrom(part4.data.studentChartingLists);
-  if (!practiceWords.length || (!chartingWords.length && !chartingLists.length)) {
-    errors.push('Part 4 practice/charting missing or incompatible.');
+  const chartingPlanned = part4.data.chartingPlanned === true;
+  if (!practiceWords.length || (chartingPlanned && !chartingWords.length && !chartingLists.length)) {
+    errors.push(chartingPlanned
+      ? 'Part 4 practice/charting missing or incompatible.'
+      : 'Part 4 targeted practice missing or incompatible.');
+  }
+  if (!chartingPlanned && (chartingWords.length || chartingLists.length)) {
+    errors.push('Part 4 marks charting as unplanned but carries a formal charting payload.');
   }
   if (chartingLists.length) {
     const names = new Set<string>();

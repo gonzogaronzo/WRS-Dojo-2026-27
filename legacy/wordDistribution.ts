@@ -18,9 +18,13 @@ export const uniqueWordCards = (cards: WordCard[]): WordCard[] => {
   });
 };
 
-// Part 4 charting is always 15 words per student. The card pool may be much larger
-// so each student can receive a different 15-word list without repeats across students.
-export const targetWordCount = (_cards: WordCard[]): number => 15;
+// Formal Part 4 charting is 15 words per student. A runtime lesson may instead
+// project a selected short practice set; its explicit target count is preserved.
+export const targetWordCount = (_cards: WordCard[], explicitTargetCount?: number): number => (
+  typeof explicitTargetCount === 'number' && Number.isInteger(explicitTargetCount) && explicitTargetCount > 0
+    ? explicitTargetCount
+    : 15
+);
 
 export const chartingWordCardsForLesson = (lesson: Lesson): WordCard[] => {
   const explicitChartingPool = [
