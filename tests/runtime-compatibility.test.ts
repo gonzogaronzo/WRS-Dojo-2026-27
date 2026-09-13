@@ -73,7 +73,7 @@ test('fails Part 9 when questions are stranded in an unsupported field', () => {
   delete part9.data.questions;
   part9.data.followUpQuestions = 'This must not be silently projected.';
 
-  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /part9_question_ladder_failed|Part 9 passage\/questions missing or unsupported/);
+  assert.throws(() => validateRuntimeLessonCompatibility(runtime), /part9_question_count_failed|part9_question_ladder_failed|Part 9 passage\/questions missing or unsupported/);
 });
 
 test('retains a valid Part 9 title, passage, and ten questions through projection and reload', () => {
