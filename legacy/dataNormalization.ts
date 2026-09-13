@@ -7,7 +7,7 @@ import {
   StudentProfile
 } from './types';
 import { normalizeWrsLessonPlan } from './wrsLessonPlan';
-import { normalizeRuntimeLessonPlan, runtimeLessonToLegacyLesson, validateRuntimeLessonCompatibility } from './runtimeLesson';
+import { normalizeRuntimeLessonPlan, runtimeLessonToLegacyLesson } from './runtimeLesson';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -134,19 +134,7 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
   const runtimePlan = normalizeRuntimeLessonPlan(
     data.schemaVersion === 'wrs-runtime-v1' ? data : data.runtimePlan
   );
-  let projection: Lesson | null = null;
-  if (runtimePlan) {
-    try {
-      // New full-path runtime plans are only loadable when their deterministic
-      // projection is classroom-compatible. Older partial runtime objects retain
-      // their existing compatibility path until they are explicitly re-imported.
-      projection = runtimePlan.lessonPath === 'full'
-        ? validateRuntimeLessonCompatibility(runtimePlan).lesson
-        : runtimeLessonToLegacyLesson(runtimePlan);
-    } catch {
-      return null;
-    }
-  }
+  const projection = runtimePlan ? runtimeLessonToLegacyLesson(runtimePlan) : null;
   const lessonData: UnknownRecord = projection ? { ...data, ...projection, id } : data;
   const dictation = asRecord(lessonData.dictation) || {};
 
@@ -189,9 +177,8 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
       : undefined,
     passageHistoryNote: typeof lessonData.passageHistoryNote === 'string' ? lessonData.passageHistoryNote : undefined,
     runtimePlan: runtimePlan || undefined,
-    wrsPlan: runtimePlan
-      ? normalizeWrsLessonPlan(projection?.wrsPlan)
-      : normalizeWrsLessonPlan(data.wrsPlan)
+    // Preserve the saved compatibility view; runtimePlan remains authoritative.
+    wrsPlan: normalizeWrsLessonPlan(data.wrsPlan)
   } as Lesson;
 };
 

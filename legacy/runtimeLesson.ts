@@ -388,7 +388,6 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
     listeningComprehension: part10?.data.listeningComprehension,
     lessonPath: runtime.lessonPath,
     plannedParts: runtime.plannedParts,
-    wrsPlan: runtimeLessonToCompatibilityWrsPlan(runtime),
     lastUpdated: '2026-09-13'
   };
 };
@@ -593,7 +592,13 @@ export const validateRuntimeLessonCompatibility = (
     errors.push('Part 10 must remain TBD unless a supported listening-comprehension payload is supplied.');
   }
 
-  const lesson = runtimeLessonToLegacyLesson(runtime);
+  const legacyLesson = runtimeLessonToLegacyLesson(runtime);
+  const lesson: Lesson = {
+    ...legacyLesson,
+    // Only a full, accepted runtime import receives this compatibility view.
+    // The authoritative runtime plan itself remains the source of planning truth.
+    wrsPlan: runtimeLessonToCompatibilityWrsPlan(runtime)
+  };
   errors.push(...validateLessonModuleReadiness(lesson, runtime));
 
   if (errors.length) throw new Error(Array.from(new Set(errors)).join('\n'));

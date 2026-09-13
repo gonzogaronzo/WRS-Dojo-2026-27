@@ -75,13 +75,6 @@ test('fails Part 9 when questions are stranded in an unsupported field', () => {
   assert.throws(() => validateRuntimeLessonCompatibility(runtime), /Part 9 passage\/questions missing or unsupported/);
 });
 
-test('rejects an invalid full runtime lesson during reload normalization', () => {
-  const runtime = runtimeOf(lesson1);
-  partOf(runtime, 2).data.part2Presentation.interactiveSteps[0].provenance = 'unverified';
-
-  assert.equal(normalizeLesson(runtime), null);
-});
-
 test('retains a valid Part 9 title, passage, and ten questions through projection and reload', () => {
   const compatibility = validateRuntimeLessonCompatibility(runtimeOf(lesson1));
   const reloaded = normalizeLesson(JSON.parse(JSON.stringify(compatibility.lesson)));
@@ -91,6 +84,7 @@ test('retains a valid Part 9 title, passage, and ten questions through projectio
   assert.equal(reloaded?.passagePage, '122-123');
   assert.equal(reloaded?.passageQuestions?.length, 10);
   assert.equal(reloaded?.runtimePlan?.parts.find(part => part.part === 9)?.data.questions?.length, 10);
+  assert.equal(reloaded?.wrsPlan?.lessonFocus, 'accuracy');
 });
 
 test('keeps Part 4 roster-bound 15-word lists separate and rejects a roster mismatch', () => {
