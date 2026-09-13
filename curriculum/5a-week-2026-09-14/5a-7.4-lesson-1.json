@@ -52,9 +52,9 @@
       "id": "DB4-7.4-14-30",
       "kind": "dictation-book",
       "label": "WRS Dictation Book Steps 7-12",
-      "locator": "Substep 7.4 words printed pp. 14-17, phrases p. 21, sentences pp. 29-30",
-      "notes": "Required Fourth Edition Part 8 source. The named Dictation Book 7-12 (4th Ed. Complete) is not currently retrievable from Project Sources; these draft entries must not be exported until source verification is completed.",
-      "verification": "needs-verification"
+      "locator": "Substep 7.4: words printed pp. 14-17 (PDF pp. 20-23); phrases printed p. 21 (PDF p. 27); sentences printed p. 29 (PDF p. 35)",
+      "notes": "Visually verified against the authoritative Dictation Book 7-12 (4th Ed. Complete) scan: all live 7.4 real-word selections, HFW phrases, and selected current-substep sentences are present at the cited locations.",
+      "verification": "verified"
     },
     {
       "edition": "Fourth Edition",
@@ -69,9 +69,9 @@
       "id": "SR7-7.1N-3",
       "kind": "student-reader",
       "label": "WRS Student Reader Seven",
-      "locator": "Substep 7.1N, printed p. 3",
-      "notes": "Cumulative nonsense-word claim awaiting source verification. The inspected Fourth Edition Student Reader Seven p. 3 is not a 7.1N nonsense list; do not use or export this draft category until its exact source is retrieved.",
-      "verification": "needs-verification"
+      "locator": "Substep 7.1N, printed p. 13 (PDF p. 15)",
+      "notes": "Visually verified against the full 7.1N page labeled 'nonsense words, c, g (hard and soft sounds, mixed)'; the first five rows contain all fifteen cumulative nonsense words used across the five live lessons.",
+      "verification": "verified"
     },
     {
       "id": "TEACHER-SELECTION",
@@ -628,7 +628,7 @@
         "SR7-7.1N-3"
       ],
       "teacherDirections": [
-        "The complete Part 8 structure is drafted as five sounds, five Word Elements, five real words, three nonsense words, three High Frequency Word phrases, and two source-justified sentences. Do not use or export this Part 8 until the named Fourth Edition Dictation Book and the exact cumulative nonsense source are retrieved and verified."
+        "The verified Part 8 structure contains five sounds, five Word Elements, five real words, three cumulative nonsense words, three High Frequency Word phrases, and two source-justified sentences."
       ],
       "data": {
         "wordElementsApplicable": true,
