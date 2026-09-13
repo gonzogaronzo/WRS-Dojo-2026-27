@@ -12,14 +12,17 @@ from google.cloud import storage
 from pydantic import BaseModel, Field
 
 from compiler import CurriculumCompileError, CurriculumCompiler, EXPECTED_RELEASE_ID, SUPPORTED_SUBSTEPS
+from lesson_plan_contract import CONTRACT_VERSION, validate_teacher_plan_contract
 from part2_presentation import apply_part2_semantic_presentation
 from selection_fidelity import validate_selection_fidelity
 from sound_inventory import apply_sound_inventory_fidelity
+from teacher_plan_renderer import render_teacher_plan_markdown
 
 
 class CompileRequest(BaseModel):
     groupId: str
     groupName: str = ""
+    studentNames: list[str] = Field(default_factory=list)
     currentSubstep: str
     lessonFocus: str = ""
     lessonPath: str = "full"
@@ -31,6 +34,7 @@ class CompileRequest(BaseModel):
     practicedWordElements: list[str] = Field(default_factory=list)
     highFrequencyWords: list[str] = Field(default_factory=list)
     nextLessonNotes: str = ""
+    part10Requested: bool = False
 
 
 def _download_gcs_database(uri: str) -> Path:
@@ -61,7 +65,7 @@ compiler = CurriculumCompiler(
     expected_release_id=os.getenv("EXPECTED_RELEASE_ID", EXPECTED_RELEASE_ID),
 )
 
-app = FastAPI(title="WRS Curriculum Compiler", version="0.3.0")
+app = FastAPI(title="WRS Curriculum Compiler", version="0.4.0")
 allowed_origins = [
     item.strip()
     for item in os.getenv("ALLOWED_ORIGINS", "https://wrs-firebase.web.app").split(",")
@@ -101,6 +105,8 @@ def healthz():
         "selectionFidelityGate": "required",
         "soundInventoryGate": "student-notebook-indexed",
         "part2Presentation": "semantic-v1-source-controlled",
+        "teacherPlanContract": CONTRACT_VERSION,
+        "teacherPlanRenderer": "contract-gated-markdown-v1",
     }
 
 
@@ -112,14 +118,20 @@ async def compile_lesson(payload: CompileRequest, authorization: str | None = He
     apply_sound_inventory_fidelity(runtime, request, compiler.database_path)
     validate_selection_fidelity(runtime, request)
     apply_part2_semantic_presentation(runtime)
+    contract_report = validate_teacher_plan_contract(runtime, request)
+    teacher_plan_markdown = render_teacher_plan_markdown(runtime, request)
     return {
         "runtimePlan": runtime,
+        "teacherPlanMarkdown": teacher_plan_markdown,
+        "teacherPlanValidation": contract_report,
         "compiler": {
-            "version": "0.3.0",
+            "version": "0.4.0",
             "teacherUid": decoded.get("uid"),
             "releaseId": compiler.expected_release_id,
             "selectionFidelityGate": "passed",
             "soundInventoryGate": "student-notebook-indexed",
             "part2Presentation": "semantic-v1-source-controlled",
+            "teacherPlanContract": "passed",
+            "teacherPlanRenderer": "contract-gated-markdown-v1",
         },
     }
