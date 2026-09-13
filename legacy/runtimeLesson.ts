@@ -351,10 +351,15 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
     ? part2PresentationToSlides(part2?.data) || []
     : part2?.data.slides || [];
   const practiceWords = nonEmptyStrings(part4?.data.practiceWords);
-  const chartingPlanned = part4?.data.chartingPlanned === true;
-  const studentChartingLists = chartingPlanned
-    ? studentChartingListsFrom(part4?.data.studentChartingLists)
-    : [];
+  const configuredStudentChartingLists = studentChartingListsFrom(part4?.data.studentChartingLists);
+  // Preserve older runtime plans that predate the explicit chartingPlanned flag.
+  const chartingPlanned = part4?.data.chartingPlanned === true || (
+    part4?.data.chartingPlanned !== false && (
+      nonEmptyStrings(part4?.data.chartingWords).length > 0 ||
+      configuredStudentChartingLists.length > 0
+    )
+  );
+  const studentChartingLists = chartingPlanned ? configuredStudentChartingLists : [];
   const chartingPool = uniqueStrings([
     ...nonEmptyStrings(part4?.data.chartingWords),
     ...studentChartingLists.flatMap(list => list.words)
@@ -440,7 +445,12 @@ export const validateLessonModuleReadiness = (
   if (includes(2) && !lesson.slides.length && !runtime) errors.push('Part 2 interactive presentation invalid or unavailable.');
   if (includes(3) && !lesson.wordCards.length) errors.push('Part 3 Word Cards unavailable.');
   const plannedPart4 = runtime?.parts.find(part => part.part === 4);
-  const chartingRequired = plannedPart4?.data.chartingPlanned === true || lesson.wordListMode === 'charting';
+  const chartingRequired = plannedPart4?.data.chartingPlanned === true || (
+    plannedPart4?.data.chartingPlanned !== false && Boolean(
+      nonEmptyStrings(plannedPart4?.data.chartingWords).length ||
+      studentChartingListsFrom(plannedPart4?.data.studentChartingLists).length
+    )
+  ) || lesson.wordListMode === 'charting';
   if (includes(4) && (
     !lesson.wordListPractice?.length ||
     !lesson.wordListReading?.length ||
@@ -560,7 +570,9 @@ export const validateRuntimeLessonCompatibility = (
   const practiceWords = nonEmptyStrings(part4.data.practiceWords);
   const chartingWords = nonEmptyStrings(part4.data.chartingWords);
   const chartingLists = studentChartingListsFrom(part4.data.studentChartingLists);
-  const chartingPlanned = part4.data.chartingPlanned === true;
+  const chartingPlanned = part4.data.chartingPlanned === true || (
+    part4.data.chartingPlanned !== false && Boolean(chartingWords.length || chartingLists.length)
+  );
   if (!practiceWords.length || (chartingPlanned && !chartingWords.length && !chartingLists.length)) {
     errors.push(chartingPlanned
       ? 'Part 4 practice/charting missing or incompatible.'
