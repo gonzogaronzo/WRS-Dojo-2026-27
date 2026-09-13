@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 const atlasPartNames = Array.from({ length: 8 }, (_, index) => `atlas-${String(index + 1).padStart(2, '0')}.b64`);
-const expectedSha256 = '8f9228e6b13861ed62018697b8d0fb76585e8a290784ca7e4399f9c046234640';
+const expectedSha256 = '0c16eebb7fb1c089b29d3168ef79257530aa685d3f489809b05397a1a1bbe148';
 const expectedByteLength = 46764;
 const expectedWidth = 1400;
 const expectedHeight = 1260;
