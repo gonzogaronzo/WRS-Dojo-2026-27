@@ -38,3 +38,4 @@ jobs:
           test_sound_inventory.py
           test_part2_presentation.py
           test_lesson_plan_contract.py
+          test_lesson_plan_focus_contract.py
