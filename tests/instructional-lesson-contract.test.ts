@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeRuntimeLessonPlan } from '../legacy/runtimeLesson';
 import { validateInstructionalLessonContract } from '../legacy/instructionalLessonContract';
+import { validateCanonicalLessonGate } from '../legacy/canonicalLessonGate';
 import lesson1 from '../curriculum/5a-week-2026-09-14/5a-7.4-lesson-1.json';
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
@@ -13,11 +14,13 @@ const runtimeOf = (value: unknown) => {
 const partOf = (runtime: any, number: number) => runtime.parts.find((part: any) => part.part === number);
 const codes = (value: ReturnType<typeof validateInstructionalLessonContract>) => new Set(value.issues.map(issue => issue.code));
 
-test('current 5A lesson 1 is rejected for known canonical instructional defects', () => {
-  const result = validateInstructionalLessonContract(runtimeOf(lesson1));
-  const found = codes(result);
+test('current 5A lesson 1 is rejected by the single canonical gate for known instructional defects', () => {
+  const result = validateCanonicalLessonGate(runtimeOf(lesson1));
+  const found = new Set(result.issues.map(issue => issue.code));
 
   assert.equal(result.ok, false);
+  assert.equal(result.instructionalOk, false);
+  assert.equal(result.runtimeOk, true);
   assert.ok(found.has('teacher_selection_placeholder'));
   assert.ok(found.has('part5_weave_variety_failed'));
   assert.ok(found.has('part8_category_count_failed'));
