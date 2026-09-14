@@ -1,64 +1,75 @@
 # WRS Dojo Runtime → Current Consumer Crosswalk
 
-Status: implementation map for PR #41. This is app architecture documentation, not Wilson instructional authority.
+Status: current implementation map for draft PR #41. This is app architecture documentation, not Wilson instructional authority.
 
 ## Why this exists
 
 The app currently stores/renders a legacy `Lesson` envelope even when `runtimePlan` is authoritative. Canonicalization requires an explicit map from each runtime Part to every current screen field so content cannot silently disappear during projection.
 
-The teacher-exported Step 2.5 specimen is the behavioral reference for the older Parts 1 and 3–10 surfaces. The teacher-exported Step 7.3 specimen is the behavioral reference for interactive Part 2. Neither export is itself the canonical format.
+The Step 2.5 specimens are behavioral/reference evidence for Parts 1 and 3–10. The Step 7.3 specimen is behavioral evidence for interactive Part 2. The 5A Step 7.4 regression fixture checks a different source-grounded lesson shape. None of the older exports is itself the canonical format.
 
-## Current production projection
+## Current PR #41 projection and consumption
 
-| Part | Runtime source | Current projected legacy field | Current runtime/screen consumer | Gap to close |
+| Part | Runtime source | Legacy compatibility field | Runtime/screen consumer | Current status / remaining boundary |
 |---|---|---|---|---|
-| 1 | `data.quickDrill` | `quickDrill` | `QuickDrill` | richer selection metadata is not represented in production type |
-| 2 | `data.part2Presentation` or `data.slides` | `slides` fallback + retained `runtimePlan` | `TeachConcepts` / interactive Part 2 runner | canonical interactive shape needs explicit validation; legacy slides are fallback only |
-| 3 | `data.wordCards` | `wordCards` | `WordCards` | current/review/fat-stack semantics need canonical fields beyond one flat list |
-| 3 | `data.hfwList` | `hfwList` | `WordCards` HFW packet | preserve full current set and cumulative unmastered state outside lesson interchange where appropriate |
-| 4 | `data.practiceWords` | `wordListPractice` | `WordlistReading` | production adapter does not yet preserve individual student charting lists |
-| 4 | `data.chartingWords` | `wordListCharting`, `wordListReading` | `WordlistReading` | practice-only vs formal charting needs explicit runtime flag and rationale |
-| 5 | `data.sentences` | `sentences` | `SentenceReading` | weave questions currently require runtime fields; must survive persistence/export |
-| 6 | `data.quickDrillReverse` | `quickDrillReverse` | reverse `QuickDrill` | exact phoneme notation/diacritics must survive unchanged |
-| 7 | `data.conceptNotes` / directions | `conceptNotes7` | spelling concept runner | exact review/current spelling selections need explicit runtime fields and preservation |
-| 8 | `data.dictation` | `dictation` | Written Work Dictation | category-level provenance/exception metadata must remain runtime-owned |
-| 9 | `data.passage` | `passage` | passage runner | title/page/Reader/questions/history metadata are not fully projected in production baseline |
-| 10 | `data.listeningComprehension` | `listeningComprehension` | Part 10 | TBD vs planned state needs explicit runtime field |
+| 1 | `data.quickDrill` plus retained runtime metadata | `quickDrill` | `QuickDrill` | core drill list projects; richer selection metadata remains runtime-owned |
+| 2 | `data.part2Presentation` or legacy `data.slides` fallback | `slides` fallback + retained `runtimePlan` | `TeachConcepts` / interactive Part 2 runner | interactive source-owned action/display/object/staging structure is validated; legacy slides remain migration fallback |
+| 3 | `data.wordCards` | `wordCards` | `WordCards` | flat rendered packet projects; richer current/review/fat-stack metadata remains runtime-owned |
+| 3 | `data.hfwList` | `hfwList` | `WordCards` HFW packet | current lesson packet projects; cumulative mastery belongs to durable student/group state rather than canonical lesson duplication |
+| 4 | `data.practiceWords`, `data.chartingWords`, `chartingPlanned` | `wordListPractice`, `wordListCharting`, `wordListReading`, `wordListReadingAuto` | `WordlistReading` | practice-only lessons now project the practice list instead of an empty charting deck; student-specific targets/lists remain runtime-owned where supplied |
+| 5 | `data.sentences`, `data.weaveQuestions` | `sentences` plus retained `runtimePlan` | runtime-aware `SentenceReading` | sentences project; teacher weave questions are read from runtime and kept off the passive student display |
+| 6 | `data.quickDrillReverse`, `data.wordElements` | `quickDrillReverse` plus generated `wrsPlan` summary | reverse `QuickDrill` | exact supplied notation remains runtime-owned and survives projection/export |
+| 7 | review/current fields plus optional explicit `data.spellingItems` packet | `conceptNotes7` plus retained `runtimePlan` | runtime-aware `TeachConcepts` / `Part7SpellingRunner` | canonical dictate/reveal path uses explicit supplied representations and fails closed instead of reconstructing cards from spelling; lessons without `spellingItems` retain legacy fallback during migration |
+| 8 | `data.dictation` plus category provenance/exception metadata | `dictation` plus retained `runtimePlan` | Written Work Dictation | rendered dictation projects; provenance/exception metadata remains runtime-owned and survives canonical export |
+| 9 | `data.passage`, title/page/Reader/questions/history metadata | `passage` plus retained `runtimePlan` | runtime-aware `PassageReading` | passage projects; title/source label/questions/history note are read from runtime; teacher questions/history stay private from student display |
+| 10 | `data.teacherPlanStatus`, optional `data.listeningComprehension` | `listeningComprehension` plus generated compatibility summary | Part 10 | runtime retains TBD/planned distinction; supported listening-comprehension payload projects |
 
-## `wrsPlan` compatibility problem
+## Deterministic `wrsPlan` compatibility view
 
-Current production `normalizeLesson()` projects a runtime lesson into legacy screen fields, but then normalizes `wrsPlan` from the **input wrapper's `wrsPlan`**, not from the runtime projection. A bare canonical `wrs-runtime-v1` import therefore has no independently supplied `wrsPlan` to normalize.
+A bare canonical import must not require a second independently authored `wrsPlan`. PR #41 now generates the old Official WRS Plan Details compatibility view from runtime data through `runtimeLessonToCompatibilityWrsPlan()`.
 
-This is exactly the duplicate-authoring problem canonicalization is meant to remove.
-
-Target behavior:
+Current behavior:
 
 1. Runtime plan is authored once.
-2. Runtime is validated.
-3. Runtime deterministically generates the legacy `Lesson` projection.
-4. Runtime also deterministically generates any still-required `wrsPlan` compatibility view.
+2. Runtime is normalized and validated.
+3. Runtime deterministically generates the legacy `Lesson` fields still consumed by older screens.
+4. Runtime also deterministically generates the still-required `wrsPlan` compatibility view.
 5. Neither generated compatibility view becomes canonical export input.
+6. Source verification is conservative: an unmarked source-controlled reference becomes `needs-verification`, not `verified`.
 
-## Fields already modeled more completely in draft PR #40
+## Source-verification projection
 
-PR #40 is not being merged into this branch, but it demonstrates candidate runtime fields needed to close current projection gaps:
+The canonical source manifest may explicitly mark a source `verified`, `needs-verification`, or `teacher-created`.
+
+The compatibility projection does not invent verification:
+
+- explicit `verified` remains verified;
+- explicit `needs-verification` remains unresolved;
+- teacher selections default to `teacher-created`;
+- unmarked source-controlled references project as `needs-verification`;
+- the overall compatibility status is `source-verified` only when all non-teacher sources are explicitly verified, `partially-verified` when some are, and otherwise `draft`.
+
+## Runtime-owned fields that must not be flattened away
+
+Several current lesson requirements intentionally remain in `runtimePlan` instead of being forced into old flat fields. Current examples include:
 
 - source verification status
 - explicit `chartingPlanned`
-- `studentChartingLists`
-- `studentPracticeTargets`
+- student charting/practice targets when supplied
 - charting/practice rationales
-- `weaveQuestions` and categories
-- Part 6 exception metadata
+- Part 5 `weaveQuestions` and categories
+- Part 7 `spellingItems` representation packet
 - Part 8 category source IDs / exceptions
 - Part 9 structured questions and history status/note
 - Part 10 teacher-plan status
 
-These should be generalized before adoption. Step-7.4-specific validation rules must not become universal schema rules.
+Keeping these runtime-owned prevents the compatibility envelope from becoming a second authored truth.
 
 ## Canonical export rule
 
-Export must serialize the validated runtime object only. It must not serialize the compatibility envelope and then expect a future importer to decide which duplicate value wins.
+Export serializes the validated runtime object only. It does not serialize the compatibility envelope and then expect a future importer to decide which duplicate value wins.
+
+The deployed 3A 2.5 browser QA exercised the actual Export Canonical JSON path, then re-imported and ran the exported lesson again.
 
 ## Round-trip equality
 
@@ -67,8 +78,14 @@ The round-trip gate compares **instructional equivalence**, not byte identity. A
 - missing Part content
 - changed word/sound/item selections
 - lost Part 2 representation/staging
-- lost student-specific charting assignments
+- lost student-specific charting assignments when supplied
 - lost weave questions
+- lost Part 7 explicit representation packet when supplied
 - lost Dictation categories/provenance
 - lost Part 9 title/page/passage/questions/history status
 - changed planned Parts or lesson focus
+- lost or silently upgraded source-verification status
+
+## Remaining migration boundary
+
+The current app is not yet fully runtime-native. Legacy fields and legacy Part 7 fallback still exist for backward compatibility. Canonical v1 therefore defines one authoritative interchange truth while allowing deterministic compatibility projection during migration. Removing the compatibility envelope entirely is a later architectural step, not a requirement for the first canonical interchange contract.
