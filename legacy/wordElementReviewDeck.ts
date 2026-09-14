@@ -56,9 +56,7 @@ export const WRS_CURRICULUM_SUBSTEPS = [
   '12.1', '12.2', '12.3', '12.4', '12.5', '12.6'
 ] as const;
 
-export const WORD_ELEMENT_REVIEW_SUBSTEPS = Array.from(
-  new Set(WORD_ELEMENT_REVIEW_CARDS.map(card => card.firstTaught))
-).sort((a, b) => substepKey(a) - substepKey(b));
+export const WORD_ELEMENT_REVIEW_SUBSTEPS = Array.from(WRS_CURRICULUM_SUBSTEPS);
 
 export function cardsForWordElementReview(options: {
   family?: WordElementFamily | 'All';
