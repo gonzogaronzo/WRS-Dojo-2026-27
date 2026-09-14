@@ -158,6 +158,14 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
   const part9 = byPart(runtime, 9);
   const part10 = byPart(runtime, 10);
   const semanticPart2Slides = part2PresentationToSlides(part2?.data);
+  const part4Data = asRecord(part4?.data);
+  const practiceWords = part4?.data.practiceWords || [];
+  const chartingWords = part4?.data.chartingWords || [];
+  const chartingPlanned = part4Data?.chartingPlanned === false
+    ? false
+    : part4Data?.chartingPlanned === true
+      ? true
+      : chartingWords.length > 0;
 
   return {
     schemaVersion: 2,
@@ -171,10 +179,10 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
     quickDrill: part1?.data.quickDrill || [],
     quickDrillReverse: part6?.data.quickDrillReverse || part6?.data.quickDrill || [],
     wordCards: part3?.data.wordCards || [],
-    wordListPractice: part4?.data.practiceWords || [],
-    wordListCharting: part4?.data.chartingWords || [],
-    wordListReading: part4?.data.chartingWords || [],
-    wordListReadingAuto: true,
+    wordListPractice: practiceWords,
+    wordListCharting: chartingPlanned ? chartingWords : [],
+    wordListReading: chartingPlanned ? chartingWords : practiceWords,
+    wordListReadingAuto: chartingPlanned,
     sentences: part5?.data.sentences || [],
     dictation: part8?.data.dictation || emptyDictation(),
     hfwList: part3?.data.hfwList || [],
@@ -186,6 +194,6 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
     listeningComprehension: part10?.data.listeningComprehension,
     lessonPath: runtime.lessonPath,
     plannedParts: runtime.plannedParts,
-    lastUpdated: '2026-08-28'
+    lastUpdated: '2026-09-14'
   };
 };
