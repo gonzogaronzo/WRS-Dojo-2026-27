@@ -13,7 +13,7 @@ const runtimePart = (part: RuntimeLessonPart['part'], data: RuntimeLessonPart['d
   part,
   title: `Part ${part}`,
   teacherDirections: [],
-  sourceIds: [],
+  sourceIds: part === 10 ? [] : ['fixture-source'],
   data
 });
 
@@ -30,7 +30,14 @@ const runtime: WRSRuntimeLessonPlan = {
     conceptsToWeave: 'cumulative review',
     troubleSpots: 'three-letter blends'
   },
-  sources: [],
+  sources: [
+    {
+      id: 'fixture-source',
+      label: 'Test-only source',
+      kind: 'teacher-selection',
+      locator: 'canonical contract fixture'
+    }
+  ],
   parts: [
     runtimePart(1, { quickDrill: ['a', 'e'] }),
     runtimePart(2, { reviewWords: ['review'], currentWords: ['current'] }),
@@ -62,12 +69,40 @@ const legacyEnvelope: Lesson = {
   runtimePlan: runtime
 };
 
-test('canonical import requires a top-level wrs-runtime-v1 object', () => {
+const cloneRuntime = () => JSON.parse(JSON.stringify(runtime)) as Record<string, any>;
+
+test('canonical import requires a bare top-level wrs-runtime-v1 object', () => {
   assert.equal(canonicalRuntimeFromImportValue(runtime).id, 'canonical-lesson');
   assert.throws(
     () => canonicalRuntimeFromImportValue({ schemaVersion: 2, runtimePlan: runtime }),
     /top-level wrs-runtime-v1/
   );
+});
+
+test('canonical structure rejects hybrid legacy fields instead of choosing a winner', () => {
+  const hybrid = cloneRuntime();
+  hybrid.quickDrill = ['legacy duplicate'];
+  assert.throws(() => canonicalRuntimeFromImportValue(hybrid), /noncanonical fields: quickDrill/);
+});
+
+test('canonical structure rejects mixed focus and implicit lesson routing', () => {
+  const mixed = cloneRuntime();
+  mixed.focus = 'mixed';
+  assert.throws(() => canonicalRuntimeFromImportValue(mixed), /focus must be introduction, accuracy, or automaticity-fluency/);
+
+  const mismatchedPath = cloneRuntime();
+  mismatchedPath.lessonPath = 'block1+3';
+  assert.throws(() => canonicalRuntimeFromImportValue(mismatchedPath), /plannedParts must exactly match lessonPath block1\+3/);
+});
+
+test('canonical structure rejects missing and unregistered source references', () => {
+  const missing = cloneRuntime();
+  missing.parts[3].sourceIds = [];
+  assert.throws(() => canonicalRuntimeFromImportValue(missing), /planned Part 4 requires at least one source reference/);
+
+  const unknown = cloneRuntime();
+  unknown.parts[0].sourceIds = ['not-in-manifest'];
+  assert.throws(() => canonicalRuntimeFromImportValue(unknown), /Part 1 cites unregistered source IDs/);
 });
 
 test('legacy-only lessons are migration inputs, not canonical exports', () => {
