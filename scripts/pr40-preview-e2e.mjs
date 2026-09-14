@@ -246,18 +246,16 @@ async function testPreview() {
     if (!(await page.locator('[data-part2-runner-controls]').isVisible())) throw new Error(`${lesson.id}: Part 2 auto-navigated away.`);
 
     await navigatePart('Word Cards');
-    const startButton = main().getByRole('button', { name: 'Start', exact: true });
-    if (await startButton.isVisible().catch(() => false)) {
-      // Part activation can replace the initial card-deck controls once while
-      // React restores the lesson session. Re-resolve the button after that
-      // render instead of racing a node that is about to be detached.
-      await page.waitForTimeout(500);
-      await main().getByRole('button', { name: 'Start', exact: true }).click();
-    }
     const p3Words = new Set([...cardTexts(p3.wordCards), ...strings(p3.hfwList)]);
     if (!p3Words.size) throw new Error(`${lesson.id}: no Part 3 words to verify.`);
     let bodyText = '';
     for (let attempt = 0; attempt < 30; attempt += 1) {
+      const startButton = main().getByRole('button', { name: 'Start', exact: true });
+      if (await startButton.isVisible().catch(() => false)) {
+        // Roster/session hydration can reset the deck once after Part 3 opens.
+        // If that happens, start the newly hydrated deck as well.
+        await startButton.click({ timeout: 1000 }).catch(() => {});
+      }
       bodyText = await main().innerText();
       if ([...p3Words].some(word => bodyText.includes(word))) break;
       await page.waitForTimeout(100);
