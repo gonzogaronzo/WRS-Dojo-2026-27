@@ -152,6 +152,19 @@ const byPart = (runtime: WRSRuntimeLessonPlan, part: RuntimeLessonPart['part']) 
   runtime.parts.find(candidate => candidate.part === part)
 );
 
+const compatibilitySourceVerification = (source: LessonSourceReference): WrsSourceReference['verification'] => (
+  source.verification || (source.kind === 'teacher-selection' ? 'teacher-created' : 'needs-verification')
+);
+
+const compatibilityVerificationStatus = (sources: LessonSourceReference[]): WrsLessonPlan['verificationStatus'] => {
+  const sourceControlled = sources.filter(source => source.kind !== 'teacher-selection');
+  if (!sourceControlled.length) return 'draft';
+  const verifiedCount = sourceControlled.filter(source => source.verification === 'verified').length;
+  if (verifiedCount === sourceControlled.length) return 'source-verified';
+  if (verifiedCount > 0) return 'partially-verified';
+  return 'draft';
+};
+
 const sourceForCompatibilityPlan = (source: LessonSourceReference): WrsSourceReference => ({
   id: source.id,
   sourceType: source.kind === 'student-notebook'
@@ -162,7 +175,7 @@ const sourceForCompatibilityPlan = (source: LessonSourceReference): WrsSourceRef
   title: source.label,
   edition: source.edition || '',
   locator: source.locator || '',
-  verification: source.verification || (source.kind === 'teacher-selection' ? 'teacher-created' : 'verified'),
+  verification: compatibilitySourceVerification(source),
   notes: source.notes || ''
 });
 
@@ -220,7 +233,7 @@ export const runtimeLessonToCompatibilityWrsPlan = (input: WRSRuntimeLessonPlan)
     conceptsToWeave: runtime.planningContext?.conceptsToWeave || '',
     wordTypesToChart: part4?.data.chartingType ? [part4.data.chartingType] : [],
     troubleSpots: runtime.planningContext?.troubleSpots || '',
-    verificationStatus: runtime.sources.length ? 'source-verified' : 'draft',
+    verificationStatus: compatibilityVerificationStatus(runtime.sources),
     sources: runtime.sources.map(sourceForCompatibilityPlan),
     part1: {
       vowels: nonEmptyStrings(part1?.data.quickDrill).join(', '),
