@@ -6,6 +6,10 @@ import { useSyncState } from '../../hooks/useSyncState';
 
 interface PassageReadingProps {
   text: string;
+  title?: string;
+  sourceLabel?: string;
+  questions?: string[];
+  historyNote?: string;
   currentIndex?: number;
   onUpdateIndex?: (index: number) => void;
   strokes?: DrawingStroke[];
@@ -19,6 +23,10 @@ interface PassageReadingProps {
 
 const PassageReading: React.FC<PassageReadingProps> = ({
   text,
+  title,
+  sourceLabel,
+  questions = [],
+  historyNote,
   currentIndex: syncedIndex,
   onUpdateIndex,
   strokes,
@@ -184,14 +192,19 @@ const PassageReading: React.FC<PassageReadingProps> = ({
     );
   }
 
+  const showTeacherQuestions = !readOnly && (questions.length > 0 || Boolean(historyNote));
+
   return (
     <div className="min-h-full flex flex-col bg-[#fcfbf9] text-stone-900">
       <div className="h-20 bg-white border-b border-stone-100 flex items-center justify-between px-8 shadow-sm z-30 flex-shrink-0">
-        <div className="flex items-center gap-6">
-          <h2 className="text-xl font-bold text-stone-900 flex items-center gap-3 font-serif uppercase tracking-wider">
-            <FileText className="w-5 h-5 text-red-800" />
-            Passage Reading
-          </h2>
+        <div className="flex items-center gap-6 min-w-0">
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-stone-900 flex items-center gap-3 font-serif uppercase tracking-wider">
+              <FileText className="w-5 h-5 text-red-800" />
+              {title || 'Passage Reading'}
+            </h2>
+            {sourceLabel ? <div className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-stone-400">{sourceLabel}</div> : null}
+          </div>
           {!readOnly && <button
              onClick={() => setUseRuler(!useRuler)}
              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${useRuler ? 'bg-amber-50 border-amber-200 text-amber-900 shadow-sm' : 'bg-white border-stone-100 text-stone-300 hover:text-stone-900'}`}
@@ -249,6 +262,22 @@ const PassageReading: React.FC<PassageReadingProps> = ({
           </div>
         )}
 
+        {showTeacherQuestions && (
+          <aside data-part9-teacher-questions className="absolute right-5 top-5 bottom-5 z-30 w-[350px] overflow-y-auto rounded-2xl border border-amber-200 bg-amber-50/95 p-5 shadow-xl">
+            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700">Teacher only · comprehension</div>
+            {historyNote ? (
+              <div className="mt-3 rounded-xl border border-amber-200 bg-white/70 p-3 text-xs font-semibold leading-relaxed text-stone-600">
+                {historyNote}
+              </div>
+            ) : null}
+            {questions.length > 0 ? (
+              <ol className="mt-4 space-y-3 list-decimal pl-5 text-sm font-semibold leading-relaxed text-stone-800">
+                {questions.map((question, index) => <li key={index}>{question}</li>)}
+              </ol>
+            ) : null}
+          </aside>
+        )}
+
         <button
           onClick={prevParagraph}
           disabled={readOnly || currentIndex === 0}
@@ -260,12 +289,12 @@ const PassageReading: React.FC<PassageReadingProps> = ({
         <button
           onClick={nextParagraph}
           disabled={readOnly || currentIndex === paragraphs.length - 1}
-          className="absolute right-6 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full bg-white border border-stone-100 text-stone-300 hover:text-stone-900 disabled:opacity-0 transition-all shadow-sm active:scale-95 group"
+          className={`absolute top-1/2 -translate-y-1/2 z-40 p-4 rounded-full bg-white border border-stone-100 text-stone-300 hover:text-stone-900 disabled:opacity-0 transition-all shadow-sm active:scale-95 group ${showTeacherQuestions ? 'right-[380px]' : 'right-6'}`}
         >
            <ChevronRight className="w-6 h-6 group-hover:scale-110 transition-transform" />
         </button>
 
-        <div className="absolute inset-0 flex p-4 md:p-12 lg:p-24 z-0 overflow-y-auto">
+        <div className={`absolute inset-0 flex p-4 md:p-12 lg:p-24 z-0 overflow-y-auto ${showTeacherQuestions ? 'pr-[390px]' : ''}`}>
           <div className="max-w-6xl w-full mx-auto my-auto py-12">
              <p className="text-[38px] font-medium text-stone-900 leading-[3] font-serif tracking-wide select-none text-left break-words">
                 {paragraphs[currentIndex]}
