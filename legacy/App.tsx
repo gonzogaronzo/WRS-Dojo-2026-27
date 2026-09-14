@@ -1072,6 +1072,8 @@ const App: React.FC = () => {
               setActiveGroup(updated);
               setCurrentLesson(l);
               if (run) {
+                discardRecoverableSession();
+                resetLessonSession();
                 setMode('run');
                 setCurrentPart(LessonPart.Briefing);
               } else {
