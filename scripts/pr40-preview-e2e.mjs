@@ -161,7 +161,10 @@ async function testPreview() {
   const main = () => page.locator('main');
   const textVisible = async text => page.getByText(text, { exact: false }).first().isVisible().catch(() => false);
   const assertVisibleText = async (text, label = text) => {
-    if (!(await textVisible(text))) throw new Error(`Expected visible text for ${label}: ${text}`);
+    const locator = page.getByText(text, { exact: false }).first();
+    if (!(await locator.waitFor({ state: 'visible', timeout: 4000 }).then(() => true).catch(() => false))) {
+      throw new Error(`Expected visible text for ${label}: ${text}`);
+    }
   };
   const assertAbsentText = async text => {
     if (await textVisible(text)) throw new Error(`Unexpected visible text: ${text}`);
