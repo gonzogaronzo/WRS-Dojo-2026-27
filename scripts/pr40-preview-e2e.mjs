@@ -166,10 +166,16 @@ async function testPreview() {
   const assertAbsentText = async text => {
     if (await textVisible(text)) throw new Error(`Unexpected visible text: ${text}`);
   };
+  const partTitles = ['Quick Drill (Sounds)', 'Teach Concepts (Reading)', 'Word Cards', 'Wordlist Reading', 'Sentence Reading', 'Quick Drill (Rev)', 'Teach Concepts (Spelling)', 'Written Work (Dictation)', 'Passage Reading', 'Listening Comp'];
   const sidebarPart = title => page.getByRole('button', { name: title, exact: true });
   const navigatePart = async title => {
-    await sidebarPart(title).click();
-    await page.waitForTimeout(300);
+    const partNumber = partTitles.indexOf(title) + 1;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await sidebarPart(title).click();
+      await page.waitForTimeout(300);
+      if (await page.getByText(`${partNumber} / 10`, { exact: true }).isVisible().catch(() => false)) return;
+    }
+    throw new Error(`Navigation did not remain on Part ${partNumber}: ${title}`);
   };
   const waitForDashboardGroup = async () => {
     await page.getByText('PR40 QA Group', { exact: true }).first().waitFor({ state: 'visible', timeout: 25000 });
@@ -232,7 +238,7 @@ async function testPreview() {
     const p8 = partData(lesson, 8);
     const p9 = partData(lesson, 9);
 
-    for (const title of ['Quick Drill (Sounds)', 'Teach Concepts (Reading)', 'Word Cards', 'Wordlist Reading', 'Sentence Reading', 'Quick Drill (Rev)', 'Teach Concepts (Spelling)', 'Written Work (Dictation)', 'Passage Reading', 'Listening Comp']) {
+    for (const title of partTitles) {
       if (!(await sidebarPart(title).isVisible().catch(() => false))) throw new Error(`${lesson.id}: missing sidebar part ${title}`);
     }
 
