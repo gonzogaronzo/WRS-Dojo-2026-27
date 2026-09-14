@@ -30,6 +30,7 @@ export interface Part7SpellingUnit {
 
 export interface Part7SpellingItem {
   id: string;
+  /** Teacher-private target; blank only in the sanitized student projection. */
   word: string;
   group: 'review' | 'current' | 'word-element';
   representation: Part7Representation;
@@ -92,6 +93,7 @@ const representationMatchesUnits = (representation: Part7Representation, units: 
 export const part7SpellingItemsFromData = (value: unknown): Part7SpellingItem[] | null => {
   const data = asRecord(value);
   if (!data || !Array.isArray(data.spellingItems) || data.spellingItems.length === 0) return null;
+  const studentProjection = data.studentProjection === true;
 
   const seenIds = new Set<string>();
   const normalized: Part7SpellingItem[] = [];
@@ -103,7 +105,7 @@ export const part7SpellingItemsFromData = (value: unknown): Part7SpellingItem[] 
     const group = record?.group;
     const representation = record?.representation as Part7Representation | undefined;
     if (
-      !record || !id || !word || seenIds.has(id) ||
+      !record || !id || (!studentProjection && !word) || seenIds.has(id) ||
       (group !== 'review' && group !== 'current' && group !== 'word-element') ||
       !representation || !representations.has(representation) ||
       !Array.isArray(record.units) || record.units.length === 0
@@ -125,15 +127,34 @@ export const part7SpellingItemsFromData = (value: unknown): Part7SpellingItem[] 
     seenIds.add(id);
     normalized.push({
       id,
-      word,
+      word: studentProjection ? '' : word,
       group,
       representation,
       units,
-      teacherCue: text(record.teacherCue) || undefined
+      teacherCue: studentProjection ? undefined : (text(record.teacherCue) || undefined)
     });
   }
 
   return normalized;
+};
+
+/**
+ * Presenter/student payload for Part 7. It carries only what the passive board
+ * needs to reveal the supplied cards. The target spelling and teacher cue never
+ * cross the teacher/student boundary.
+ */
+export const sanitizePart7SpellingDataForStudent = (value: unknown): UnknownRecord | undefined => {
+  const items = part7SpellingItemsFromData(value);
+  if (!items) return undefined;
+  return {
+    studentProjection: true,
+    spellingItems: items.map(item => ({
+      id: item.id,
+      group: item.group,
+      representation: item.representation,
+      units: item.units
+    }))
+  };
 };
 
 const unitTile = (unit: Part7SpellingUnit) => ({
