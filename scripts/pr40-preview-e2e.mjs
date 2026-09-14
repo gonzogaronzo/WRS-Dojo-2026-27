@@ -176,7 +176,10 @@ async function testPreview() {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       await sidebarPart(title).click();
       await page.waitForTimeout(300);
-      if (await page.getByText(`${partNumber} / 10`, { exact: true }).isVisible().catch(() => false)) return;
+      if (await page.getByText(`${partNumber} / 10`, { exact: true }).isVisible().catch(() => false)) {
+        await page.waitForTimeout(700);
+        if (await page.getByText(`${partNumber} / 10`, { exact: true }).isVisible().catch(() => false)) return;
+      }
     }
     throw new Error(`Navigation did not remain on Part ${partNumber}: ${title}`);
   };
