@@ -1,6 +1,6 @@
 # WRS Dojo Canonical Lesson JSON v1
 
-Status: working contract for canonicalization. Not production-canonical until the round-trip and browser gates below pass.
+Status: working contract for canonicalization. The full deployed-browser round trip has passed for the 3A Substep 2.5 reference lesson. This contract is not production-canonical until the remaining representative-regression/generalization gate is complete.
 
 ## Architecture decision
 
@@ -14,14 +14,15 @@ Therefore:
 - Canonical export target: the validated `runtimePlan`, not a dump of editor `formData`.
 - Legacy JSON remains importable for backward compatibility but is not a generation target.
 - A canonical lesson contains Parts 1–10 exactly once. `plannedParts` controls the run route.
-- Source/provenance and teacher/student privacy boundaries are part of the contract, not optional metadata.
+- Source/provenance and teacher/student privacy boundaries are part of the contract, not optional concerns.
 
 ## Evidence used to establish this contract
 
 1. Current production importer/runtime adapter on `independent-hosting`.
-2. Exported Step 2.5 lesson that is close to correct for Parts 1 and 3–10.
-3. Exported Step 7.3 lesson that is known-good for interactive Part 2.
-4. Draft PR #40 runtime/instructional-contract work, used as design evidence only. PR #40 remains separate, draft, and unmerged.
+2. Exported Step 2.5 lesson used as behavioral evidence for Parts 1 and 3–10.
+3. Exported Step 7.3 lesson used as the known-good interactive Part 2 reference.
+4. Draft PR #40 runtime/instructional-contract work, used as design and regression evidence only. PR #40 remains separate and unmerged.
+5. Source-grounded 5A Substep 7.4 runtime lesson used as an additional canonical regression fixture.
 
 ## Canonical top-level fields
 
@@ -33,15 +34,36 @@ Required:
 - `step`
 - `substep`
 - `focus`: `introduction | accuracy | automaticity-fluency`
+- `lessonPath`
+- `plannedParts`
+- `planningContext`
 - `sources`
 - `parts`: exactly Parts 1–10 once each
 
-Supported planning fields:
+Planning context fields:
 
-- `lessonPath`
-- `plannedParts`
 - `planningContext.conceptsToWeave`
 - `planningContext.troubleSpots`
+
+## Source manifest and verification
+
+Each canonical source entry requires `id`, `label`, `kind`, and `locator`. It may also carry `edition`, `notes`, and an explicit `verification` value.
+
+Supported verification values are:
+
+- `verified`: the cited source/content was actually checked.
+- `needs-verification`: the source is identified but the cited claim or selection has not yet been verified.
+- `teacher-created`: the item is intentionally teacher-created rather than Wilson-source content.
+
+Verification is optional in the interchange format because older/runtime source manifests do not always carry it. **Absence is never interpreted as verified.** In the compatibility `wrsPlan` projection:
+
+- an unmarked Wilson/source-controlled reference becomes `needs-verification`;
+- a teacher-selection reference defaults to `teacher-created`;
+- `source-verified` is used only when every non-teacher source is explicitly `verified`;
+- `partially-verified` is used when at least one, but not all, non-teacher sources are explicitly `verified`;
+- otherwise the projected verification status is `draft`.
+
+This prevents source labels from silently becoming claims of source verification.
 
 ## Part ownership
 
@@ -49,13 +71,13 @@ The runtime Part is authoritative for the content below. Legacy screen fields ar
 
 | Part | Canonical runtime ownership | Current legacy projection / consumer |
 |---|---|---|
-| 1 | `data.quickDrill` plus verified selection metadata | `quickDrill` |
+| 1 | `data.quickDrill` plus selection metadata | `quickDrill` |
 | 2 | `data.part2Presentation`, focus-specific review/current data, source refs | `slides` fallback plus interactive Part 2 runner |
 | 3 | `data.wordCards`, `data.hfwList`, current/review packet metadata | `wordCards`, `hfwList` |
 | 4 | Student Reader/page, `practiceWords`, charting plan/lists/targets | word-list practice/charting fields |
 | 5 | Student Reader/page, `sentences`, `weaveQuestions` | `sentences` plus runtime weave questions |
 | 6 | `quickDrillReverse`, `wordElements` | `quickDrillReverse` |
-| 7 | review/current spelling words, Word Elements, focus-specific teaching/repair metadata | spelling runner/runtime fields plus compatibility summary |
+| 7 | review/current spelling words, Word Elements, and explicit `spellingItems` when canonical dictate/reveal presentation is used | spelling runner/runtime fields plus compatibility summary |
 | 8 | complete `dictation` payload plus category provenance and Mark/Reinforce target | `dictation` |
 | 9 | Reader/page/title/full passage/questions/history status | passage fields and passage runner |
 | 10 | `teacherPlanStatus` and optional supported listening-comprehension payload | Part 10 runner / TBD state |
@@ -106,21 +128,26 @@ The following are compatibility output, not canonical input truth:
 A lesson format is not canonized merely because it parses. The following must all pass:
 
 1. **Schema gate**: valid `wrs-runtime-v1`, Parts 1–10 exactly once, valid focus and source references.
-2. **Instructional contract gate**: required Part-specific content is complete and source-grounded; no teacher-selection placeholders.
+2. **Instructional contract gate**: required Part-specific content is complete and source-grounded; no unresolved teacher-selection placeholders where source-controlled material is required.
 3. **Projection gate**: runtime → legacy compatibility projection preserves every field consumed by the current screens.
 4. **Runner gate**: Parts 1–10 visibly render the intended content; interactive Part 2 works without fallback failure or hidden answer leakage.
 5. **Persistence gate**: save → full reload → reopen/run preserves instructional content and intended runtime state.
 6. **Export gate**: export emits canonical runtime JSON, not mutable legacy/editor state.
 7. **Round-trip gate**: canonical import → save → export → re-import is instructionally equivalent. IDs/timestamps may differ; instructional content may not disappear or change.
-8. **Regression gate**: representative lessons cover at least 2.5, 7.3, 7.4, an affix-heavy lesson, and a Greek/Latin-heavy lesson.
+8. **Regression gate**: representative lessons cover at least 2.5, 7.3, 7.4, an affix-heavy lesson, and a Greek/Latin-heavy lesson at the level needed to prove the shared contract rather than only one Substep.
 
-## First reference-build sequence
+## Current gate evidence
 
-1. Use the exported 2.5 lesson as behavioral evidence for Parts 1 and 3–10.
-2. Use the exported 7.3 lesson as behavioral evidence for interactive Part 2.
-3. Build one fresh complete 2.5 runtime lesson from current source-grounded 3A content. Do not patch the old hybrid file.
-4. Run every gate above against that 2.5 lesson.
-5. Only after the 2.5 round trip passes, promote the structure from working contract to canonical v1 and make generator/exporter code depend on it.
+The 3A Substep 2.5 canonical reference has completed the deployed-browser path through actual UI import, Parts 1–10 runtime, save, full reload, reopen/run, canonical export, and export/re-import. The temporary preview-QA harness was removed after the successful run.
+
+Current automated regression evidence also includes:
+
+- Step 7.3 interactive Part 2 behavior, privacy, Wilson semantic visuals, affix presentation, notebook visuals, and one runner-owned navigation path;
+- Step 8.2 structurally different Syllable Card and Word Element Card behavior, including Latin-base presentation;
+- Greek combining-form semantic visual coverage;
+- a source-grounded 5A Step 7.4 canonical regression fixture covering canonical acceptance, projection, source-verification preservation, and export/re-import.
+
+These tests materially broaden the contract, but they are not a claim that every Substep/focus combination has completed the full deployed-browser round trip. The PR remains draft while that production-canonical threshold is being decided and completed.
 
 ## Separate known bug
 
