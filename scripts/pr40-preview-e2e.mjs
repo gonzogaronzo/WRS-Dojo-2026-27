@@ -270,13 +270,16 @@ async function testPreview() {
 
     await navigatePart('Wordlist Reading');
     const p4Expected = new Set(strings(p4.practiceWords));
-    const p4Labels = page.locator('[aria-label^="Student 1:"]');
-    for (let attempt = 0; attempt < 30 && !await p4Labels.count(); attempt += 1) {
+    const p4Labels = main().locator('[aria-label]');
+    let practiceLabels = [];
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      practiceLabels = await p4Labels.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label') || ''));
+      if (practiceLabels.some(label => [...p4Expected].some(word => label.includes(`: ${word},`)))) break;
       await page.waitForTimeout(100);
     }
-    if (!await p4Labels.count()) throw new Error(`${lesson.id}: Part 4 practice deck disappeared after navigation.`);
-    const p4Words = (await p4Labels.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label') || '')))
+    const p4Words = practiceLabels
       .map(label => label.split(': ').slice(1).join(': ').split(', ')[0]).filter(Boolean);
+    if (!p4Words.length) throw new Error(`${lesson.id}: Part 4 practice deck disappeared after navigation.`);
     const p4Wrong = p4Words.filter(word => !p4Expected.has(word));
     if (p4Wrong.length) throw new Error(`${lesson.id}: Part 4 rendered words from another lesson: ${p4Wrong.join(', ')}`);
 
