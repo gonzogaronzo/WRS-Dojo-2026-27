@@ -101,8 +101,15 @@ const assertCanonicalRawShape = (value: unknown): UnknownRecord => {
     if (!canonicalSourceKinds.has(kind)) {
       throw new Error(`Canonical source ${id} has unsupported kind ${kind}.`);
     }
-    if ('verification' in source && !canonicalSourceVerification.has(text(source.verification))) {
-      throw new Error(`Canonical source ${id} has unsupported verification ${text(source.verification) || '(blank)'}.`);
+    const verification = 'verification' in source ? text(source.verification) : '';
+    if ('verification' in source && !canonicalSourceVerification.has(verification)) {
+      throw new Error(`Canonical source ${id} has unsupported verification ${verification || '(blank)'}.`);
+    }
+    if (verification === 'teacher-created' && kind !== 'teacher-selection') {
+      throw new Error(`Canonical source ${id} may use teacher-created verification only with kind teacher-selection.`);
+    }
+    if (kind === 'teacher-selection' && verification && verification !== 'teacher-created') {
+      throw new Error(`Canonical teacher-selection source ${id} cannot claim ${verification} verification.`);
     }
     if (sourceIds.has(id)) throw new Error(`Canonical source id ${id} is duplicated.`);
     sourceIds.add(id);
