@@ -1,6 +1,7 @@
 import { GroupProfile, Lesson, LessonPart, StudentProfile } from './types';
 import { createInitialLessonSession, LessonSessionState } from './useLessonSession';
 import { sanitizePart2PresentationForStudent } from './part2Presentation';
+import { sanitizePart7SpellingDataForStudent } from './components/modules/Part7SpellingRunner';
 
 export const PRESENTER_CHANNEL = 'wrs-dojo-presenter-v1';
 export const PRESENTER_STATE_KEY = 'wrs_dojo_presenter_state_v1';
@@ -231,6 +232,34 @@ export const sanitizePresenterLesson = (
             teacherDirections: [],
             sourceIds: [],
             data: part.part === 2 ? { part2Presentation: studentPart2Presentation } : {}
+          }))
+        };
+      }
+    }
+
+    // Part 7 carries the exact reveal cards to the passive display, but never
+    // the dictated target spelling or teacher cue. Reveal state itself travels
+    // in the already-sanitized lesson session.
+    if (currentPart === LessonPart.Part7 && lesson.runtimePlan) {
+      const part7 = lesson.runtimePlan.parts.find(part => part.part === 7);
+      const studentPart7Data = sanitizePart7SpellingDataForStudent(part7?.data);
+      if (studentPart7Data !== undefined) {
+        compact.runtimePlan = {
+          schemaVersion: lesson.runtimePlan.schemaVersion,
+          id: lesson.runtimePlan.id,
+          title: lesson.runtimePlan.title,
+          step: lesson.runtimePlan.step,
+          substep: lesson.runtimePlan.substep,
+          focus: lesson.runtimePlan.focus,
+          lessonPath: lesson.runtimePlan.lessonPath,
+          plannedParts: lesson.runtimePlan.plannedParts,
+          sources: [],
+          parts: lesson.runtimePlan.parts.map(part => ({
+            part: part.part,
+            title: '',
+            teacherDirections: [],
+            sourceIds: [],
+            data: part.part === 7 ? studentPart7Data : {}
           }))
         };
       }
