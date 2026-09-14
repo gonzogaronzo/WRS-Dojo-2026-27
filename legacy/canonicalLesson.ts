@@ -27,6 +27,14 @@ const expectedPartsForPath: Record<LessonPath, RuntimeLessonPart['part'][]> = {
 
 const canonicalFocus = new Set(['introduction', 'accuracy', 'automaticity-fluency']);
 const canonicalPaths = new Set<LessonPath>(['full', 'block1+3', 'block2+3']);
+const canonicalSourceKinds = new Set([
+  'step-instruction',
+  'instructor-manual',
+  'dictation-book',
+  'student-reader',
+  'student-notebook',
+  'teacher-selection'
+]);
 
 const assertExactKeys = (record: UnknownRecord, allowed: Set<string>, label: string) => {
   const unexpected = Object.keys(record).filter(key => !allowed.has(key));
@@ -85,8 +93,12 @@ const assertCanonicalRawShape = (value: unknown): UnknownRecord => {
     if (!source) throw new Error('Canonical source entries must be objects.');
     assertExactKeys(source, allowedSourceKeys, 'Canonical source');
     const id = text(source.id);
-    if (!id || !text(source.label) || !text(source.kind) || !text(source.locator)) {
+    const kind = text(source.kind);
+    if (!id || !text(source.label) || !kind || !text(source.locator)) {
       throw new Error('Canonical sources require id, label, kind, and locator.');
+    }
+    if (!canonicalSourceKinds.has(kind)) {
+      throw new Error(`Canonical source ${id} has unsupported kind ${kind}.`);
     }
     if (sourceIds.has(id)) throw new Error(`Canonical source id ${id} is duplicated.`);
     sourceIds.add(id);
@@ -114,6 +126,9 @@ const assertCanonicalRawShape = (value: unknown): UnknownRecord => {
     if (!asRecord(part.data)) throw new Error(`Canonical Part ${expectedPart} data must be an object.`);
 
     const linkedSources = strings(part.sourceIds);
+    if (new Set(linkedSources).size !== linkedSources.length) {
+      throw new Error(`Canonical Part ${expectedPart} sourceIds must not contain duplicates.`);
+    }
     const isPlanned = expectedPlanned.includes(expectedPart as RuntimeLessonPart['part']);
     if (isPlanned && expectedPart < 10 && linkedSources.length === 0) {
       throw new Error(`Canonical planned Part ${expectedPart} requires at least one source reference.`);
