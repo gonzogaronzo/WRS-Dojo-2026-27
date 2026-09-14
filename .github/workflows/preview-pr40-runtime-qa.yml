@@ -37,20 +37,6 @@ jobs:
       - name: Install Firebase Functions dependencies
         run: npm ci --prefix functions
 
-      - name: Normalize temporary QA harness for CI module resolution
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('scripts/pr40-preview-e2e.mjs')
-          s = p.read_text()
-          s = s.replace("const require = createRequire(import.meta.url);\nconst { initializeApp, cert, getApps, deleteApp } = require('../functions/node_modules/firebase-admin/app');\nconst { getAuth } = require('../functions/node_modules/firebase-admin/auth');\nconst { getFirestore } = require('../functions/node_modules/firebase-admin/firestore');", "const require = createRequire(new URL('../functions/package.json', import.meta.url));\nconst { initializeApp, cert, getApps, deleteApp } = require('firebase-admin/app');\nconst { getAuth } = require('firebase-admin/auth');\nconst { getFirestore } = require('firebase-admin/firestore');")
-          s = s.replace("    await assertVisibleText(lesson.title, 'imported lesson title');", "    const titleInput = page.getByText('Custom Title (Optional)', { exact: true }).locator('..').locator('input');\n    const importedTitle = await titleInput.inputValue();\n    if (importedTitle !== lesson.title) throw new Error(`Imported title mismatch: expected ${lesson.title}, got ${importedTitle}`);")
-          s = s.replace("    await assertVisibleText('Auditory Quick Drill', 'Part 6 auditory drill');", "    await assertVisibleText('Auditory Drill', 'Part 6 auditory drill');")
-          s = s.replace("    const questions = Array.isArray(p9.comprehensionQuestions) ? p9.comprehensionQuestions : [];", "    const questions = Array.isArray(p9.questions) ? p9.questions : [];")
-          s = s.replace("    await page.getByText(lesson.title, { exact: false }).first().waitFor({ state: 'visible', timeout: 20000 });\n    const p9 = partData(lesson, 9);", "    const p9 = partData(lesson, 9);\n    await page.getByText(p9.passageTitle, { exact: false }).first().waitFor({ state: 'visible', timeout: 20000 });")
-          p.write_text(s)
-          PY
-
       - name: Run verification suite
         run: npm test
 
@@ -86,16 +72,12 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Clean isolated Firebase QA records
+      - name: Clean isolated Firebase QA records and Auth user
         if: always()
         continue-on-error: true
         run: node scripts/pr40-preview-e2e.mjs cleanup
 
-      - name: Remove temporary auth helper from preview artifact
-        if: always()
-        run: rm -f standalone-dist/__qa_auth.html
-
-      - name: Scrub auth helper from preview channel
+      - name: Scrub temporary auth helper from preview channel
         if: always() && steps.preview.outcome == 'success'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
