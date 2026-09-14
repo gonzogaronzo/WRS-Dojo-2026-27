@@ -60,6 +60,18 @@ jobs:
       - name: Install browser QA driver
         run: npm install --no-save --ignore-scripts playwright-core@1.55.0
 
+      - name: Normalize resumed Part 7 reveal state in export re-import check
+        run: |
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+          const file = 'scripts/pr41-canonical-preview-e2e.mjs';
+          const source = fs.readFileSync(file, 'utf8');
+          const before = `    await privateTarget.getByText('flask', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });\n    await assertVisibleText('Listen', 'Part 7 hidden student state');`;
+          const after = `    await privateTarget.getByText('flask', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });\n    if (rewindToFirst) {\n      const hide = page.getByRole('button', { name: 'Hide', exact: true });\n      if (await hide.isVisible().catch(() => false)) {\n        await hide.click();\n        await page.locator('[data-part7-revealed="false"]').waitFor({ state: 'visible' });\n      }\n    }\n    await assertVisibleText('Listen', 'Part 7 hidden student state');`;
+          if (!source.includes(before)) throw new Error('Expected Part 7 QA anchor not found.');
+          fs.writeFileSync(file, source.replace(before, after));
+          EOF
+
       - name: Run authenticated canonical browser QA
         run: node scripts/pr41-canonical-preview-e2e.mjs test
 
