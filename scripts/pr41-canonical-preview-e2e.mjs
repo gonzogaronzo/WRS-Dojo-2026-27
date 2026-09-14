@@ -257,11 +257,28 @@ async function testPreview() {
     checks.part5TeacherQuestion = 'PASS';
   };
 
-  const verifyPart7 = async () => {
+  const verifyPart7 = async ({ rewindToFirst = false } = {}) => {
     await navigatePart('Teach Concepts (Spelling)');
     await page.locator('[data-part7-spelling-runner]').waitFor({ state: 'visible' });
-    await page.locator('[data-part7-target-private]').waitFor({ state: 'visible' });
-    await assertVisibleText('flask', 'Part 7 first private target');
+    const privateTarget = page.locator('[data-part7-target-private]');
+    await privateTarget.waitFor({ state: 'visible' });
+
+    // Re-importing the exact same lesson id can legitimately resume the active
+    // same-lesson session position. For the export/re-import fidelity check,
+    // normalize that position through the runner's own Back control before
+    // asserting the canonical first item. Fresh import and save/reopen checks
+    // remain strict and do not use this normalization.
+    if (rewindToFirst) {
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        if (await privateTarget.getByText('flask', { exact: true }).isVisible().catch(() => false)) break;
+        const back = page.getByRole('button', { name: 'Previous spelling item', exact: true });
+        if (!(await back.isEnabled().catch(() => false))) break;
+        await back.click();
+        await page.waitForTimeout(100);
+      }
+    }
+
+    await privateTarget.getByText('flask', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
     await assertVisibleText('Listen', 'Part 7 hidden student state');
     await assertAbsentText('Cipher');
     await assertAbsentText('Quick Practice');
@@ -357,12 +374,15 @@ async function testPreview() {
     checks.saveReloadReopen = 'PASS';
     await exitDojo();
 
-    // Prove the canonical export itself can be imported and run again.
+    // Prove the canonical export itself can be imported and run again. The
+    // export has the same lesson id, so an active same-lesson session may resume
+    // its spelling index. Rewind through the public runner control for this
+    // fidelity check rather than treating session continuity as data loss.
     await openNewLessonEditor();
     await importLesson(exported);
     await runMissionToBriefing();
     await verifyPart2();
-    await verifyPart7();
+    await verifyPart7({ rewindToFirst: true });
     await verifyPart9();
     checks.exportReimport = 'PASS';
 
