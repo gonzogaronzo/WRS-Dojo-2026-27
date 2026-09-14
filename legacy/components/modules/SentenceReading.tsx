@@ -5,6 +5,7 @@ import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
 
 interface SentenceReadingProps {
   sentences: string[];
+  weaveQuestions?: string[];
   currentIndex?: number;
   onUpdateIndex?: (index: number) => void;
   strokes?: DrawingStroke[];
@@ -14,6 +15,7 @@ interface SentenceReadingProps {
 
 const SentenceReading: React.FC<SentenceReadingProps> = ({ 
   sentences,
+  weaveQuestions = [],
   currentIndex: syncedIndex,
   onUpdateIndex,
   strokes,
@@ -31,7 +33,7 @@ const SentenceReading: React.FC<SentenceReadingProps> = ({
   const [tool, setTool] = useState<'cursor' | 'pen-blue' | 'pen-red'>('pen-blue');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastPointRef = useRef<{ x: number, y: number } | null>(null);
+  const lastPointRef = useRef<{ x: number, y: number} | null>(null);
   const rectRef = useRef<DOMRect | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const syncedDrawing = useSyncedDrawingCanvas({ strokes, onUpdateStrokes, tool, lineWidth: 4, readOnly });
@@ -140,6 +142,8 @@ const SentenceReading: React.FC<SentenceReadingProps> = ({
     );
   }
 
+  const weaveQuestion = weaveQuestions[currentIndex]?.trim();
+
   return (
     <div className="min-h-full flex flex-col bg-[#fcfbf9] text-stone-900">
       {/* Toolbar */}
@@ -184,6 +188,12 @@ const SentenceReading: React.FC<SentenceReadingProps> = ({
 
       {/* Canvas / Text Area */}
       <div className="flex-1 relative flex flex-col bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')]" ref={containerRef}>
+        {!readOnly && weaveQuestion && (
+          <div data-part5-teacher-weave className="absolute top-5 left-1/2 -translate-x-1/2 z-30 w-[min(90%,56rem)] rounded-2xl border border-amber-200 bg-amber-50/95 px-5 py-3 shadow-sm">
+            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700 mb-1">Teacher weave question</div>
+            <div className="text-sm font-bold text-stone-800">{weaveQuestion}</div>
+          </div>
+        )}
         
         {/* Navigation Buttons (Visible & Interactive) */}
         <button 
