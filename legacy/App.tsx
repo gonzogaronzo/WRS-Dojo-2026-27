@@ -489,6 +489,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (safeBoot || isStudentDisplayWindow) return;
+    // The teacher window is authoritative once a run has started. A delayed
+    // Firestore echo can otherwise replace newer local navigation and activity
+    // state (for example, a freshly created Part 4 practice distribution).
+    if (mode === 'run' || mode === 'mission') return;
     if (activeSession && activeSession.lesson) {
       console.log("Received session update from cloud:", activeSession);
       const incomingSession = lessonSessionFromCloud(activeSession);
@@ -503,7 +507,7 @@ const App: React.FC = () => {
       
       if (mode !== 'run' && mode !== 'mission') setMode('run');
     }
-  }, [activeSession, groups.length, isStudentDisplayWindow, safeBoot]);
+  }, [activeSession, groups.length, isStudentDisplayWindow, mode, safeBoot]);
 
   useEffect(() => {
     if (mode !== 'run' || !user || user.uid === 'guest-sensei' || !currentLesson || isStudentView) return;
