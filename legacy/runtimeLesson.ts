@@ -5,6 +5,7 @@ import {
   LessonPath,
   LessonSourceKind,
   LessonSourceReference,
+  LessonSourceVerification,
   RuntimeLessonPart,
   RuntimeLessonPartData,
   RuntimePlanningContext,
@@ -55,6 +56,12 @@ const sourceKindFrom = (value: unknown): LessonSourceKind => {
   return allowed.includes(value as LessonSourceKind) ? value as LessonSourceKind : 'teacher-selection';
 };
 
+const sourceVerificationFrom = (value: unknown): LessonSourceVerification | undefined => (
+  value === 'verified' || value === 'needs-verification' || value === 'teacher-created'
+    ? value
+    : undefined
+);
+
 const normalizeSource = (value: unknown): LessonSourceReference | null => {
   const source = asRecord(value);
   if (!source || !text(source.id)) return null;
@@ -64,7 +71,8 @@ const normalizeSource = (value: unknown): LessonSourceReference | null => {
     kind: sourceKindFrom(source.kind),
     edition: text(source.edition) || undefined,
     locator: text(source.locator) || undefined,
-    notes: text(source.notes) || undefined
+    notes: text(source.notes) || undefined,
+    verification: sourceVerificationFrom(source.verification)
   };
 };
 
@@ -153,7 +161,7 @@ const sourceForCompatibilityPlan = (source: LessonSourceReference): WrsSourceRef
   title: source.label,
   edition: source.edition || '',
   locator: source.locator || '',
-  verification: source.kind === 'teacher-selection' ? 'teacher-created' : 'verified',
+  verification: source.verification || (source.kind === 'teacher-selection' ? 'teacher-created' : 'verified'),
   notes: source.notes || ''
 });
 
