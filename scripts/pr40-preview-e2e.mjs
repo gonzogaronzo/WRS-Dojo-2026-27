@@ -271,6 +271,9 @@ async function testPreview() {
     await navigatePart('Wordlist Reading');
     const p4Expected = new Set(strings(p4.practiceWords));
     const p4Labels = page.locator('[aria-label^="Student 1:"]');
+    for (let attempt = 0; attempt < 30 && !await p4Labels.count(); attempt += 1) {
+      await page.waitForTimeout(100);
+    }
     if (!await p4Labels.count()) throw new Error(`${lesson.id}: Part 4 practice deck disappeared after navigation.`);
     const p4Words = (await p4Labels.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label') || '')))
       .map(label => label.split(': ').slice(1).join(': ').split(', ')[0]).filter(Boolean);
