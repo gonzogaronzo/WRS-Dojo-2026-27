@@ -216,22 +216,24 @@ async function testPreview() {
     const expected = new Set(strings(partData(lesson, 4).practiceWords));
     if (!expected.size) throw new Error(`${lesson.id}: Part 4 has no practiceWords to verify.`);
     await navigatePart('Wordlist Reading');
-    let labels = page.locator('[aria-label^="Student 1:"]');
-    if (await labels.count() === 0) {
+    let labels = main().locator('[aria-label]');
+    let rawLabels = await labels.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label') || ''));
+    if (!rawLabels.some(label => [...expected].some(word => label.includes(`: ${word},`)))) {
       const onePlayer = main().getByRole('button', { name: '1', exact: true });
       await onePlayer.waitFor({ state: 'visible' });
       await onePlayer.click();
-      labels = page.locator('[aria-label^="Student 1:"]');
-      await labels.first().waitFor({ state: 'visible' });
+      await page.waitForTimeout(300);
+      labels = main().locator('[aria-label]');
+      rawLabels = await labels.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label') || ''));
     }
     await assertVisibleText('Targeted Word Practice', 'Part 4 practice mode');
-    const rawLabels = await labels.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label') || ''));
-    const visibleWords = rawLabels.map(label => label.split(': ').slice(1).join(': ').split(', ')[0]).filter(Boolean);
+    const visibleWords = rawLabels.filter(label => /: .+, (none|correct|error)$/.test(label))
+      .map(label => label.split(': ').slice(1).join(': ').split(', ')[0]).filter(Boolean);
     const wrong = visibleWords.filter(word => !expected.has(word));
     if (wrong.length) throw new Error(`${lesson.id}: Part 4 leaked words outside this lesson: ${wrong.join(', ')}`);
     await page.waitForTimeout(700);
-    const settledLabels = await page.locator('[aria-label^="Student 1:"]').count();
-    if (!settledLabels) throw new Error(`${lesson.id}: Part 4 vanished or auto-navigated without a teacher click.`);
+    const settledLabels = await main().locator('[aria-label]').evaluateAll((nodes, words) => nodes.map(node => node.getAttribute('aria-label') || '').filter(label => words.some(word => label.includes(`: ${word},`))), [...expected]);
+    if (!settledLabels.length) throw new Error(`${lesson.id}: Part 4 vanished or auto-navigated without a teacher click.`);
     return visibleWords;
   };
 
