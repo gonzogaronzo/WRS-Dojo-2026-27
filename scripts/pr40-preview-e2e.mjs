@@ -270,6 +270,8 @@ async function testPreview() {
 
     await navigatePart('Wordlist Reading');
     const p4Expected = new Set(strings(p4.practiceWords));
+    const oneReader = main().getByRole('button', { name: '1', exact: true });
+    if (await oneReader.isVisible().catch(() => false)) await oneReader.click();
     const p4Labels = main().locator('[aria-label]');
     let practiceLabels = [];
     for (let attempt = 0; attempt < 30; attempt += 1) {
