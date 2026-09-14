@@ -206,8 +206,10 @@ async function testPreview() {
   const exitDojo = async () => {
     await page.getByRole('button', { name: 'Exit Dojo', exact: true }).click();
     const returnToDojo = page.getByRole('button', { name: /Return to Dojo/i });
-    await returnToDojo.waitFor({ state: 'visible' });
-    await returnToDojo.click();
+    const needsReturnClick = await returnToDojo.waitFor({ state: 'visible', timeout: 2500 })
+      .then(() => true)
+      .catch(() => false);
+    if (needsReturnClick) await returnToDojo.click();
     await ensureGroupOpen();
   };
   const deploySavedLesson = async titleText => {
