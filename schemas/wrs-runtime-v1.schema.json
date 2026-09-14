@@ -138,7 +138,10 @@
         },
         "edition": { "type": "string" },
         "locator": { "type": "string", "minLength": 1 },
-        "notes": { "type": "string" }
+        "notes": { "type": "string" },
+        "verification": {
+          "enum": ["verified", "needs-verification", "teacher-created"]
+        }
       }
     },
     "partBase": {
