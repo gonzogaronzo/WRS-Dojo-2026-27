@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   createInitialLessonSession,
@@ -86,4 +87,20 @@ test('detects meaningful session changes', () => {
 
   assert.ok(lessonSessionsMatch(original, createInitialLessonSession()));
   assert.equal(lessonSessionsMatch(original, changed), false);
+});
+
+test('Run Mission from the editor clears prior recoverable and lesson runtime state', () => {
+  const appSource = readFileSync(new URL('../legacy/App.tsx', import.meta.url), 'utf8');
+  const onSaveStart = appSource.indexOf('onSave={async (l, run = false) => {');
+  assert.notEqual(onSaveStart, -1, 'LessonForm onSave launch path should exist');
+
+  const onSaveEnd = appSource.indexOf('\n          />', onSaveStart);
+  assert.notEqual(onSaveEnd, -1, 'LessonForm onSave launch path should be bounded');
+  const onSaveBlock = appSource.slice(onSaveStart, onSaveEnd);
+
+  assert.match(
+    onSaveBlock,
+    /if \(run\) \{[\s\S]*discardRecoverableSession\(\);[\s\S]*resetLessonSession\(\);[\s\S]*setMode\('run'\);[\s\S]*setCurrentPart\(LessonPart\.Briefing\);/,
+    'Running a newly saved/imported lesson must clear the previous lesson session before opening the briefing'
+  );
 });
