@@ -254,10 +254,14 @@ async function testPreview() {
       await page.waitForTimeout(500);
       await main().getByRole('button', { name: 'Start', exact: true }).click();
     }
-    await page.waitForTimeout(250);
     const p3Words = new Set([...cardTexts(p3.wordCards), ...strings(p3.hfwList)]);
     if (!p3Words.size) throw new Error(`${lesson.id}: no Part 3 words to verify.`);
-    const bodyText = await main().innerText();
+    let bodyText = '';
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      bodyText = await main().innerText();
+      if ([...p3Words].some(word => bodyText.includes(word))) break;
+      await page.waitForTimeout(100);
+    }
     if (![...p3Words].some(word => bodyText.includes(word))) throw new Error(`${lesson.id}: Part 3 displayed no intended Word Card/HFW content.`);
 
     await navigatePart('Wordlist Reading');
