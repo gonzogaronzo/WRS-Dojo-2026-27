@@ -4,6 +4,7 @@ import test from 'node:test';
 import { canonicalRuntimeFromImportValue, serializeCanonicalLesson } from '../legacy/canonicalLesson';
 import { normalizeLesson } from '../legacy/dataNormalization';
 import { part2InteractivePresentationFromData } from '../legacy/part2Presentation';
+import { runtimeLessonToCompatibilityWrsPlan } from '../legacy/runtimeLesson';
 
 const fixtureUrl = new URL('../fixtures/canonical/3A-2.5-accuracy.reference.json', import.meta.url);
 const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8'));
@@ -59,6 +60,24 @@ test('3A 2.5 canonical runtime projects the current Parts 1 and 3-9 without dupl
   assert.equal(Array.isArray((part9?.data as Record<string, unknown>)?.questions), true);
   assert.equal(((part9?.data as Record<string, unknown>).questions as unknown[]).length, 10);
   assert.equal((part9?.data as Record<string, unknown>)?.historyStatus, 'uncertain-flagged');
+});
+
+test('3A 2.5 runtime deterministically generates the old Official WRS Plan Details compatibility view', () => {
+  const runtime = canonicalRuntimeFromImportValue(fixture);
+  const plan = runtimeLessonToCompatibilityWrsPlan(runtime);
+
+  assert.equal(plan.lessonNumber, runtime.id);
+  assert.equal(plan.lessonFocus, 'accuracy');
+  assert.match(plan.troubleSpots, /Eleanor/);
+  assert.equal(plan.part2.reviewWords, 'flask, trend, grant, crunch');
+  assert.equal(plan.part2.currentWords, 'strap, scrap, splash, string, script, spring');
+  assert.match(plan.part6.vowels, /\/ă\/ → a/);
+  assert.match(plan.part6.wordElements, /-struct-/);
+  assert.match(plan.part7.reviewWordsAndElements, /flask/);
+  assert.match(plan.part7.currentWordsAndElements, /spring/);
+  assert.equal(plan.part9.title, 'The Spring Job');
+  assert.equal(plan.part9.page, '122-123');
+  assert.equal(plan.part9.followUpQuestions.split('\n').length, 10);
 });
 
 test('3A 2.5 survives canonical export and re-import without instructional runtime loss', () => {
