@@ -231,10 +231,14 @@ async function testPreview() {
       .map(label => label.split(': ').slice(1).join(': ').split(', ')[0]).filter(Boolean);
     const wrong = visibleWords.filter(word => !expected.has(word));
     if (wrong.length) throw new Error(`${lesson.id}: Part 4 leaked words outside this lesson: ${wrong.join(', ')}`);
-    await page.waitForTimeout(700);
-    const settledLabels = await main().locator('[aria-label]').evaluateAll((nodes, words) => nodes.map(node => node.getAttribute('aria-label') || '').filter(label => words.some(word => label.includes(`: ${word},`))), [...expected]);
-    if (!settledLabels.length) throw new Error(`${lesson.id}: Part 4 vanished or auto-navigated without a teacher click.`);
-    return visibleWords;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await page.waitForTimeout(700);
+      const settledLabels = await main().locator('[aria-label]').evaluateAll((nodes, words) => nodes.map(node => node.getAttribute('aria-label') || '').filter(label => words.some(word => label.includes(`: ${word},`))), [...expected]);
+      if (settledLabels.length) return visibleWords;
+      const onePlayer = main().getByRole('button', { name: '1', exact: true });
+      if (await onePlayer.isVisible().catch(() => false)) await onePlayer.click();
+    }
+    throw new Error(`${lesson.id}: Part 4 vanished or auto-navigated without a teacher click.`);
   };
 
   const verifyAllParts = async lesson => {
