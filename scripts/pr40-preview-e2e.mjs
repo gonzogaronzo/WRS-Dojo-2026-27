@@ -247,7 +247,13 @@ async function testPreview() {
 
     await navigatePart('Word Cards');
     const startButton = main().getByRole('button', { name: 'Start', exact: true });
-    if (await startButton.isVisible().catch(() => false)) await startButton.click();
+    if (await startButton.isVisible().catch(() => false)) {
+      // Part activation can replace the initial card-deck controls once while
+      // React restores the lesson session. Re-resolve the button after that
+      // render instead of racing a node that is about to be detached.
+      await page.waitForTimeout(500);
+      await main().getByRole('button', { name: 'Start', exact: true }).click();
+    }
     await page.waitForTimeout(250);
     const p3Words = new Set([...cardTexts(p3.wordCards), ...strings(p3.hfwList)]);
     if (!p3Words.size) throw new Error(`${lesson.id}: no Part 3 words to verify.`);
