@@ -65,6 +65,7 @@ const sourceVerificationFrom = (value: unknown): LessonSourceVerification | unde
 const normalizeSource = (value: unknown): LessonSourceReference | null => {
   const source = asRecord(value);
   if (!source || !text(source.id)) return null;
+  const verification = sourceVerificationFrom(source.verification);
   return {
     id: text(source.id),
     label: text(source.label),
@@ -72,7 +73,7 @@ const normalizeSource = (value: unknown): LessonSourceReference | null => {
     edition: text(source.edition) || undefined,
     locator: text(source.locator) || undefined,
     notes: text(source.notes) || undefined,
-    verification: sourceVerificationFrom(source.verification)
+    ...(verification ? { verification } : {})
   };
 };
 
