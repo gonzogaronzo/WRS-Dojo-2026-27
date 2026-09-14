@@ -492,7 +492,7 @@ const App: React.FC = () => {
     // The teacher window is authoritative once a run has started. A delayed
     // Firestore echo can otherwise replace newer local navigation and activity
     // state (for example, a freshly created Part 4 practice distribution).
-    if (mode === 'run' || mode === 'mission') return;
+    if (mode !== 'dashboard') return;
     if (activeSession && activeSession.lesson) {
       console.log("Received session update from cloud:", activeSession);
       const incomingSession = lessonSessionFromCloud(activeSession);
@@ -1083,7 +1083,7 @@ const App: React.FC = () => {
               } else {
                 setMode('dashboard');
               }
-            }} 
+            }}
           />
         </div>
       ) : mode === 'mission' ? (
@@ -1117,7 +1117,10 @@ const App: React.FC = () => {
             showDrawingsOnStudentDisplay={showPresenterDrawings}
             onToggleDrawingsOnStudentDisplay={() => setShowPresenterDrawings(value => !value)}
             onResyncStudentDisplay={resyncStudentDisplay}
-            onExit={() => setMode('edit')} 
+            onExit={async () => {
+              await updateSession(null);
+              setMode('edit');
+            }}
             onDashboard={() => setMode('dashboard')}
             onPrint={() => {
               if (currentLesson) {
