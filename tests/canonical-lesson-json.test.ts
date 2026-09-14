@@ -5,6 +5,8 @@ import {
   canonicalRuntimeFromLesson,
   serializeCanonicalLesson
 } from '../legacy/canonicalLesson';
+import { normalizeLesson } from '../legacy/dataNormalization';
+import { lesson25 } from '../legacy/lessons/step2-5';
 import { Lesson, RuntimeLessonPart, WRSRuntimeLessonPlan } from '../legacy/types';
 
 const runtimePart = (part: RuntimeLessonPart['part'], data: RuntimeLessonPart['data'] = {}): RuntimeLessonPart => ({
@@ -68,6 +70,13 @@ test('canonical import requires a top-level wrs-runtime-v1 object', () => {
   );
 });
 
+test('legacy-only lessons are migration inputs, not canonical exports', () => {
+  assert.throws(
+    () => canonicalRuntimeFromLesson(lesson25),
+    /no authoritative runtimePlan/
+  );
+});
+
 test('canonical export ignores stale legacy envelope fields', () => {
   const canonical = canonicalRuntimeFromLesson(legacyEnvelope);
   assert.equal(canonical.id, 'canonical-lesson');
@@ -90,4 +99,23 @@ test('canonical serialization emits only runtime JSON and round-trips structural
   assert.equal('wrsPlan' in parsed, false);
 
   assert.deepEqual(canonicalRuntimeFromImportValue(parsed), canonicalRuntimeFromLesson(legacyEnvelope));
+});
+
+test('canonical JSON re-enters the current loader through runtime projection rather than duplicate legacy fields', () => {
+  const canonicalJson = serializeCanonicalLesson(legacyEnvelope);
+  const loaded = normalizeLesson(JSON.parse(canonicalJson));
+
+  assert.ok(loaded);
+  assert.equal(loaded.schemaVersion, 2);
+  assert.equal(loaded.runtimePlan?.schemaVersion, 'wrs-runtime-v1');
+  assert.equal(loaded.title, 'Canonical lesson');
+  assert.equal(loaded.step, '2');
+  assert.equal(loaded.substep, '5');
+  assert.deepEqual(loaded.quickDrill, ['a', 'e']);
+  assert.deepEqual(loaded.wordCards.map(card => card.text), ['strong']);
+  assert.deepEqual(loaded.hfwList, ['also']);
+  assert.deepEqual(loaded.wordListPractice, ['strong']);
+  assert.deepEqual(loaded.wordListCharting, ['splash']);
+  assert.deepEqual(loaded.sentences, ['A sentence.']);
+  assert.equal(loaded.passage, 'Controlled text.');
 });
