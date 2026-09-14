@@ -348,6 +348,9 @@ async function testPreview() {
 
   const exitDojo = async () => {
     await page.getByRole('button', { name: 'Exit Dojo', exact: true }).click();
+    const returnToDojo = page.getByRole('button', { name: /Return to Dojo/i });
+    await returnToDojo.waitFor({ state: 'visible' });
+    await returnToDojo.click();
     await ensureGroupOpen();
   };
 
