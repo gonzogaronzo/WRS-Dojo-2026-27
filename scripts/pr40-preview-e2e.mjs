@@ -348,7 +348,7 @@ async function testPreview() {
 
   const exitDojo = async () => {
     await page.getByRole('button', { name: 'Exit Dojo', exact: true }).click();
-    await page.getByRole('button', { name: /Forge New Scroll/i }).waitFor({ state: 'visible' });
+    await ensureGroupOpen();
   };
 
   const deploySavedLesson = async lesson => {
