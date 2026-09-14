@@ -78,6 +78,24 @@ const normalizeWordCards = (value: unknown): Lesson['wordCards'] => (
   })) as Lesson['wordCards']
 );
 
+
+
+const normalizeStudentChartingLists = (value: unknown): NonNullable<Lesson['wordListChartingByStudent']> => (
+  recordArray(value).flatMap(entry => {
+    const studentName = nonEmptyString(entry.studentName);
+    const words = stringArray(entry.words);
+    return studentName ? [{ studentName, words }] : [];
+  })
+);
+
+const normalizePassageQuestions = (value: unknown): NonNullable<Lesson['passageQuestions']> => (
+  recordArray(value).flatMap(entry => {
+    const question = nonEmptyString(entry.question);
+    const level = typeof entry.level === 'string' ? entry.level : '';
+    return question && level ? [{ question, level: level as NonNullable<Lesson['passageQuestions']>[number]['level'] }] : [];
+  })
+);
+
 const normalizeAffixes = (value: unknown): Lesson['affixPractice'] => (
   identifiedRecordArray(value).map(affix => ({
     ...affix,
@@ -138,6 +156,17 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
     wordListReading: stringArray(lessonData.wordListReading),
     wordListPractice: stringArray(lessonData.wordListPractice),
     wordListCharting: stringArray(lessonData.wordListCharting),
+    wordListChartingByStudent: normalizeStudentChartingLists(lessonData.wordListChartingByStudent),
+    wordListMode: lessonData.wordListMode === 'charting' || lessonData.wordListMode === 'practice'
+      ? lessonData.wordListMode
+      : undefined,
+    wordListTargetCount: typeof lessonData.wordListTargetCount === 'number' &&
+      Number.isInteger(lessonData.wordListTargetCount) && lessonData.wordListTargetCount > 0
+        ? lessonData.wordListTargetCount
+        : undefined,
+    wordListReadingAuto: typeof lessonData.wordListReadingAuto === 'boolean'
+      ? lessonData.wordListReadingAuto
+      : undefined,
     sentences: stringArray(lessonData.sentences),
     dictation: {
       sounds: stringArray(dictation.sounds),
@@ -149,7 +178,16 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
     },
     hfwList: stringArray(lessonData.hfwList),
     affixPractice: normalizeAffixes(lessonData.affixPractice),
+    passageTitle: typeof lessonData.passageTitle === 'string' ? lessonData.passageTitle : undefined,
+    passageStudentReader: typeof lessonData.passageStudentReader === 'string' ? lessonData.passageStudentReader : undefined,
+    passagePage: typeof lessonData.passagePage === 'string' ? lessonData.passagePage : undefined,
+    passageQuestions: normalizePassageQuestions(lessonData.passageQuestions),
+    passageHistoryStatus: lessonData.passageHistoryStatus === 'verified-next-unread' || lessonData.passageHistoryStatus === 'uncertain-flagged'
+      ? lessonData.passageHistoryStatus
+      : undefined,
+    passageHistoryNote: typeof lessonData.passageHistoryNote === 'string' ? lessonData.passageHistoryNote : undefined,
     runtimePlan: runtimePlan || undefined,
+    // Preserve the saved compatibility view; runtimePlan remains authoritative.
     wrsPlan: normalizeWrsLessonPlan(data.wrsPlan)
   } as Lesson;
 };

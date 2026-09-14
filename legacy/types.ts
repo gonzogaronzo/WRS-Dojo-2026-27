@@ -31,6 +31,8 @@ export type LessonSourceKind =
   | 'student-notebook'
   | 'teacher-selection';
 
+export type RuntimeSourceVerification = 'verified' | 'needs-verification';
+
 export interface LessonSourceReference {
   id: string;
   label: string;
@@ -38,11 +40,51 @@ export interface LessonSourceReference {
   edition?: string;
   locator?: string;
   notes?: string;
+  /** A missing or unverified source must block the instructional export gate. */
+  verification?: RuntimeSourceVerification;
 }
 
 export interface RuntimePlanningContext {
   conceptsToWeave: string;
   troubleSpots: string;
+}
+
+export interface RuntimeStudentChartingList {
+  studentName: string;
+  words: string[];
+}
+
+export interface RuntimeStudentPracticeTarget {
+  studentName: string;
+  focus: string;
+  words: string[];
+}
+
+export type RuntimeWeaveQuestionCategory =
+  | 'current-concept'
+  | 'cumulative-structure'
+  | 'vocabulary-meaning'
+  | 'syllable-word-structure'
+  | 'phrasing-expression';
+
+export type RuntimePassageHistoryStatus = 'verified-next-unread' | 'uncertain-flagged';
+
+export type RuntimePassageQuestionLevel =
+  | 'direct-recall'
+  | 'sequence'
+  | 'cause-effect'
+  | 'important-detail'
+  | 'vocabulary-in-context'
+  | 'relationship'
+  | 'reasoning'
+  | 'explanation'
+  | 'inference'
+  | 'evidence-based-interpretation'
+  | 'synthesis';
+
+export interface RuntimePassageQuestion {
+  question: string;
+  level: RuntimePassageQuestionLevel;
 }
 
 export interface ListeningComprehensionPlan {
@@ -66,19 +108,42 @@ export interface RuntimeLessonPartData {
   wordCards?: WordCard[];
   hfwList?: string[];
   practiceWords?: string[];
+  chartingPlanned?: boolean;
   chartingWords?: string[];
   chartingType?: 'real' | 'nonsense';
+  chartingRationale?: string;
+  weeklyInstructionRationale?: string;
+  studentChartingLists?: RuntimeStudentChartingList[];
+  studentPracticeTargets?: RuntimeStudentPracticeTarget[];
   sentences?: string[];
+  weaveQuestions?: string[];
+  weaveQuestionCategories?: RuntimeWeaveQuestionCategory[];
+  morePromptException?: {
+    approvedCount: number;
+    rationale: string;
+    sourceIds: string[];
+  };
   quickDrillReverse?: string[];
   wordElements?: string[];
   reviewWords?: string[];
   currentWords?: string[];
   dictation?: DictationSection;
+  dictationCategorySourceIds?: Partial<Record<keyof DictationSection, string[]>>;
+  dictationExceptions?: Array<{
+    category: 'sentences';
+    allowedCount: 2;
+    rationale: string;
+    sourceIds: string[];
+  }>;
   phraseSelectionNote?: string;
   passage?: string;
   passageTitle?: string;
   studentReader?: string;
   page?: string;
+  questions?: RuntimePassageQuestion[];
+  historyStatus?: RuntimePassageHistoryStatus;
+  historyNote?: string;
+  teacherPlanStatus?: 'TBD' | 'PLANNED';
   listeningComprehension?: ListeningComprehensionPlan;
 }
 
@@ -248,12 +313,22 @@ export interface Lesson {
   wordListReading?: string[];
   wordListPractice?: string[];
   wordListCharting?: string[];
+  wordListChartingByStudent?: RuntimeStudentChartingList[];
+  /** Practice-only Part 4 uses the selected practice words, not a formal charting event. */
+  wordListMode?: 'charting' | 'practice';
+  wordListTargetCount?: number;
   wordListReadingAuto?: boolean;
   sentences: string[];
   dictation: DictationSection;
   hfwList: string[];
   affixPractice: AffixEntry[];
   passage?: string;
+  passageTitle?: string;
+  passageStudentReader?: string;
+  passagePage?: string;
+  passageQuestions?: RuntimePassageQuestion[];
+  passageHistoryStatus?: RuntimePassageHistoryStatus;
+  passageHistoryNote?: string;
   lessonFocus?: LessonFocus;
   sourceMetadata?: LessonSourceReference[];
   runtimePlan?: WRSRuntimeLessonPlan;

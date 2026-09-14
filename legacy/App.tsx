@@ -55,7 +55,7 @@ import {
 import { useCloudPresenter } from './useCloudPresenter';
 import { DrawingStroke, updateDrawingSurface } from './drawingSync';
 import { clearSafeBootMode, isSafeBootMode } from './safeBoot';
-import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
+import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, studentChartingWordDistributionForLesson, targetWordCount } from './wordDistribution';
 
 const App: React.FC = () => {
   const { 
@@ -155,7 +155,6 @@ const App: React.FC = () => {
     setMode('run');
   };
 
-  // Memoize session students and reading cards to prevent unstable array references
   const rosterSessionStudents = useMemo(() =>
     students.filter((student): student is StudentProfile => Boolean(student && sessionStudentIds.includes(student.id))),
     [students, sessionStudentIds]
@@ -255,7 +254,6 @@ const App: React.FC = () => {
           window.localStorage.setItem(presenterStateKey(presenterId), JSON.stringify(message));
         }
       } catch {
-        // BroadcastChannel remains the primary synchronization path.
       }
     };
 
@@ -284,7 +282,6 @@ const App: React.FC = () => {
       try {
         handleMessage(JSON.parse(event.newValue) as PresenterMessage);
       } catch {
-        // Ignore malformed or stale local synchronization data.
       }
     };
     window.addEventListener('storage', handleStorage);
@@ -297,7 +294,6 @@ const App: React.FC = () => {
           if (isPresenterSnapshot(parsed)) applyPresenterSnapshot(parsed);
         }
       } catch {
-        // Wait for a fresh snapshot from the teacher window.
       }
       postMessage({ type: 'student-ready', presenterId, sentAt: Date.now(), revision: lastAppliedPresenterOrderRef.current });
     }
@@ -342,7 +338,6 @@ const App: React.FC = () => {
         eventNonce: `${Date.now()}-${Math.random()}`
       }));
     } catch {
-      // A live BroadcastChannel connection can continue without local storage.
     }
   }, [currentPresenterSnapshot, presenterId]);
 
@@ -464,18 +459,23 @@ const App: React.FC = () => {
 
   const changeLessonPart = useCallback((nextPart: LessonPart) => {
     if (isStudentView) return;
-    if (nextPart === LessonPart.Part4 && baseReadingCards.length > 0 && rosterSessionStudents.length > 0) {
-      const wordsPerStudent = targetWordCount(baseReadingCards);
+    if (nextPart === LessonPart.Part4 && currentLesson && baseReadingCards.length > 0 && rosterSessionStudents.length > 0) {
+      const wordsPerStudent = targetWordCount(baseReadingCards, currentLesson.wordListTargetCount);
       if (!hasCompleteWordDistribution(sessionDistribution, rosterSessionStudents.length, wordsPerStudent)) {
-        setSessionDistribution(buildWordDistribution(baseReadingCards, rosterSessionStudents.length, wordsPerStudent));
+        const studentSpecificDistribution = studentChartingWordDistributionForLesson(currentLesson, rosterSessionStudents);
+        const requiresStudentSpecificLists = Boolean(currentLesson?.wordListChartingByStudent?.length);
+        setSessionDistribution(
+          requiresStudentSpecificLists
+            ? (studentSpecificDistribution || [])
+            : buildWordDistribution(baseReadingCards, rosterSessionStudents.length, wordsPerStudent)
+        );
         setSessionWordlistPage(0);
         setSessionScores([]);
       }
     }
     setCurrentPart(nextPart);
-  }, [baseReadingCards, isStudentView, rosterSessionStudents.length, sessionDistribution, setSessionDistribution, setSessionScores, setSessionWordlistPage]);
+  }, [baseReadingCards, currentLesson, isStudentView, rosterSessionStudents, sessionDistribution, setSessionDistribution, setSessionScores, setSessionWordlistPage]);
 
-  // Keep activeGroup in sync with the latest data from the groups array
   useEffect(() => {
     if (activeGroup) {
       const latest = groups.find(g => g.id === activeGroup.id);
@@ -487,9 +487,12 @@ const App: React.FC = () => {
     }
   }, [groups, activeGroup]);
 
-  // Sync state if an active session exists in Firestore for this user
   useEffect(() => {
     if (safeBoot || isStudentDisplayWindow) return;
+    // The teacher window is authoritative once a run has started. A delayed
+    // Firestore echo can otherwise replace newer local navigation and activity
+    // state (for example, a freshly created Part 4 practice distribution).
+    if (mode !== 'dashboard') return;
     if (activeSession && activeSession.lesson) {
       console.log("Received session update from cloud:", activeSession);
       const incomingSession = lessonSessionFromCloud(activeSession);
@@ -504,9 +507,8 @@ const App: React.FC = () => {
       
       if (mode !== 'run' && mode !== 'mission') setMode('run');
     }
-  }, [activeSession, groups.length, isStudentDisplayWindow, safeBoot]);
+  }, [activeSession, groups.length, isStudentDisplayWindow, mode, safeBoot]);
 
-  // Push local changes to cloud (Debounced)
   useEffect(() => {
     if (mode !== 'run' || !user || user.uid === 'guest-sensei' || !currentLesson || isStudentView) return;
 
@@ -522,12 +524,11 @@ const App: React.FC = () => {
         console.log("Pushing session update to cloud...");
         updateSession(lessonSessionToCloud(lessonSession, currentLesson, currentPart, activeGroup?.id || ''));
       }
-    }, 1000); // 1s debounce
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [activeGroup?.id, activeSession, currentLesson, currentPart, isStudentView, lessonSession, mode, user]);
 
-  // Keep a device-local recovery point even when cloud sync is unavailable.
   useEffect(() => {
     if (isStudentDisplayWindow || mode !== 'run' || !currentLesson || !activeGroup) return;
 
@@ -585,7 +586,6 @@ const App: React.FC = () => {
   const handleUpdateLessonPerpetually = async (updatedLesson: Lesson) => {
     setCurrentLesson(updatedLesson);
     
-    // 1. Update the lesson in the group's savedLessons list (Perpetuity for future missions)
     if (activeGroup && user?.uid !== 'guest-sensei') {
       const updatedSquad = {
         ...activeGroup,
@@ -594,7 +594,6 @@ const App: React.FC = () => {
       await updateSquad(updatedSquad);
     }
 
-    // 2. Update the lesson in the current session (Sync for reading part 2/7)
     if (activeSession && !isStudentView) {
       await updateSession({
         ...activeSession,
@@ -694,7 +693,7 @@ const App: React.FC = () => {
       case LessonPart.Part3: 
         return (
           <WordCards 
-            cards={baseReadingCards} 
+            cards={currentLesson.wordCards.length ? currentLesson.wordCards : baseReadingCards} 
             hfw={currentLesson.hfwList} 
             students={sessionStudents.map(s => s.name)}
             state={sessionWordCards}
@@ -705,7 +704,10 @@ const App: React.FC = () => {
       case LessonPart.Part4:
         return (
           <WordlistReading 
-            cards={baseReadingCards} 
+            cards={baseReadingCards}
+            mode={currentLesson.wordListMode}
+            targetCount={currentLesson.wordListTargetCount}
+            preassigned={Boolean(currentLesson.wordListChartingByStudent?.length)}
             students={sessionStudents} 
             scores={sessionScores} 
             onUpdateScores={setSessionScores} 
@@ -716,10 +718,15 @@ const App: React.FC = () => {
             onUpdatePage={setSessionWordlistPage}
           />
         );
-      case LessonPart.Part5: 
+      case LessonPart.Part5: {
+        const part5Data = currentLesson.runtimePlan?.parts.find(part => part.part === 5)?.data as Record<string, unknown> | undefined;
+        const weaveQuestions = Array.isArray(part5Data?.weaveQuestions)
+          ? part5Data.weaveQuestions.filter((value): value is string => typeof value === 'string')
+          : [];
         return (
           <SentenceReading 
-            sentences={currentLesson.sentences} 
+            sentences={currentLesson.sentences}
+            weaveQuestions={weaveQuestions}
             currentIndex={sessionSentenceIndex}
             onUpdateIndex={setSessionSentenceIndex}
             strokes={sessionDrawings.sentence || []}
@@ -727,6 +734,7 @@ const App: React.FC = () => {
             readOnly={isStudentView}
           />
         );
+      }
       case LessonPart.Part6: 
         return (
           <QuickDrill 
@@ -747,45 +755,72 @@ const App: React.FC = () => {
             readOnly={isStudentView}
           />
         );
-      case LessonPart.Part7: 
+      case LessonPart.Part7: {
+        const part7Data = currentLesson.runtimePlan?.parts.find(part => part.part === 7)?.data as Record<string, unknown> | undefined;
+        const reviewWords = Array.isArray(part7Data?.reviewWords)
+          ? part7Data.reviewWords.filter((value): value is string => typeof value === 'string')
+          : [];
+        const currentWords = Array.isArray(part7Data?.currentWords)
+          ? part7Data.currentWords.filter((value): value is string => typeof value === 'string')
+          : [];
+        const troubleSpotTargets = Array.isArray(part7Data?.troubleSpotTargets)
+          ? part7Data.troubleSpotTargets.filter((value): value is string => typeof value === 'string')
+          : [];
         return (
-          <TeachConcepts 
-            lesson={currentLesson} 
-            isSpelling={true} 
-            onUpdateLesson={handleUpdateLessonPerpetually} 
-            notes={sessionNotes}
-            onUpdateNotes={setSessionNotes}
-            mode={sessionTeachConceptsMode}
-            onUpdateMode={setSessionTeachConceptsMode}
-            boardText={sessionTeachConceptsBoardText}
-            onUpdateBoardText={setSessionTeachConceptsBoardText}
-            boardTitle={sessionTeachConceptsBoardTitle}
-            onUpdateBoardTitle={setSessionTeachConceptsBoardTitle}
-            boardNotes={sessionTeachConceptsBoardNotes}
-            onUpdateBoardNotes={setSessionTeachConceptsBoardNotes}
-            marks={sessionTeachConceptsMarks}
-            onUpdateMarks={setSessionTeachConceptsMarks}
-            slideIndex={sessionTeachConceptsSlideIndex}
-            onUpdateSlideIndex={setSessionTeachConceptsSlideIndex}
-            drawingStrokes={sessionDrawings[sessionTeachConceptsMode === 'slides' ? `teach-spelling-slide-${sessionTeachConceptsSlideIndex}` : 'teach-spelling-board'] || []}
-            onUpdateDrawingStrokes={strokes => updateDrawingStrokes(sessionTeachConceptsMode === 'slides' ? `teach-spelling-slide-${sessionTeachConceptsSlideIndex}` : 'teach-spelling-board', strokes)}
-            readOnly={isStudentView}
-            activeCipherIdx={sessionTeachConceptsCipherIdx}
-            onUpdateCipherIdx={setSessionTeachConceptsCipherIdx}
-            isSyllabicated={sessionTeachConceptsSyllabicated}
-            onUpdateSyllabicated={setSessionTeachConceptsSyllabicated}
-            cipherResults={sessionTeachConceptsCipherResults.spelling || {}}
-            onUpdateCipherResults={results => setSessionTeachConceptsCipherResults(previous => ({ ...previous, spelling: results }))}
-            cipherCheckResult={sessionTeachConceptsCipherCheckResults.spelling || null}
-            onUpdateCipherCheckResult={result => setSessionTeachConceptsCipherCheckResults(previous => ({ ...previous, spelling: result }))}
-            slideMarks={sessionTeachConceptsSlideMarks.spelling || {}}
-            onUpdateSlideMarks={marks => setSessionTeachConceptsSlideMarks(previous => ({ ...previous, spelling: marks }))}
-            slideObjectStates={sessionTeachConceptsSlideObjectStates.spelling || {}}
-            onUpdateSlideObjectStates={states => setSessionTeachConceptsSlideObjectStates(previous => ({ ...previous, spelling: states }))}
-            slideFullScreen={Boolean(sessionTeachConceptsSlideFullscreen.spelling)}
-            onUpdateSlideFullScreen={value => setSessionTeachConceptsSlideFullscreen(previous => ({ ...previous, spelling: value }))}
-          />
+          <div className="h-full relative">
+            {!isStudentView && (reviewWords.length > 0 || currentWords.length > 0) && (
+              <div className="absolute top-20 right-5 z-[80] w-[min(22rem,34vw)] rounded-2xl border border-stone-200 bg-white/95 p-4 shadow-xl backdrop-blur-sm pointer-events-none">
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-red-800 mb-2">Part 7 spelling packet</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-stone-400">Review</div>
+                <div className="text-sm font-bold text-stone-800 mb-3">{reviewWords.join(' • ')}</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-stone-400">Current 7.4</div>
+                <div className="text-sm font-bold text-stone-800">{currentWords.join(' • ')}</div>
+                {troubleSpotTargets.length > 0 && (
+                  <div className="mt-3 border-t border-stone-100 pt-3 text-[11px] font-medium leading-relaxed text-stone-600">
+                    {troubleSpotTargets.map((target, index) => <div key={index}>{target}</div>)}
+                  </div>
+                )}
+              </div>
+            )}
+            <TeachConcepts 
+              lesson={currentLesson} 
+              isSpelling={true} 
+              onUpdateLesson={handleUpdateLessonPerpetually} 
+              notes={sessionNotes}
+              onUpdateNotes={setSessionNotes}
+              mode={sessionTeachConceptsMode}
+              onUpdateMode={setSessionTeachConceptsMode}
+              boardText={sessionTeachConceptsBoardText}
+              onUpdateBoardText={setSessionTeachConceptsBoardText}
+              boardTitle={sessionTeachConceptsBoardTitle}
+              onUpdateBoardTitle={setSessionTeachConceptsBoardTitle}
+              boardNotes={sessionTeachConceptsBoardNotes}
+              onUpdateBoardNotes={setSessionTeachConceptsBoardNotes}
+              marks={sessionTeachConceptsMarks}
+              onUpdateMarks={setSessionTeachConceptsMarks}
+              slideIndex={sessionTeachConceptsSlideIndex}
+              onUpdateSlideIndex={setSessionTeachConceptsSlideIndex}
+              drawingStrokes={sessionDrawings[sessionTeachConceptsMode === 'slides' ? `teach-spelling-slide-${sessionTeachConceptsSlideIndex}` : 'teach-spelling-board'] || []}
+              onUpdateDrawingStrokes={strokes => updateDrawingStrokes(sessionTeachConceptsMode === 'slides' ? `teach-spelling-slide-${sessionTeachConceptsSlideIndex}` : 'teach-spelling-board', strokes)}
+              readOnly={isStudentView}
+              activeCipherIdx={sessionTeachConceptsCipherIdx}
+              onUpdateCipherIdx={setSessionTeachConceptsCipherIdx}
+              isSyllabicated={sessionTeachConceptsSyllabicated}
+              onUpdateSyllabicated={setSessionTeachConceptsSyllabicated}
+              cipherResults={sessionTeachConceptsCipherResults.spelling || {}}
+              onUpdateCipherResults={results => setSessionTeachConceptsCipherResults(previous => ({ ...previous, spelling: results }))}
+              cipherCheckResult={sessionTeachConceptsCipherCheckResults.spelling || null}
+              onUpdateCipherCheckResult={result => setSessionTeachConceptsCipherCheckResults(previous => ({ ...previous, spelling: result }))}
+              slideMarks={sessionTeachConceptsSlideMarks.spelling || {}}
+              onUpdateSlideMarks={marks => setSessionTeachConceptsSlideMarks(previous => ({ ...previous, spelling: marks }))}
+              slideObjectStates={sessionTeachConceptsSlideObjectStates.spelling || {}}
+              onUpdateSlideObjectStates={states => setSessionTeachConceptsSlideObjectStates(previous => ({ ...previous, spelling: states }))}
+              slideFullScreen={Boolean(sessionTeachConceptsSlideFullscreen.spelling)}
+              onUpdateSlideFullScreen={value => setSessionTeachConceptsSlideFullscreen(previous => ({ ...previous, spelling: value }))}
+            />
+          </div>
         );
+      }
       case LessonPart.Part8: 
         return (
           <Spelling 
@@ -819,6 +854,10 @@ const App: React.FC = () => {
         return (
           <PassageReading 
             text={currentLesson.passage || ""} 
+            title={currentLesson.passageTitle}
+            sourceLabel={[currentLesson.passageStudentReader, currentLesson.passagePage].filter(Boolean).join(' • ')}
+            questions={currentLesson.passageQuestions}
+            historyNote={currentLesson.passageHistoryStatus === 'uncertain-flagged' ? currentLesson.passageHistoryNote : undefined}
             currentIndex={sessionPassageIndex}
             onUpdateIndex={setSessionPassageIndex}
             rulerEnabled={sessionPassageRulerEnabled}
@@ -956,7 +995,6 @@ const App: React.FC = () => {
         onClose={() => setIsStudentScreenJoinOpen(false)}
         onJoin={joinCloudStudentDisplay}
       />
-      {/* Guest Mode Warning for Real-time Features */}
       {mode === 'run' && user?.uid === 'guest-sensei' && isGuestModeNoticeVisible && !isStudentView && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[100] bg-amber-600 text-white pl-6 pr-3 py-3 rounded-2xl shadow-2xl border-2 border-amber-400 animate-in slide-in-from-bottom-8 flex items-center gap-3" role="status">
           <AlertTriangle className="w-5 h-5" />
@@ -1035,15 +1073,17 @@ const App: React.FC = () => {
               if(!activeGroup) return;
               const updated = { ...activeGroup, savedLessons: [...activeGroup.savedLessons.filter(sl => sl && sl.id !== l.id), l] };
               await updateSquad(updated);
-              setActiveGroup(updated); // Sync local activeGroup state
+              setActiveGroup(updated);
               setCurrentLesson(l);
               if (run) {
+                discardRecoverableSession();
+                resetLessonSession();
                 setMode('run');
                 setCurrentPart(LessonPart.Briefing);
               } else {
                 setMode('dashboard');
               }
-            }} 
+            }}
           />
         </div>
       ) : mode === 'mission' ? (
@@ -1054,7 +1094,7 @@ const App: React.FC = () => {
             onComplete={(scores) => {
               setSessionScores(scores);
               setMode('run');
-              setCurrentPart(LessonPart.Part10); // Go to Dossier
+              setCurrentPart(LessonPart.Part10);
             }}
             onExit={() => setMode('dashboard')}
           />
@@ -1077,7 +1117,10 @@ const App: React.FC = () => {
             showDrawingsOnStudentDisplay={showPresenterDrawings}
             onToggleDrawingsOnStudentDisplay={() => setShowPresenterDrawings(value => !value)}
             onResyncStudentDisplay={resyncStudentDisplay}
-            onExit={() => setMode('edit')} 
+            onExit={async () => {
+              await updateSession(null);
+              setMode('edit');
+            }}
             onDashboard={() => setMode('dashboard')}
             onPrint={() => {
               if (currentLesson) {

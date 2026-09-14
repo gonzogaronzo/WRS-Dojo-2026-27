@@ -16,7 +16,7 @@ import {
 import TeachConcepts from './modules/TeachConcepts';
 import { WrsPartPlanning, WrsPlanOverview } from './WrsPlanFields';
 import { createEmptyWrsLessonPlan, normalizeWrsLessonPlan } from '../wrsLessonPlan';
-import { normalizeRuntimeLessonPlan, runtimeLessonToLegacyLesson } from '../runtimeLesson';
+import { normalizeRuntimeLessonPlan, validateRuntimeLessonCompatibility } from '../runtimeLesson';
 
 /**
  * REUSABLE SYLLABLE BUILDER SUB-COMPONENT
@@ -435,8 +435,11 @@ const LessonForm: React.FC<LessonFormProps> = ({ initialLesson, activeGroup, onS
     }
 
     try {
-      const importedData = runtimePlan
-        ? { ...data, ...runtimeLessonToLegacyLesson(runtimePlan), runtimePlan }
+      const compatibility = runtimePlan
+        ? validateRuntimeLessonCompatibility(runtimePlan)
+        : null;
+      const importedData = compatibility
+        ? { ...data, ...compatibility.lesson, runtimePlan: compatibility.runtime }
         : data;
       if (importedData.step || importedData.substep) {
         // Merge with emptyLesson to ensure all required fields exist
@@ -444,7 +447,9 @@ const LessonForm: React.FC<LessonFormProps> = ({ initialLesson, activeGroup, onS
           ...emptyLesson,
           ...importedData,
           schemaVersion: 2,
-          wrsPlan: normalizeWrsLessonPlan(data.wrsPlan),
+          wrsPlan: compatibility
+            ? normalizeWrsLessonPlan(compatibility.lesson.wrsPlan)
+            : normalizeWrsLessonPlan(data.wrsPlan),
           id: formData.id, // Keep current ID if it's an edit
           step: String(importedData.step || formData.step),
           substep: String(importedData.substep || formData.substep)

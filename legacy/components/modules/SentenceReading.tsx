@@ -1,10 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, PenTool, Eraser, Trash2, MousePointer2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, PenTool, Trash2, MousePointer2 } from 'lucide-react';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
 
 interface SentenceReadingProps {
   sentences: string[];
+  weaveQuestions?: string[];
   currentIndex?: number;
   onUpdateIndex?: (index: number) => void;
   strokes?: DrawingStroke[];
@@ -14,6 +15,7 @@ interface SentenceReadingProps {
 
 const SentenceReading: React.FC<SentenceReadingProps> = ({ 
   sentences,
+  weaveQuestions = [],
   currentIndex: syncedIndex,
   onUpdateIndex,
   strokes,
@@ -29,93 +31,35 @@ const SentenceReading: React.FC<SentenceReadingProps> = ({
     else setLocalIndex(next);
   };
   const [tool, setTool] = useState<'cursor' | 'pen-blue' | 'pen-red'>('pen-blue');
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastPointRef = useRef<{ x: number, y: number } | null>(null);
-  const rectRef = useRef<DOMRect | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const syncedDrawing = useSyncedDrawingCanvas({ strokes, onUpdateStrokes, tool, lineWidth: 4, readOnly });
 
-  // Handle Resize
   useEffect(() => {
     const handleResize = () => {
-      if (containerRef.current && canvasRef.current) {
+      const canvas = syncedDrawing.canvasRef.current;
+      if (containerRef.current && canvas) {
         const rect = containerRef.current.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
-        const canvas = canvasRef.current;
-        
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
         canvas.style.width = `${rect.width}px`;
         canvas.style.height = `${rect.height}px`;
-        
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.scale(dpr, dpr);
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
         }
-        rectRef.current = rect;
       }
     };
-    
     window.addEventListener('resize', handleResize);
     setTimeout(handleResize, 100);
-    
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [syncedDrawing.canvasRef]);
 
   const clearCanvas = () => {
     syncedDrawing.clear();
-  };
-
-  const startDrawing = (e: React.PointerEvent) => {
-    if (tool === 'cursor') return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    (e.target as Element).setPointerCapture(e.pointerId);
-    
-    rectRef.current = canvas.getBoundingClientRect();
-    const x = e.clientX - rectRef.current.left;
-    const y = e.clientY - rectRef.current.top;
-    
-    lastPointRef.current = { x, y };
-    setIsDrawing(true);
-
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, y);
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = tool === 'pen-blue' ? '#4338ca' : '#b91c1c'; 
-    ctx.stroke();
-  };
-
-  const draw = (e: React.PointerEvent) => {
-    if (!isDrawing || tool === 'cursor' || !lastPointRef.current || !rectRef.current) return;
-    
-    const x = e.clientX - rectRef.current.left;
-    const y = e.clientY - rectRef.current.top;
-    
-    const ctx = canvasRef.current?.getContext('2d');
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      lastPointRef.current = { x, y };
-    }
-  };
-
-  const stopDrawing = (e: React.PointerEvent) => {
-    if (isDrawing) {
-      (e.target as Element).releasePointerCapture(e.pointerId);
-      setIsDrawing(false);
-      lastPointRef.current = null;
-    }
   };
 
   const nextSentence = () => {
@@ -140,9 +84,10 @@ const SentenceReading: React.FC<SentenceReadingProps> = ({
     );
   }
 
+  const weaveQuestion = weaveQuestions[currentIndex]?.trim();
+
   return (
     <div className="min-h-full flex flex-col bg-[#fcfbf9] text-stone-900">
-      {/* Toolbar */}
       <div className="h-20 bg-white border-b border-stone-100 flex items-center justify-between px-8 shadow-sm z-30">
         <h2 className="text-xl font-bold text-stone-900 flex items-center gap-3 font-serif uppercase tracking-wider">
           <PenTool className="w-5 h-5 text-red-800" />
@@ -182,10 +127,14 @@ const SentenceReading: React.FC<SentenceReadingProps> = ({
         </div>}
       </div>
 
-      {/* Canvas / Text Area */}
       <div className="flex-1 relative flex flex-col bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')]" ref={containerRef}>
+        {!readOnly && weaveQuestion && (
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 z-30 w-[min(90%,56rem)] rounded-2xl border border-amber-200 bg-amber-50/95 px-5 py-3 shadow-sm">
+            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700 mb-1">Teacher weave question</div>
+            <div className="text-sm font-bold text-stone-800">{weaveQuestion}</div>
+          </div>
+        )}
         
-        {/* Navigation Buttons (Visible & Interactive) */}
         <button 
           onClick={prevSentence}
           disabled={readOnly || currentIndex === 0}
@@ -202,14 +151,12 @@ const SentenceReading: React.FC<SentenceReadingProps> = ({
            <ChevronRight className="w-6 h-6 group-hover:scale-110 transition-transform" />
         </button>
 
-        {/* Text Layer */}
         <div className="absolute inset-0 flex items-center justify-center p-8 md:p-16 lg:p-24 select-none pointer-events-none z-0">
           <p className="text-[64px] font-medium text-stone-900 text-center leading-tight font-serif tracking-tight w-full break-words">
             {sentences[currentIndex]}
           </p>
         </div>
 
-        {/* Drawing Layer */}
         <canvas
           ref={syncedDrawing.canvasRef}
           onPointerDown={syncedDrawing.onPointerDown}
@@ -219,7 +166,6 @@ const SentenceReading: React.FC<SentenceReadingProps> = ({
           className={`absolute inset-0 z-20 touch-none ${readOnly || tool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`}
         />
 
-        {/* Pagination Dots */}
         <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 pointer-events-none z-30">
            {sentences.map((_, idx) => (
              <div 

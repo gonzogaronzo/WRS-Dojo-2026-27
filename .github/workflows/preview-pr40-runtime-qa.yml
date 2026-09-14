@@ -1,0 +1,87 @@
+name: Preview PR 40 Runtime QA
+
+on:
+  push:
+    branches:
+      - feature/runtime-compatibility-gate-5a-7-4
+
+concurrency:
+  group: wrs-dojo-pr40-runtime-preview
+  cancel-in-progress: true
+
+jobs:
+  verify-build-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+
+    env:
+      FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE }}'
+      PREVIEW_URL: 'https://wrs-firebase--pr40-runtime-qa-tdzhj3n1.web.app'
+      CHROME_BIN: '/usr/bin/google-chrome'
+
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Install Firebase Functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Run verification suite
+        run: npm test
+
+      - name: Build standalone Firebase app
+        run: npm run build:standalone
+
+      - name: Prepare isolated QA identity and temporary auth helper
+        run: node scripts/pr40-preview-e2e.mjs prepare
+
+      - name: Deploy Hosting preview channel only
+        id: preview
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE }}'
+          projectId: wrs-firebase
+          channelId: pr40-runtime-qa
+          expires: 7d
+
+      - name: Install browser QA driver
+        run: npm install --no-save --ignore-scripts playwright-core@1.55.0
+
+      - name: Run authenticated deployed-preview QA
+        run: node scripts/pr40-preview-e2e.mjs test
+
+      - name: Preserve preview QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr40-preview-qa-${{ github.sha }}
+          path: |
+            pr40-preview-qa-report.json
+            pr40-preview-failure.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Clean isolated Firebase QA records and Auth user
+        if: always()
+        continue-on-error: true
+        run: node scripts/pr40-preview-e2e.mjs cleanup
+
+      - name: Scrub temporary auth helper from preview channel
+        if: always() && steps.preview.outcome == 'success'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_WRS_FIREBASE }}'
+          projectId: wrs-firebase
+          channelId: pr40-runtime-qa
+          expires: 7d
