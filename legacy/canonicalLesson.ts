@@ -35,6 +35,7 @@ const canonicalSourceKinds = new Set([
   'student-notebook',
   'teacher-selection'
 ]);
+const canonicalSourceVerification = new Set(['verified', 'needs-verification', 'teacher-created']);
 
 const assertExactKeys = (record: UnknownRecord, allowed: Set<string>, label: string) => {
   const unexpected = Object.keys(record).filter(key => !allowed.has(key));
@@ -87,7 +88,7 @@ const assertCanonicalRawShape = (value: unknown): UnknownRecord => {
     throw new Error('Canonical lesson requires a nonempty source manifest.');
   }
   const sourceIds = new Set<string>();
-  const allowedSourceKeys = new Set(['id', 'label', 'kind', 'edition', 'locator', 'notes']);
+  const allowedSourceKeys = new Set(['id', 'label', 'kind', 'edition', 'locator', 'notes', 'verification']);
   for (const rawSource of raw.sources) {
     const source = asRecord(rawSource);
     if (!source) throw new Error('Canonical source entries must be objects.');
@@ -99,6 +100,9 @@ const assertCanonicalRawShape = (value: unknown): UnknownRecord => {
     }
     if (!canonicalSourceKinds.has(kind)) {
       throw new Error(`Canonical source ${id} has unsupported kind ${kind}.`);
+    }
+    if ('verification' in source && !canonicalSourceVerification.has(text(source.verification))) {
+      throw new Error(`Canonical source ${id} has unsupported verification ${text(source.verification) || '(blank)'}.`);
     }
     if (sourceIds.has(id)) throw new Error(`Canonical source id ${id} is duplicated.`);
     sourceIds.add(id);
