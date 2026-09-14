@@ -111,13 +111,28 @@ test('canonical structure rejects missing and unregistered source references', (
 });
 
 test('canonical structure validates optional source verification metadata', () => {
-  const verified = cloneRuntime();
-  verified.sources[0].verification = 'teacher-created';
-  assert.equal(canonicalRuntimeFromImportValue(verified).sources[0].verification, 'teacher-created');
+  const teacherCreated = cloneRuntime();
+  teacherCreated.sources[0].verification = 'teacher-created';
+  assert.equal(canonicalRuntimeFromImportValue(teacherCreated).sources[0].verification, 'teacher-created');
 
   const invalid = cloneRuntime();
   invalid.sources[0].verification = 'trust-me';
   assert.throws(() => canonicalRuntimeFromImportValue(invalid), /unsupported verification trust-me/);
+
+  const teacherCreatedWilson = cloneRuntime();
+  teacherCreatedWilson.sources[0].kind = 'step-instruction';
+  teacherCreatedWilson.sources[0].verification = 'teacher-created';
+  assert.throws(
+    () => canonicalRuntimeFromImportValue(teacherCreatedWilson),
+    /teacher-created verification only with kind teacher-selection/
+  );
+
+  const verifiedTeacherSelection = cloneRuntime();
+  verifiedTeacherSelection.sources[0].verification = 'verified';
+  assert.throws(
+    () => canonicalRuntimeFromImportValue(verifiedTeacherSelection),
+    /teacher-selection source fixture-source cannot claim verified verification/
+  );
 });
 
 test('compatibility projection never upgrades an unmarked source to verified', () => {
