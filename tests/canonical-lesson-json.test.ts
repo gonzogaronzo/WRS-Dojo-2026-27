@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   canonicalRuntimeFromImportValue,
@@ -8,6 +9,9 @@ import {
 import { normalizeLesson } from '../legacy/dataNormalization';
 import { lesson25 } from '../legacy/lessons/step2-5';
 import { Lesson, RuntimeLessonPart, WRSRuntimeLessonPlan } from '../legacy/types';
+
+const regression74Url = new URL('../fixtures/canonical/5A-7.4-accuracy-regression.json', import.meta.url);
+const regression74 = JSON.parse(readFileSync(regression74Url, 'utf8'));
 
 const runtimePart = (part: RuntimeLessonPart['part'], data: RuntimeLessonPart['data'] = {}): RuntimeLessonPart => ({
   part,
@@ -105,6 +109,16 @@ test('canonical structure rejects missing and unregistered source references', (
   assert.throws(() => canonicalRuntimeFromImportValue(unknown), /Part 1 cites unregistered source IDs/);
 });
 
+test('canonical structure validates optional source verification metadata', () => {
+  const verified = cloneRuntime();
+  verified.sources[0].verification = 'teacher-created';
+  assert.equal(canonicalRuntimeFromImportValue(verified).sources[0].verification, 'teacher-created');
+
+  const invalid = cloneRuntime();
+  invalid.sources[0].verification = 'trust-me';
+  assert.throws(() => canonicalRuntimeFromImportValue(invalid), /unsupported verification trust-me/);
+});
+
 test('legacy-only lessons are migration inputs, not canonical exports', () => {
   assert.throws(
     () => canonicalRuntimeFromLesson(lesson25),
@@ -153,4 +167,29 @@ test('canonical JSON re-enters the current loader through runtime projection rat
   assert.deepEqual(loaded.wordListCharting, ['splash']);
   assert.deepEqual(loaded.sentences, ['A sentence.']);
   assert.equal(loaded.passage, 'Controlled text.');
+});
+
+test('source-grounded 7.4 regression fixture preserves verified source metadata through canonical round trip', () => {
+  const firstRuntime = canonicalRuntimeFromImportValue(regression74);
+  const dictationSource = firstRuntime.sources.find(source => source.id === 'DB4-7.4-14-30');
+  const nonsenseSource = firstRuntime.sources.find(source => source.id === 'SR7-7.1N-3');
+  assert.equal(dictationSource?.verification, 'verified');
+  assert.equal(nonsenseSource?.verification, 'verified');
+
+  const part2 = firstRuntime.parts.find(part => part.part === 2);
+  const part2Presentation = part2?.data.part2Presentation as { interactiveSteps?: unknown[] } | undefined;
+  assert.ok(part2Presentation?.interactiveSteps?.length);
+
+  const loaded = normalizeLesson(regression74);
+  assert.ok(loaded);
+  assert.deepEqual(loaded.wordListPractice, ['station', 'motion', 'location', 'tension', 'confusion', 'vision']);
+  assert.equal(loaded.wordListCharting?.length, 0);
+  assert.equal(loaded.sentences.length, 10);
+  assert.match(loaded.passage || '', /Peg and Mike had wanted to adopt a kitten/);
+
+  const exported = JSON.parse(serializeCanonicalLesson(loaded));
+  const secondRuntime = canonicalRuntimeFromImportValue(exported);
+  assert.equal(secondRuntime.sources.find(source => source.id === 'DB4-7.4-14-30')?.verification, 'verified');
+  assert.equal(secondRuntime.sources.find(source => source.id === 'SR7-7.1N-3')?.verification, 'verified');
+  assert.deepEqual(secondRuntime, firstRuntime);
 });
