@@ -31,6 +31,8 @@ export type LessonSourceKind =
   | 'student-notebook'
   | 'teacher-selection';
 
+export type LessonSourceVerification = 'verified' | 'needs-verification' | 'teacher-created';
+
 export interface LessonSourceReference {
   id: string;
   label: string;
@@ -38,6 +40,7 @@ export interface LessonSourceReference {
   edition?: string;
   locator?: string;
   notes?: string;
+  verification?: LessonSourceVerification;
 }
 
 export interface RuntimePlanningContext {
