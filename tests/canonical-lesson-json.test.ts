@@ -8,6 +8,7 @@ import {
 } from '../legacy/canonicalLesson';
 import { normalizeLesson } from '../legacy/dataNormalization';
 import { lesson25 } from '../legacy/lessons/step2-5';
+import { runtimeLessonToCompatibilityWrsPlan } from '../legacy/runtimeLesson';
 import { Lesson, RuntimeLessonPart, WRSRuntimeLessonPlan } from '../legacy/types';
 
 const regression74Url = new URL('../fixtures/canonical/5A-7.4-accuracy-regression.json', import.meta.url);
@@ -117,6 +118,33 @@ test('canonical structure validates optional source verification metadata', () =
   const invalid = cloneRuntime();
   invalid.sources[0].verification = 'trust-me';
   assert.throws(() => canonicalRuntimeFromImportValue(invalid), /unsupported verification trust-me/);
+});
+
+test('compatibility projection never upgrades an unmarked source to verified', () => {
+  const value = cloneRuntime();
+  value.sources = [
+    { id: 'fixture-source', label: 'Test source', kind: 'step-instruction', locator: 'fixture' }
+  ];
+  const canonical = canonicalRuntimeFromImportValue(value);
+  const plan = runtimeLessonToCompatibilityWrsPlan(canonical);
+  assert.equal(plan.sources[0].verification, 'needs-verification');
+  assert.equal(plan.verificationStatus, 'draft');
+});
+
+test('compatibility verification status reflects explicit source evidence only', () => {
+  const canonical = canonicalRuntimeFromImportValue(regression74);
+  const partial = runtimeLessonToCompatibilityWrsPlan(canonical);
+  assert.equal(partial.verificationStatus, 'partially-verified');
+  assert.equal(partial.sources.find(source => source.id === 'DB4-7.4-14-30')?.verification, 'verified');
+  assert.equal(partial.sources.find(source => source.id === 'IM-7.4-140-151')?.verification, 'needs-verification');
+  assert.equal(partial.sources.find(source => source.id === 'TEACHER-SELECTION')?.verification, 'teacher-created');
+
+  const fullyMarked = JSON.parse(JSON.stringify(regression74));
+  for (const source of fullyMarked.sources) {
+    source.verification = source.kind === 'teacher-selection' ? 'teacher-created' : 'verified';
+  }
+  const verified = runtimeLessonToCompatibilityWrsPlan(canonicalRuntimeFromImportValue(fullyMarked));
+  assert.equal(verified.verificationStatus, 'source-verified');
 });
 
 test('legacy-only lessons are migration inputs, not canonical exports', () => {
