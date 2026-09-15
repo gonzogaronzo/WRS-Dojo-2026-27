@@ -47,6 +47,9 @@ jobs:
       - name: Prepare isolated QA identity and temporary auth helper
         run: node --import tsx scripts/issue42-preview-e2e.mjs prepare
 
+      - name: Prepare one-time stale QA cleanup helper
+        run: node scripts/issue42-clean-stale-qa.mjs prepare
+
       - name: Deploy Hosting preview channel only
         id: preview
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -58,6 +61,11 @@ jobs:
 
       - name: Install browser QA driver
         run: npm install --no-save --ignore-scripts playwright-core@1.55.0
+
+      - name: Remove stale QA records from failed harness run
+        env:
+          PREVIEW_URL: '${{ steps.preview.outputs.details_url }}'
+        run: node scripts/issue42-clean-stale-qa.mjs run
 
       - name: Run authenticated Issue 42 browser QA
         env:
@@ -82,7 +90,7 @@ jobs:
           PREVIEW_URL: '${{ steps.preview.outputs.details_url }}'
         run: node --import tsx scripts/issue42-preview-e2e.mjs cleanup
 
-      - name: Scrub temporary auth helper from preview channel
+      - name: Scrub temporary auth helpers from preview channel
         if: always() && steps.preview.outcome == 'success'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
