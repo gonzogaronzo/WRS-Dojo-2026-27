@@ -150,7 +150,7 @@ export const normalizeLesson = (value: unknown): Lesson | null => {
     hfwList: stringArray(lessonData.hfwList),
     affixPractice: normalizeAffixes(lessonData.affixPractice),
     runtimePlan: runtimePlan || undefined,
-    wrsPlan: normalizeWrsLessonPlan(lessonData.wrsPlan)
+    wrsPlan: normalizeWrsLessonPlan(data.wrsPlan)
   } as Lesson;
 };
 
