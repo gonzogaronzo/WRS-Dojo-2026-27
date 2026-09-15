@@ -14,6 +14,7 @@ import {
   WrsSourceReference
 } from './types';
 import { part2PresentationToSlides } from './part2Presentation';
+import { parseWordToTiles } from './utils';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -191,6 +192,37 @@ const readerLevelForPassage = (value: string): '' | 'AB' | 'B' => {
   return level === 'A' ? '' : level;
 };
 
+const categorizeQuickDrillForCompatibility = (value: unknown) => {
+  const items = nonEmptyStrings(value);
+  const vowels: string[] = [];
+  const consonants: string[] = [];
+  const welded: string[] = [];
+
+  items.forEach(item => {
+    if (/^[aeiou]-e$/i.test(item)) {
+      vowels.push(item);
+      return;
+    }
+
+    const tiles = parseWordToTiles(item);
+    if (tiles.length === 1) {
+      const tileType = tiles[0].type;
+      if (tileType === 'welded') {
+        welded.push(item);
+        return;
+      }
+      if (tileType === 'vowel' || tileType === 'vowelTeam' || tileType === 'rControl') {
+        vowels.push(item);
+        return;
+      }
+    }
+
+    consonants.push(item);
+  });
+
+  return { vowels, consonants, welded };
+};
+
 /**
  * Compatibility-only view for the existing Official WRS Plan Details UI.
  * Runtime remains the sole authored instructional truth.
@@ -208,6 +240,7 @@ export const runtimeLessonToCompatibilityWrsPlan = (input: WRSRuntimeLessonPlan)
   const part9 = byPart(runtime, 9);
   const part10 = byPart(runtime, 10);
   const part10Data = asRecord(part10?.data);
+  const part1Drill = categorizeQuickDrillForCompatibility(part1?.data.quickDrill);
   const p4Reader = text(part4?.data.studentReader);
   const p5Reader = text(part5?.data.studentReader);
   const p9Reader = text(part9?.data.studentReader);
@@ -236,9 +269,9 @@ export const runtimeLessonToCompatibilityWrsPlan = (input: WRSRuntimeLessonPlan)
     verificationStatus: compatibilityVerificationStatus(runtime.sources),
     sources: runtime.sources.map(sourceForCompatibilityPlan),
     part1: {
-      vowels: nonEmptyStrings(part1?.data.quickDrill).join(', '),
-      consonants: '',
-      welded: '',
+      vowels: part1Drill.vowels.join(', '),
+      consonants: part1Drill.consonants.join(', '),
+      welded: part1Drill.welded.join(', '),
       addToNotebook: '',
       drillLeader: part1?.teacherDirections.join(' ') || ''
     },
