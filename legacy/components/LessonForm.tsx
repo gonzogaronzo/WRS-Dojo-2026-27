@@ -444,7 +444,7 @@ const LessonForm: React.FC<LessonFormProps> = ({ initialLesson, activeGroup, onS
           ...emptyLesson,
           ...importedData,
           schemaVersion: 2,
-          wrsPlan: normalizeWrsLessonPlan(data.wrsPlan),
+          wrsPlan: normalizeWrsLessonPlan(importedData.wrsPlan),
           id: formData.id, // Keep current ID if it's an edit
           step: String(importedData.step || formData.step),
           substep: String(importedData.substep || formData.substep)
