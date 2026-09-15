@@ -5,6 +5,7 @@ import {
   LESSON_STAGE_WIDTH,
   LessonStageFit
 } from '../lessonStage';
+import { isStudentDisplayRequest } from '../presenterMode';
 
 interface LessonStageProps {
   children: React.ReactNode;
@@ -22,9 +23,26 @@ const EMPTY_FIT: LessonStageFit = {
   displayHeight: 0
 };
 
+const canScrollVertically = (element: HTMLElement, deltaY: number) => {
+  if (element.scrollHeight <= element.clientHeight + 1) return false;
+  const overflowY = window.getComputedStyle(element).overflowY;
+  if (overflowY !== 'auto' && overflowY !== 'scroll') return false;
+  if (deltaY < 0) return element.scrollTop > 0;
+  if (deltaY > 0) return element.scrollTop < element.scrollHeight - element.clientHeight - 1;
+  return false;
+};
+
+const wheelPixels = (event: WheelEvent, pageHeight: number) => {
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return event.deltaY * 40;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return event.deltaY * pageHeight;
+  return event.deltaY;
+};
+
 const LessonStage: React.FC<LessonStageProps> = ({ children }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const stageRef = React.useRef<HTMLDivElement>(null);
   const [fit, setFit] = React.useState<LessonStageFit>(EMPTY_FIT);
+  const isStudentDisplay = typeof window !== 'undefined' && isStudentDisplayRequest(window.location.search);
 
   const measure = React.useCallback(() => {
     const container = containerRef.current;
@@ -47,6 +65,32 @@ const LessonStage: React.FC<LessonStageProps> = ({ children }) => {
     };
   }, [measure]);
 
+  React.useEffect(() => {
+    if (isStudentDisplay) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      const logicalDelta = wheelPixels(event, stage.clientHeight) / Math.max(fit.scale || 1, 0.01);
+      if (!logicalDelta) return;
+
+      // Preserve purpose-built inner scroll regions when they can still move.
+      let node = event.target instanceof HTMLElement ? event.target : null;
+      while (node && node !== stage) {
+        if (canScrollVertically(node, logicalDelta)) return;
+        node = node.parentElement;
+      }
+
+      if (!canScrollVertically(stage, logicalDelta)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      stage.scrollTop += logicalDelta;
+    };
+
+    stage.addEventListener('wheel', handleWheel, { passive: false });
+    return () => stage.removeEventListener('wheel', handleWheel);
+  }, [fit.scale, isStudentDisplay]);
+
   return (
     <div
       ref={containerRef}
@@ -54,8 +98,16 @@ const LessonStage: React.FC<LessonStageProps> = ({ children }) => {
       data-lesson-stage-viewport
     >
       <div
-        className="absolute overflow-hidden bg-[#fcfbf9]"
+        ref={stageRef}
+        className={`absolute bg-[#fcfbf9] ${
+          isStudentDisplay
+            ? 'overflow-hidden'
+            : 'overflow-x-hidden overflow-y-auto overscroll-contain touch-pan-y custom-scrollbar'
+        }`}
         data-lesson-stage
+        data-lesson-stage-scroll-owner={isStudentDisplay ? undefined : 'teacher'}
+        tabIndex={isStudentDisplay ? undefined : 0}
+        aria-label={isStudentDisplay ? undefined : 'Scrollable lesson content'}
         style={{
           width: LESSON_STAGE_WIDTH,
           height: LESSON_STAGE_HEIGHT,
