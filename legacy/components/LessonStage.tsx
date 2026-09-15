@@ -5,6 +5,7 @@ import {
   LESSON_STAGE_WIDTH,
   LessonStageFit
 } from '../lessonStage';
+import { isStudentDisplayRequest } from '../presenterMode';
 
 interface LessonStageProps {
   children: React.ReactNode;
@@ -25,6 +26,7 @@ const EMPTY_FIT: LessonStageFit = {
 const LessonStage: React.FC<LessonStageProps> = ({ children }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [fit, setFit] = React.useState<LessonStageFit>(EMPTY_FIT);
+  const isStudentDisplay = typeof window !== 'undefined' && isStudentDisplayRequest(window.location.search);
 
   const measure = React.useCallback(() => {
     const container = containerRef.current;
@@ -54,8 +56,15 @@ const LessonStage: React.FC<LessonStageProps> = ({ children }) => {
       data-lesson-stage-viewport
     >
       <div
-        className="absolute overflow-hidden bg-[#fcfbf9]"
+        className={`absolute bg-[#fcfbf9] ${
+          isStudentDisplay
+            ? 'overflow-hidden'
+            : 'overflow-x-hidden overflow-y-auto overscroll-contain touch-pan-y custom-scrollbar'
+        }`}
         data-lesson-stage
+        data-lesson-stage-scroll-owner={isStudentDisplay ? undefined : 'teacher'}
+        tabIndex={isStudentDisplay ? undefined : 0}
+        aria-label={isStudentDisplay ? undefined : 'Scrollable lesson content'}
         style={{
           width: LESSON_STAGE_WIDTH,
           height: LESSON_STAGE_HEIGHT,
