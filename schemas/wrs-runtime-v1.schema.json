@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wrs-dojo.local/schemas/wrs-runtime-v1.schema.json",
+  "title": "WRS Dojo Canonical Runtime Lesson v1",
+  "description": "Structural interchange schema. Instructional/source-fidelity validation is a separate gate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "title",
+    "step",
+    "substep",
+    "focus",
+    "lessonPath",
+    "plannedParts",
+    "planningContext",
+    "sources",
+    "parts"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "wrs-runtime-v1" },
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "step": { "type": "string", "minLength": 1 },
+    "substep": { "type": "string", "minLength": 1 },
+    "focus": {
+      "enum": ["introduction", "accuracy", "automaticity-fluency"]
+    },
+    "lessonPath": {
+      "enum": ["full", "block1+3", "block2+3"]
+    },
+    "plannedParts": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 1, "maximum": 10 },
+      "uniqueItems": true
+    },
+    "planningContext": { "$ref": "#/$defs/planningContext" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "parts": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "prefixItems": [
+        { "$ref": "#/$defs/part1" },
+        { "$ref": "#/$defs/part2" },
+        { "$ref": "#/$defs/part3" },
+        { "$ref": "#/$defs/part4" },
+        { "$ref": "#/$defs/part5" },
+        { "$ref": "#/$defs/part6" },
+        { "$ref": "#/$defs/part7" },
+        { "$ref": "#/$defs/part8" },
+        { "$ref": "#/$defs/part9" },
+        { "$ref": "#/$defs/part10" }
+      ],
+      "items": false
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "lessonPath": { "const": "full" } } },
+      "then": {
+        "properties": {
+          "plannedParts": {
+            "prefixItems": [
+              { "const": 1 }, { "const": 2 }, { "const": 3 }, { "const": 4 }, { "const": 5 },
+              { "const": 6 }, { "const": 7 }, { "const": 8 }, { "const": 9 }, { "const": 10 }
+            ],
+            "minItems": 10,
+            "maxItems": 10,
+            "items": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "lessonPath": { "const": "block1+3" } } },
+      "then": {
+        "properties": {
+          "plannedParts": {
+            "prefixItems": [
+              { "const": 1 }, { "const": 2 }, { "const": 3 }, { "const": 4 }, { "const": 5 },
+              { "const": 9 }, { "const": 10 }
+            ],
+            "minItems": 7,
+            "maxItems": 7,
+            "items": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "lessonPath": { "const": "block2+3" } } },
+      "then": {
+        "properties": {
+          "plannedParts": {
+            "prefixItems": [
+              { "const": 6 }, { "const": 7 }, { "const": 8 }, { "const": 9 }, { "const": 10 }
+            ],
+            "minItems": 5,
+            "maxItems": 5,
+            "items": false
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "planningContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conceptsToWeave", "troubleSpots"],
+      "properties": {
+        "conceptsToWeave": { "type": "string" },
+        "troubleSpots": { "type": "string" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "kind", "locator"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "kind": {
+          "enum": [
+            "step-instruction",
+            "instructor-manual",
+            "dictation-book",
+            "student-reader",
+            "student-notebook",
+            "teacher-selection"
+          ]
+        },
+        "edition": { "type": "string" },
+        "locator": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" },
+        "verification": {
+          "enum": ["verified", "needs-verification", "teacher-created"]
+        }
+      }
+    },
+    "partBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["part", "title", "teacherDirections", "sourceIds", "data"],
+      "properties": {
+        "part": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "title": { "type": "string", "minLength": 1 },
+        "teacherDirections": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sourceIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "data": {
+          "type": "object",
+          "description": "Part-specific runtime data. Renderer and instructional gates validate this vocabulary.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "part1": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 1 } } }] },
+    "part2": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 2 } } }] },
+    "part3": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 3 } } }] },
+    "part4": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 4 } } }] },
+    "part5": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 5 } } }] },
+    "part6": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 6 } } }] },
+    "part7": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 7 } } }] },
+    "part8": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 8 } } }] },
+    "part9": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 9 } } }] },
+    "part10": { "allOf": [{ "$ref": "#/$defs/partBase" }, { "properties": { "part": { "const": 10 } } }] }
+  }
+}

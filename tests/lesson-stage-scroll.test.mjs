@@ -26,5 +26,5 @@ test('teacher wheel input reaches stage overflow while preserving usable inner s
 test('student display remains clipped and does not become an independent scroll surface', () => {
   assert.match(source, /isStudentDisplayRequest\(window\.location\.search\)/);
   assert.match(source, /isStudentDisplay\s*\?\s*'overflow-hidden'/);
-  assert.doesNotMatch(source, /data-lesson-stage-scroll-owner=['"]student['"]/);
+  assert.doesNotMatch(source, /data-lesson-stage-scroll-owner=['\"]student['\"]/);
 });

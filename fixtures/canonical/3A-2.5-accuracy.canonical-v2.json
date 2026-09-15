@@ -1,0 +1,601 @@
+{
+  "schemaVersion": "wrs-runtime-v1",
+  "id": "3a-2-5-accuracy-canonical-v2-2026-09-14",
+  "title": "3A · Substep 2.5 · Accuracy · Canonical v2 Reference",
+  "step": "2",
+  "substep": "5",
+  "focus": "accuracy",
+  "lessonPath": "full",
+  "plannedParts": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "planningContext": {
+    "conceptsToWeave": "Closed syllables; exact three-letter-blend reading and spelling; cumulative welded sounds; taught Word Elements; High Frequency Words.",
+    "troubleSpots": "Levi: keep welded/vowel review brief and cumulative. Nora: attend to exact endings and avoid sprig/spring substitutions. Eleanor: read the graphemes actually present and contrast spl-/scr-/spr-/str- instead of defaulting to str-."
+  },
+  "sources": [
+    {
+      "id": "SI-02-05",
+      "label": "WRS Step Instruction · Substep 2.5",
+      "kind": "step-instruction",
+      "edition": "Fourth Edition",
+      "locator": "Substep 2.5, Parts 1-8"
+    },
+    {
+      "id": "DB-02-05",
+      "label": "WRS Dictation Book Steps 1-6 · Substep 2.5",
+      "kind": "dictation-book",
+      "edition": "Fourth Edition",
+      "locator": "Substep 2.5 dictation material"
+    },
+    {
+      "id": "SR2-02-05",
+      "label": "WRS Student Reader 2 · Substep 2.5",
+      "kind": "student-reader",
+      "edition": "Fourth Edition",
+      "locator": "Part 4 p. 108; Part 5 p. 117; Part 9 pp. 122-123"
+    },
+    {
+      "id": "SNB-02-05",
+      "label": "WRS Student Notebook Answer Key · cumulative through Substep 2.5",
+      "kind": "student-notebook",
+      "edition": "Fourth Edition",
+      "locator": "Sounds, Spelling, and Word Elements entries through Substep 2.5"
+    },
+    {
+      "id": "3A-DATA-2026-09-11",
+      "label": "3A current instructional data and weekly plan",
+      "kind": "teacher-selection",
+      "locator": "2026-09-11 data carried into the 2026-09-14 weekly plan"
+    }
+  ],
+  "parts": [
+    {
+      "part": 1,
+      "title": "Part 1 · Sounds Quick Drill",
+      "teacherDirections": [
+        "Run the five previously taught vowel cards with letter-keyword-sound.",
+        "Review only the selected consonants and welded sounds needed for this accuracy lesson."
+      ],
+      "sourceIds": ["SI-02-05", "SNB-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "quickDrill": ["a", "e", "i", "o", "u", "s", "c", "r", "t", "p", "l", "ang", "ank", "ind", "old"]
+      }
+    },
+    {
+      "part": 2,
+      "title": "Part 2 · Teach & Review Concepts for Reading",
+      "teacherDirections": [
+        "Review three to four previous-substep words first.",
+        "Use explicit Letter-Sound Tile builds to repair exact reading of three-letter blends and up to six sounds.",
+        "Keep Eleanor's blend contrast and Nora's exact-ending check visible as accuracy repairs rather than new concepts."
+      ],
+      "sourceIds": ["SI-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "conceptNotes": "Accuracy repair: read every grapheme in a three-letter blend. Each consonant in the blend keeps its own sound. Maintain exact endings and cumulative welded-sound accuracy.",
+        "reviewWords": ["flask", "trend", "grant", "crunch"],
+        "currentWords": ["strap", "scrap", "splash", "string", "script", "spring"],
+        "part2Presentation": {
+          "version": 1,
+          "focus": "accuracy",
+          "frames": [
+            {
+              "id": "review-previous",
+              "kind": "word-row",
+              "title": "Quick Review",
+              "words": ["flask", "trend", "grant", "crunch"],
+              "provenance": "teacher-created",
+              "sourceIds": ["SI-02-05", "3A-DATA-2026-09-11"],
+              "teacherCue": "Read the four previous-substep words. Tap only as needed."
+            },
+            {
+              "id": "strap-frame",
+              "kind": "tile-row",
+              "title": "Read every sound in strap",
+              "tiles": [
+                {"text": "s", "role": "consonant"},
+                {"text": "t", "role": "consonant"},
+                {"text": "r", "role": "consonant"},
+                {"text": "a", "role": "vowel"},
+                {"text": "p", "role": "consonant"}
+              ],
+              "provenance": "source-paraphrase",
+              "sourceIds": ["SI-02-05"],
+              "teacherCue": "Name the three letters in the beginning blend and keep all five sounds."
+            },
+            {
+              "id": "scrap-frame",
+              "kind": "tile-row",
+              "title": "Read every sound in scrap",
+              "tiles": [
+                {"text": "s", "role": "consonant"},
+                {"text": "c", "role": "consonant"},
+                {"text": "r", "role": "consonant"},
+                {"text": "a", "role": "vowel"},
+                {"text": "p", "role": "consonant"}
+              ],
+              "provenance": "source-paraphrase",
+              "sourceIds": ["SI-02-05"],
+              "teacherCue": "Read the graphemes actually present: s-c-r-a-p."
+            },
+            {
+              "id": "script-frame",
+              "kind": "tile-row",
+              "title": "Six sounds in script",
+              "tiles": [
+                {"text": "s", "role": "consonant"},
+                {"text": "c", "role": "consonant"},
+                {"text": "r", "role": "consonant"},
+                {"text": "i", "role": "vowel"},
+                {"text": "p", "role": "consonant"},
+                {"text": "t", "role": "consonant"}
+              ],
+              "provenance": "source-paraphrase",
+              "sourceIds": ["SI-02-05"],
+              "teacherCue": "Keep the three-letter beginning blend and the ending blend intact while reading all six sounds."
+            },
+            {
+              "id": "spring-ending-frame",
+              "kind": "contrast",
+              "title": "Read the ending exactly",
+              "left": [
+                {"text": "s", "role": "consonant"},
+                {"text": "p", "role": "consonant"},
+                {"text": "r", "role": "consonant"},
+                {"text": "ing", "role": "welded"}
+              ],
+              "right": [
+                {"text": "s", "role": "consonant"},
+                {"text": "p", "role": "consonant"},
+                {"text": "r", "role": "consonant"},
+                {"text": "i", "role": "vowel"},
+                {"text": "g", "role": "consonant"}
+              ],
+              "annotation": "spring / sprig",
+              "provenance": "teacher-created",
+              "sourceIds": ["3A-DATA-2026-09-11"],
+              "teacherCue": "Nora: look through the end of the word before responding."
+            },
+            {
+              "id": "blend-contrast-frame",
+              "kind": "word-row",
+              "title": "Which blend is actually there?",
+              "words": ["spl", "scr", "spr", "str"],
+              "provenance": "teacher-created",
+              "sourceIds": ["3A-DATA-2026-09-11"],
+              "teacherCue": "Eleanor: say the three letters that are actually present before reading the whole word."
+            }
+          ],
+          "interactiveSteps": [
+            {
+              "kind": "step",
+              "id": "review-previous",
+              "provenance": "teacher-created",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Read the previous-substep review words; tap only if needed.",
+              "teacherDirections": ["Present flask, trend, grant, and crunch one at a time before current 2.5 accuracy work."],
+              "objects": [
+                {"id": "flask", "text": "flask", "role": "word", "interaction": "static"},
+                {"id": "trend", "text": "trend", "role": "word", "interaction": "static"},
+                {"id": "grant", "text": "grant", "role": "word", "interaction": "static"},
+                {"id": "crunch", "text": "crunch", "role": "word", "interaction": "static"}
+              ],
+              "sourceRef": {"sourceIds": ["SI-02-05", "3A-DATA-2026-09-11"], "locator": "Substep 2.5 previous-substep review; 3A weekly selection"},
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "strap-build",
+              "provenance": "source-paraphrase",
+              "actionType": "PRACTICE_BUILD",
+              "displayType": "LETTER_SOUND_TILES",
+              "layout": "pull-stack",
+              "teacherCue": "Build and read strap; name the three-letter blend and hold all five sounds.",
+              "teacherDirections": ["Pull the five Letter-Sound Tiles in source order, build strap, then read it with tapping only if needed."],
+              "objects": [
+                {"id": "strap-s", "text": "s", "role": "consonant", "stagingOrder": 1},
+                {"id": "strap-t", "text": "t", "role": "consonant", "stagingOrder": 2},
+                {"id": "strap-r", "text": "r", "role": "consonant", "stagingOrder": 3},
+                {"id": "strap-a", "text": "a", "role": "vowel", "stagingOrder": 4},
+                {"id": "strap-p", "text": "p", "role": "consonant", "stagingOrder": 5}
+              ],
+              "cardRepresentation": "single-syllable",
+              "sourceRef": {"sourceIds": ["SI-02-05"], "locator": "Substep 2.5 Part 2 three-letter-blend instruction"},
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "scrap-build",
+              "provenance": "source-paraphrase",
+              "actionType": "PRACTICE_BUILD",
+              "displayType": "LETTER_SOUND_TILES",
+              "layout": "pull-stack",
+              "teacherCue": "Build and read scrap; identify s-c-r as three separate consonant sounds.",
+              "teacherDirections": ["Build scrap with Letter-Sound Tiles and require exact attention to s-c-r before blending the word."],
+              "objects": [
+                {"id": "scrap-s", "text": "s", "role": "consonant", "stagingOrder": 1},
+                {"id": "scrap-c", "text": "c", "role": "consonant", "stagingOrder": 2},
+                {"id": "scrap-r", "text": "r", "role": "consonant", "stagingOrder": 3},
+                {"id": "scrap-a", "text": "a", "role": "vowel", "stagingOrder": 4},
+                {"id": "scrap-p", "text": "p", "role": "consonant", "stagingOrder": 5}
+              ],
+              "cardRepresentation": "single-syllable",
+              "sourceRef": {"sourceIds": ["SI-02-05"], "locator": "Substep 2.5 Part 2 three-letter-blend instruction"},
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "script-build",
+              "provenance": "source-paraphrase",
+              "actionType": "PRACTICE_BUILD",
+              "displayType": "LETTER_SOUND_TILES",
+              "layout": "pull-stack",
+              "teacherCue": "Build and read script with all six sounds.",
+              "teacherDirections": ["Pull six Letter-Sound Tiles, build script, and maintain both the three-letter beginning blend and the ending blend."],
+              "objects": [
+                {"id": "script-s", "text": "s", "role": "consonant", "stagingOrder": 1},
+                {"id": "script-c", "text": "c", "role": "consonant", "stagingOrder": 2},
+                {"id": "script-r", "text": "r", "role": "consonant", "stagingOrder": 3},
+                {"id": "script-i", "text": "i", "role": "vowel", "stagingOrder": 4},
+                {"id": "script-p", "text": "p", "role": "consonant", "stagingOrder": 5},
+                {"id": "script-t", "text": "t", "role": "consonant", "stagingOrder": 6}
+              ],
+              "cardRepresentation": "single-syllable",
+              "sourceRef": {"sourceIds": ["SI-02-05"], "locator": "Substep 2.5 Part 2 up-to-six-sounds instruction"},
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "spring-exact-ending",
+              "provenance": "teacher-created",
+              "actionType": "MARK_WORDS",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Compare spring with sprig and read the ending that is actually printed.",
+              "teacherDirections": ["Use this as Nora's documented exact-ending accuracy repair; do not turn it into a new spelling rule."],
+              "objects": [
+                {"id": "spring-word", "text": "spring", "role": "word", "interaction": "static"},
+                {"id": "sprig-word", "text": "sprig", "role": "word", "interaction": "static"}
+              ],
+              "sourceRef": {"sourceIds": ["3A-DATA-2026-09-11"], "locator": "Nora sprig→spring error and 2026-09-14 accuracy response"},
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "blend-contrast",
+              "provenance": "teacher-created",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Name the three letters actually present before reading the word.",
+              "teacherDirections": ["Contrast spl-, scr-, spr-, and str- only as Eleanor's documented exact-print accuracy repair."],
+              "objects": [
+                {"id": "spl", "text": "spl", "role": "word", "interaction": "static"},
+                {"id": "scr", "text": "scr", "role": "word", "interaction": "static"},
+                {"id": "spr", "text": "spr", "role": "word", "interaction": "static"},
+                {"id": "str", "text": "str", "role": "word", "interaction": "static"}
+              ],
+              "sourceRef": {"sourceIds": ["3A-DATA-2026-09-11"], "locator": "Eleanor documented initial-blend substitution pattern"},
+              "sourceSection": "introductory-and-ongoing"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "part": 3,
+      "title": "Part 3 · Word Cards",
+      "teacherDirections": [
+        "Begin with the existing previous-substep fat stack, then use the exact current/trouble cards below.",
+        "Keep HFWs and Word Elements as separate packets."
+      ],
+      "sourceIds": ["SI-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "wordCards": [
+          {"id": "25-strap", "text": "strap", "type": "regular"},
+          {"id": "25-splash", "text": "splash", "type": "regular"},
+          {"id": "25-string", "text": "string", "type": "regular"},
+          {"id": "25-scrap", "text": "scrap", "type": "regular"},
+          {"id": "25-spring", "text": "spring", "type": "regular"},
+          {"id": "25-sprint", "text": "sprint", "type": "regular"},
+          {"id": "25-script", "text": "script", "type": "regular"},
+          {"id": "25-strong", "text": "strong", "type": "regular"},
+          {"id": "25-scrub", "text": "scrub", "type": "regular"},
+          {"id": "25-split", "text": "split", "type": "regular"}
+        ],
+        "hfwList": ["also", "each", "every", "everyone", "everything", "everywhere", "go", "no", "so", "too", "two", "very", "word", "work", "world"],
+        "wordElements": ["-struct-", "-tract-", "-spect-", "-dict-", "-ject-"]
+      }
+    },
+    {
+      "part": 4,
+      "title": "Part 4 · Wordlist Reading / Charting",
+      "teacherDirections": [
+        "Use the selected Student Reader 2 practice words for accuracy work.",
+        "Do not create a formal 15-word charting event in this anchor lesson."
+      ],
+      "sourceIds": ["SI-02-05", "SR2-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "studentReader": "Student Reader 2",
+        "page": "108",
+        "practiceWords": ["strong", "splash", "sprint", "scrap", "spring", "string"],
+        "chartingPlanned": false,
+        "chartingWords": []
+      }
+    },
+    {
+      "part": 5,
+      "title": "Part 5 · Sentence Reading",
+      "teacherDirections": [
+        "Have the student read each selected sentence silently and then aloud, one at a time.",
+        "Use the paired weave question after the sentence while preserving accurate reading, phrasing, and meaning."
+      ],
+      "sourceIds": ["SI-02-05", "SR2-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "studentReader": "Student Reader 2",
+        "page": "117",
+        "sentences": [
+          "Grab some string so we can bind the two boxes.",
+          "I will also fix the straps.",
+          "There will be buds on each and every branch in the spring.",
+          "The world has a very strong crust.",
+          "Do not tempt me to go for a swim.",
+          "Not one word about this script!",
+          "I had to scrap my plan at work.",
+          "I was struck by how very old and drab that quilt was.",
+          "Everyone thinks Sal is too strict.",
+          "Would Chad want to work on the script for us too?"
+        ],
+        "weaveQuestions": [
+          "What three letters form the beginning blend in string?",
+          "Read strap-straps. What beginning letters do you actually see?",
+          "Find the word with a three-letter blend. Name the letters in the blend.",
+          "What three letters begin strong? Keep the whole blend intact as you read.",
+          "Read the sentence with phrasing that makes the meaning clear. What does tempt mean here?",
+          "What three-letter blend begins script?",
+          "In scrap, how is /k/ spelled when it follows the three-letter blend?",
+          "What three letters begin struck? Do not add or replace a sound.",
+          "What three-letter blend begins strict?",
+          "Compare script with strong: what beginning blend does each word actually show?"
+        ]
+      }
+    },
+    {
+      "part": 6,
+      "title": "Part 6 · Quick Drill in Reverse",
+      "teacherDirections": [
+        "Dictate each selected previously taught phoneme and require the student to repeat the sound and name the corresponding grapheme(s).",
+        "Include selected taught Word Elements as cumulative review."
+      ],
+      "sourceIds": ["SI-02-05", "SNB-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "quickDrillReverse": [
+          "/ă/ → a", "/ĕ/ → e", "/ĭ/ → i", "/ŏ/ → o", "/ŭ/ → u",
+          "/ang/ → ang", "/ank/ → ank", "/ing/ → ing", "/ink/ → ink", "/ong/ → ong",
+          "/onk/ → onk", "/ung/ → ung", "/unk/ → unk", "/īld/ → ild", "/īnd/ → ind",
+          "/ōld/ → old", "/ōlt/ → olt", "/ōst/ → ost", "/k/ → c, k, ck", "/sh/ → sh"
+        ],
+        "wordElements": ["-struct-", "-tract-", "-spect-", "-s", "-es"]
+      }
+    },
+    {
+      "part": 7,
+      "title": "Part 7 · Teach & Review Concepts for Spelling",
+      "teacherDirections": [
+        "Dictate one selected word at a time while the student display remains hidden.",
+        "Reveal only the source-specified Letter-Sound Tiles or Word Element Card representation after the student attempts the spelling.",
+        "Reinforce that /k/ in the targeted three-letter scr- blend words is spelled c."
+      ],
+      "sourceIds": ["SI-02-05", "SNB-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "conceptNotes": "Accuracy spelling repair: represent every consonant sound in the three-letter blend; in the targeted scr- words, spell /k/ with c.",
+        "reviewWords": ["flask", "trend", "grant", "crunch"],
+        "currentWords": ["strap", "splash", "string", "split", "scrub", "scrap", "spring"],
+        "wordElements": ["-struct-", "-tract-", "-spect-", "-dict-", "-ject-"],
+        "troubleSpotTargets": [
+          "Eleanor: say the actual initial blend before spelling.",
+          "Nora: hold the exact ending before committing to the word.",
+          "Levi: keep welded-sound review cumulative and brief."
+        ],
+        "spellingItems": [
+          {
+            "id": "review-flask",
+            "word": "flask",
+            "group": "review",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "f", "role": "consonant"}, {"text": "l", "role": "consonant"}, {"text": "a", "role": "vowel"}, {"text": "s", "role": "consonant"}, {"text": "k", "role": "consonant"}
+            ]
+          },
+          {
+            "id": "review-trend",
+            "word": "trend",
+            "group": "review",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "t", "role": "consonant"}, {"text": "r", "role": "consonant"}, {"text": "e", "role": "vowel"}, {"text": "n", "role": "consonant"}, {"text": "d", "role": "consonant"}
+            ]
+          },
+          {
+            "id": "review-grant",
+            "word": "grant",
+            "group": "review",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "g", "role": "consonant"}, {"text": "r", "role": "consonant"}, {"text": "a", "role": "vowel"}, {"text": "n", "role": "consonant"}, {"text": "t", "role": "consonant"}
+            ]
+          },
+          {
+            "id": "review-crunch",
+            "word": "crunch",
+            "group": "review",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "c", "role": "consonant"}, {"text": "r", "role": "consonant"}, {"text": "u", "role": "vowel"}, {"text": "n", "role": "consonant"}, {"text": "ch", "role": "consonant-digraph"}
+            ]
+          },
+          {
+            "id": "current-strap",
+            "word": "strap",
+            "group": "current",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "s", "role": "consonant"}, {"text": "t", "role": "consonant"}, {"text": "r", "role": "consonant"}, {"text": "a", "role": "vowel"}, {"text": "p", "role": "consonant"}
+            ]
+          },
+          {
+            "id": "current-splash",
+            "word": "splash",
+            "group": "current",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "s", "role": "consonant"}, {"text": "p", "role": "consonant"}, {"text": "l", "role": "consonant"}, {"text": "a", "role": "vowel"}, {"text": "sh", "role": "consonant-digraph"}
+            ]
+          },
+          {
+            "id": "current-string",
+            "word": "string",
+            "group": "current",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "s", "role": "consonant"}, {"text": "t", "role": "consonant"}, {"text": "r", "role": "consonant"}, {"text": "ing", "role": "welded"}
+            ]
+          },
+          {
+            "id": "current-split",
+            "word": "split",
+            "group": "current",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "s", "role": "consonant"}, {"text": "p", "role": "consonant"}, {"text": "l", "role": "consonant"}, {"text": "i", "role": "vowel"}, {"text": "t", "role": "consonant"}
+            ]
+          },
+          {
+            "id": "current-scrub",
+            "word": "scrub",
+            "group": "current",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "s", "role": "consonant"}, {"text": "c", "role": "consonant"}, {"text": "r", "role": "consonant"}, {"text": "u", "role": "vowel"}, {"text": "b", "role": "consonant"}
+            ]
+          },
+          {
+            "id": "current-scrap",
+            "word": "scrap",
+            "group": "current",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "s", "role": "consonant"}, {"text": "c", "role": "consonant"}, {"text": "r", "role": "consonant"}, {"text": "a", "role": "vowel"}, {"text": "p", "role": "consonant"}
+            ]
+          },
+          {
+            "id": "current-spring",
+            "word": "spring",
+            "group": "current",
+            "representation": "letter-sound-tiles",
+            "units": [
+              {"text": "s", "role": "consonant"}, {"text": "p", "role": "consonant"}, {"text": "r", "role": "consonant"}, {"text": "ing", "role": "welded"}
+            ]
+          },
+          {
+            "id": "element-struct",
+            "word": "-struct-",
+            "group": "word-element",
+            "representation": "word-element-cards",
+            "units": [{"text": "-struct-", "role": "base-element"}]
+          },
+          {
+            "id": "element-tract",
+            "word": "-tract-",
+            "group": "word-element",
+            "representation": "word-element-cards",
+            "units": [{"text": "-tract-", "role": "base-element"}]
+          },
+          {
+            "id": "element-spect",
+            "word": "-spect-",
+            "group": "word-element",
+            "representation": "word-element-cards",
+            "units": [{"text": "-spect-", "role": "base-element"}]
+          },
+          {
+            "id": "element-dict",
+            "word": "-dict-",
+            "group": "word-element",
+            "representation": "word-element-cards",
+            "units": [{"text": "-dict-", "role": "base-element"}]
+          },
+          {
+            "id": "element-ject",
+            "word": "-ject-",
+            "group": "word-element",
+            "representation": "word-element-cards",
+            "units": [{"text": "-ject-", "role": "base-element"}]
+          }
+        ]
+      }
+    },
+    {
+      "part": 8,
+      "title": "Part 8 · Written Work Dictation",
+      "teacherDirections": [
+        "Require the student to repeat each dictation item before spelling.",
+        "Proofread phrases and sentences and mark selected current/cumulative concepts."
+      ],
+      "sourceIds": ["SI-02-05", "DB-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "dictation": {
+          "sounds": ["/ă/ → a", "/ĭ/ → i", "/ang/ → ang", "/ank/ → ank", "/īnd/ → ind"],
+          "realWords": ["strap", "splash", "string", "scrap", "spring"],
+          "wordElements": ["-struct-", "-tract-", "-spect-", "-s", "-es"],
+          "nonsenseWords": ["scrid", "strang", "sprab"],
+          "phrases": ["one or two", "in every box", "where in the world"],
+          "sentences": [
+            "I think that I can split the logs.",
+            "Chad will jump with a big splash.",
+            "Fran still has to scrub the pots."
+          ]
+        },
+        "markReinforce": "Mark the three-letter blend; reinforce c for /k/ in scr- words; keep cumulative welded-sound markings accurate."
+      }
+    },
+    {
+      "part": 9,
+      "title": "Part 9 · Controlled Text Passage Reading",
+      "teacherDirections": [
+        "Read the selected controlled passage, reread for phrasing/repair, and answer the ten documented comprehension questions.",
+        "Passage history remains explicitly uncertain rather than inferred."
+      ],
+      "sourceIds": ["SI-02-05", "SR2-02-05", "3A-DATA-2026-09-11"],
+      "data": {
+        "studentReader": "Student Reader 2",
+        "page": "122-123",
+        "passageTitle": "The Spring Job",
+        "passage": "Clint is not glad about the gust of hot wind. Spring is coming! Most everyone in the world feels bliss when the sun lasts long into dusk. Yet, Clint could not help but think of all the work. When all the cold and frost ends, the land and grass would be a mess.\n\nEach spring Clint has to trim the shrubs and fix up the mulch bed. Spring has sprung, so his tasks are at hand. Black mold masks the shed. Clint finds sticks and globs of rank sod everywhere. Clint is very strong, but this is too much stress and filth!\n\nIn his mind, Clint tempts himself with a snack and a nap, but he must go on. He scrubs the swing and the two benches by the elm. Then he sets two pots on the front steps. He plants the bulbs one by one, then splashes them with water.\n\nWhen everything is fresh, Clint grasps that he should not be such a grump. He lugs the trash out back and sprints to have a bath and grill some lunch.",
+        "questions": [
+          {"question": "What season is coming in the passage?", "level": "direct-recall"},
+          {"question": "Name two jobs Clint has to do outside.", "level": "direct-recall"},
+          {"question": "What does Clint want to do instead of continuing the work?", "level": "direct-recall"},
+          {"question": "Why does the warm spring weather make Clint think about work instead of only feeling happy?", "level": "cause-effect"},
+          {"question": "What does ‘grasps’ mean near the end of the passage?", "level": "vocabulary-in-context"},
+          {"question": "How does Clint change the yard as he works?", "level": "explanation"},
+          {"question": "Why does Clint decide he should not be such a grump?", "level": "reasoning"},
+          {"question": "What can you infer about Clint’s character from the fact that he keeps working even when he wants a snack and a nap?", "level": "inference"},
+          {"question": "What details show that the job felt difficult at first but became worthwhile?", "level": "evidence-based-interpretation"},
+          {"question": "What message does the passage give about attitude and finishing an unpleasant job?", "level": "synthesis"}
+        ],
+        "historyStatus": "uncertain-flagged",
+        "historyNote": "Teacher directed use of the third controlled passage for Monday; prior passage history is not inferred."
+      }
+    },
+    {
+      "part": 10,
+      "title": "Part 10 · Listening/Reading Fluency & Comprehension",
+      "teacherDirections": ["TBD under the current lesson-generation protocol; do not invent content."],
+      "sourceIds": [],
+      "data": {
+        "teacherPlanStatus": "TBD"
+      }
+    }
+  ]
+}
