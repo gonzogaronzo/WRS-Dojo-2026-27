@@ -170,7 +170,14 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     });
   }, [drillItemsStr, learnedCorrespondences]);
 
-  const activeItems = shuffledItems.length > 0 ? shuffledItems : sortedItems;
+  const shuffledItemsMatchDrill = useMemo(() => {
+    if (!shuffledItems.length || shuffledItems.length !== drillItems.length) return false;
+    const shuffledSorted = [...shuffledItems].sort();
+    const drillSorted = [...drillItems].sort();
+    return shuffledSorted.every((item, index) => item === drillSorted[index]);
+  }, [shuffledItems, drillItemsStr]);
+
+  const activeItems = shuffledItemsMatchDrill ? shuffledItems : sortedItems;
 
   const drawGrid = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
     const drawLine = (y: number, color: string, dashed = false) => {
