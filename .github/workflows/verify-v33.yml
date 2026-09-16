@@ -30,5 +30,9 @@ jobs:
       - name: Build standalone app
         run: npm run build:standalone
 
+      - name: Lint full repository (advisory)
+        continue-on-error: true
+        run: npm run lint
+
       - name: Validate Firebase Functions source
         run: node --check functions/index.js
