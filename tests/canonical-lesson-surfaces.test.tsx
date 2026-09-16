@@ -159,11 +159,11 @@ test('Part 6 keeps source responses and word elements in a distinct reveal-gated
   assert.match(teacherWordElement, /data-part6-word-element-procedure/);
   assert.match(teacherWordElement, /-struct-/);
   assert.match(studentSoundHidden, /data-part6-student-state="listen"/);
-  assert.match(studentSoundHidden, />Listen<\/span>/);
+  assert.match(studentSoundHidden, />LISTEN<\/span>/);
   assert.doesNotMatch(studentSoundHidden, /\/old\//);
   assert.doesNotMatch(studentSoundHidden, />old</);
   assert.match(studentHidden, /data-part6-student-state="listen"/);
-  assert.match(studentHidden, />Listen<\/span>/);
+  assert.match(studentHidden, />LISTEN<\/span>/);
   assert.doesNotMatch(studentHidden, /-struct-/);
   assert.match(studentSoundRevealed, /data-part6-student-state="revealed"/);
   assert.match(studentSoundRevealed, />old<\/span>/);
