@@ -1,28 +1,33 @@
 import { LessonPart } from './types';
 
-export const normalizeLessonSyncRevision = (value: unknown): number => (
-  typeof value === 'number' && Number.isFinite(value) && value > 0
+/**
+ * Revision 0 is reserved for a brand-new in-memory lesson session. Older saved
+ * sessions predate syncRevision, so a missing persisted value is treated as the
+ * first cloud revision. That lets the app hydrate legacy state once without
+ * making the same legacy frame perpetually authoritative afterward.
+ */
+export const normalizeLessonSyncRevision = (value: unknown): number => {
+  if (value === undefined || value === null) return 1;
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
     ? Math.floor(value)
-    : 0
-);
+    : 0;
+};
 
 export const nextLessonSyncRevision = (current: unknown): number =>
   normalizeLessonSyncRevision(current) + 1;
 
 /**
- * A running teacher surface owns its newest local revision. Cloud frames may
- * initialize an idle surface, but once a local lesson is active only a strictly
- * newer revision may replace it. Equal revisions are acknowledgements, not a
- * reason to replay an older payload over the UI.
+ * Cloud state is authoritative only when it is strictly newer. A local screen
+ * or mode change must never make an equal or older frame authoritative again.
+ * Keep the authority argument for call-site compatibility, but do not let it
+ * bypass revision ordering.
  */
 export const shouldApplyIncomingLessonState = (
   localRevision: unknown,
   incomingRevision: unknown,
-  hasLocalAuthority: boolean
-): boolean => (
-  !hasLocalAuthority ||
-  normalizeLessonSyncRevision(incomingRevision) > normalizeLessonSyncRevision(localRevision)
-);
+  _hasLocalAuthority: boolean
+): boolean =>
+  normalizeLessonSyncRevision(incomingRevision) > normalizeLessonSyncRevision(localRevision);
 
 export const shouldResetQuickDrillForPartChange = (
   previousPart: LessonPart,
