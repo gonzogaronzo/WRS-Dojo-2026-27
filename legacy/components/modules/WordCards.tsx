@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { WordCard } from '../../types';
 import { WordCardsSessionState } from '../../useLessonSession';
@@ -8,6 +8,7 @@ import {
   dealWordCard,
   resetWordCardsState
 } from '../../wordCardsState';
+import { useLessonRuntime } from '../lessonRuntimeContext';
 
 interface WordCardsProps {
   cards: WordCard[];
@@ -31,6 +32,7 @@ const WordCards: React.FC<WordCardsProps> = ({
   onUpdateState,
   readOnly = false
 }) => {
+  const lesson = useLessonRuntime();
   const [localState, setLocalState] = useState<WordCardsSessionState>(fallbackState);
   const state = syncedState || localState;
   const updateState = (value: WordCardsSessionState | ((previous: WordCardsSessionState) => WordCardsSessionState)) => {
@@ -38,13 +40,23 @@ const WordCards: React.FC<WordCardsProps> = ({
     if (onUpdateState) onUpdateState(value);
     else setLocalState(value);
   };
+
+  const wordElements = useMemo(() => {
+    const part3 = lesson?.runtimePlan?.parts?.find(part => part.part === 3);
+    return Array.isArray(part3?.data?.wordElements)
+      ? part3.data.wordElements.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      : [];
+  }, [lesson?.runtimePlan]);
+
   const validCards = (cards || []).filter((card): card is WordCard => Boolean(card?.id));
   const cardsKey = validCards.map(card => card.id).join('|');
   const hfwKey = hfw.join('|');
   const studentsKey = students.join('|');
+  const wordElementsKey = wordElements.join('|');
+  const elementsActive = state.deck.length > 0 && state.deck.every(card => card.id.startsWith('word-element-'));
 
   useEffect(() => {
-    if (readOnly) return;
+    if (readOnly || elementsActive) return;
     const deck = buildWordCardsDeck(validCards, hfw, state.filter, state.mode);
     updateState(previous => resetWordCardsState(previous, deck, students.length));
   }, [cardsKey, hfwKey, studentsKey, state.filter, state.mode, readOnly]);
@@ -55,8 +67,24 @@ const WordCards: React.FC<WordCardsProps> = ({
   const isDone = state.currentIndex >= state.deck.length && state.deck.length > 0;
   const playerCount = Math.max(1, students.length);
   const playerName = (index: number) => students[index] || `Player ${index + 1}`;
+
   const rebuildDeck = () => {
-    const deck = buildWordCardsDeck(validCards, hfw, state.filter, state.mode);
+    const deck = elementsActive
+      ? wordElements.map((text, index) => ({ id: `word-element-${index}-${text}`, text, type: 'regular' as const }))
+      : buildWordCardsDeck(validCards, hfw, state.filter, state.mode);
+    updateState(previous => resetWordCardsState(previous, deck, students.length));
+  };
+
+  const chooseStandardFilter = (filter: WordCardsSessionState['filter']) => {
+    updateState(previous => ({ ...previous, filter, deck: [] }));
+  };
+
+  const chooseWordElements = () => {
+    const deck: WordCard[] = wordElements.map((text, index) => ({
+      id: `word-element-${index}-${text}`,
+      text,
+      type: 'regular'
+    }));
     updateState(previous => resetWordCardsState(previous, deck, students.length));
   };
 
@@ -73,10 +101,18 @@ const WordCards: React.FC<WordCardsProps> = ({
             </div>
             <div className="flex w-max items-center rounded-xl border border-stone-700 bg-stone-800 p-1 shadow-xl">
               {(['all', 'regular', 'hfw'] as const).map(filter => (
-                <button key={filter} onClick={() => updateState(previous => ({ ...previous, filter }))} className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider ${state.filter === filter ? 'bg-stone-600 text-white' : 'text-stone-400'}`}>
+                <button key={filter} onClick={() => chooseStandardFilter(filter)} className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider ${!elementsActive && state.filter === filter ? 'bg-stone-600 text-white' : 'text-stone-400'}`}>
                   {filter === 'all' ? 'Both' : filter === 'hfw' ? 'Sight' : 'Regular'}
                 </button>
               ))}
+              {wordElements.length > 0 && (
+                <button
+                  onClick={chooseWordElements}
+                  className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider ${elementsActive ? 'bg-stone-600 text-white' : 'text-stone-400'}`}
+                >
+                  Word Elements
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -111,9 +147,10 @@ const WordCards: React.FC<WordCardsProps> = ({
                   initial={{ rotateY: 90, scale: 0.8, opacity: 0 }}
                   animate={{ rotateY: 0, scale: 1, opacity: 1, y: state.isBust ? 20 : 0 }}
                   exit={{ rotateY: -90, scale: 0.8, opacity: 0 }}
-                  className={`absolute inset-0 flex h-full w-full flex-col items-center justify-center rounded-[2rem] border-4 p-6 shadow-2xl ${currentCard.type === 'nonsense' ? 'border-purple-500 bg-purple-900 text-purple-100' : currentCard.type === 'hfw' ? 'border-red-500 bg-red-900 text-red-100' : currentCard.type === 'oops' ? 'border-orange-400 bg-orange-600 text-white' : 'border-stone-300 bg-stone-100 text-stone-900'}`}
+                  className={`absolute inset-0 flex h-full w-full flex-col items-center justify-center rounded-[2rem] border-4 p-6 shadow-2xl ${currentCard.id.startsWith('word-element-') ? 'border-stone-400 bg-stone-300 text-stone-900' : currentCard.type === 'nonsense' ? 'border-purple-500 bg-purple-900 text-purple-100' : currentCard.type === 'hfw' ? 'border-red-500 bg-red-900 text-red-100' : currentCard.type === 'oops' ? 'border-orange-400 bg-orange-600 text-white' : 'border-stone-300 bg-stone-100 text-stone-900'}`}
                 >
                   <span className={`${currentCard.text.length > 8 ? 'text-4xl sm:text-5xl md:text-6xl' : 'text-5xl sm:text-6xl md:text-7xl'} text-center font-black leading-none`}>{currentCard.text}</span>
+                  {currentCard.id.startsWith('word-element-') && <span className="absolute right-6 top-4 text-sm font-bold uppercase tracking-widest text-stone-600">Word Element</span>}
                   {currentCard.type === 'nonsense' && <span className="absolute right-6 top-4 text-sm font-bold uppercase tracking-widest text-purple-300">Nonsense</span>}
                   {currentCard.type === 'hfw' && <span className="absolute right-6 top-4 text-sm font-bold uppercase tracking-widest text-red-300">Heart Word</span>}
                   {currentCard.type === 'oops' && <span className="absolute right-6 top-4 text-sm font-black uppercase tracking-widest text-orange-200">Bust!</span>}
