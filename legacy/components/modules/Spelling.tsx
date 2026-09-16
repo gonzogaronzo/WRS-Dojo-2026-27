@@ -58,6 +58,9 @@ const LEGACY_CURRENT_INDEX_BY_SECTION: Record<string, number> = {
 };
 const CURRENT_INDEX_FOR_LEGACY = [0, 2, 1, 3, 4, 5];
 const dictationItemKey = (sectionKey: string, index: number) => sectionKey + '-' + index;
+const DICTATION_CURRENT_ITEM_PREFIX = '__part8-current__:';
+const dictationCurrentItemKey = (sectionKey: string, index: number) =>
+  DICTATION_CURRENT_ITEM_PREFIX + sectionKey + '-' + index;
 
 const parseDictationSound = (text: string) => {
   const match = text.trim().match(/^\/([^/]+)\/\s*(?:→|->|=)\s*(.+)$/);
@@ -392,13 +395,38 @@ const Spelling: React.FC<SpellingProps> = ({
   const safeActiveTab = Math.max(0, Math.min(activeIndex, sections.length - 1));
   const currentSection = sections[safeActiveTab];
   const SectionIcon = currentSection.icon;
-  const isItemRevealed = (sectionKey: string, index: number) => {
-    const currentKey = dictationItemKey(sectionKey, index);
-    const legacyIndex = LEGACY_CURRENT_INDEX_BY_SECTION[sectionKey];
-    return Boolean(revealedItems[currentKey] || revealedItems[String(legacyIndex) + '-' + index]);
+  const storedCurrentItemIndex = currentSection.data.findIndex((_, index) =>
+    Boolean(revealedItems[dictationCurrentItemKey(currentSection.key, index)])
+  );
+  const currentItemIndex = currentSection.data.length > 0
+    ? (storedCurrentItemIndex >= 0 ? storedCurrentItemIndex : 0)
+    : -1;
+  const currentDictationItem = currentItemIndex >= 0 ? currentSection.data[currentItemIndex] : null;
+  const currentItemIsRevealed = currentItemIndex >= 0 && Boolean(
+    revealedItems[dictationCurrentItemKey(currentSection.key, currentItemIndex)] &&
+    revealedItems[dictationItemKey(currentSection.key, currentItemIndex)]
+  );
+  const isItemRevealed = (sectionKey: string, index: number) => (
+    sectionKey === currentSection.key &&
+    index === currentItemIndex &&
+    currentItemIsRevealed
+  );
+  const setCurrentDictationItem = (index: number, reveal: boolean) => {
+    if (currentSection.data.length === 0) return;
+    const boundedIndex = Math.max(0, Math.min(index, currentSection.data.length - 1));
+    setRevealedItems(previous => {
+      const next = { ...previous };
+      const legacySectionIndex = LEGACY_CURRENT_INDEX_BY_SECTION[currentSection.key];
+      currentSection.data.forEach((_, itemIndex) => {
+        delete next[dictationCurrentItemKey(currentSection.key, itemIndex)];
+        delete next[dictationItemKey(currentSection.key, itemIndex)];
+        delete next[String(legacySectionIndex) + '-' + itemIndex];
+      });
+      next[dictationCurrentItemKey(currentSection.key, boundedIndex)] = true;
+      if (reveal) next[dictationItemKey(currentSection.key, boundedIndex)] = true;
+      return next;
+    });
   };
-  const nextUnrevealedIndex = currentSection.data.findIndex((_, idx) => !isItemRevealed(currentSection.key, idx));
-  const nextDictationItem = nextUnrevealedIndex >= 0 ? currentSection.data[nextUnrevealedIndex] : null;
   const teacherPromptForItem = (text: string) => currentSection.key === 'sounds'
     ? parseDictationSound(text).cue
     : text;
@@ -526,19 +554,26 @@ const Spelling: React.FC<SpellingProps> = ({
         </div>
       )}
 
-      {!readOnly && viewMode !== 'cipher' && nextDictationItem && (
+      {!readOnly && viewMode !== 'cipher' && currentDictationItem && (
         <div data-testid="teacher-dictation-cue" className="flex-shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-3 shadow-sm z-20">
           <div className="mx-auto flex max-w-5xl items-center gap-4">
             <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
             <div className="min-w-0 flex-1">
               <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700">Dictate next • {currentSection.title}</div>
-              <div className="truncate text-2xl font-black font-serif text-stone-900">{teacherPromptForItem(nextDictationItem)}</div>
+              <div className="truncate text-2xl font-black font-serif text-stone-900">{teacherPromptForItem(currentDictationItem)}</div>
             </div>
             <button
-              onClick={() => setRevealedItems(prev => ({ ...prev, [dictationItemKey(currentSection.key, nextUnrevealedIndex)]: true }))}
+              data-part8-teacher-control={currentItemIsRevealed ? 'next' : 'reveal'}
+              onClick={() => {
+                if (currentItemIsRevealed) {
+                  setCurrentDictationItem((currentItemIndex + 1) % currentSection.data.length, false);
+                } else {
+                  setCurrentDictationItem(currentItemIndex, true);
+                }
+              }}
               className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-[9px] font-black uppercase tracking-widest text-amber-900 shadow-sm hover:bg-amber-100"
             >
-              {viewMode === 'list' ? 'Reveal & next' : 'Done & next'}
+              {currentItemIsRevealed ? 'Next item' : 'Reveal'}
             </button>
           </div>
         </div>
@@ -561,30 +596,26 @@ const Spelling: React.FC<SpellingProps> = ({
                      <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-stone-300">Registry Data • Mission Dictation</p>
                   </div>
                </div>
-               {!readOnly && <button
-                 onClick={() => {
-                   const allRevealed = currentSection.data.every((_, i) => isItemRevealed(currentSection.key, i));
-                   const next = { ...revealedItems };
-                   currentSection.data.forEach((_, i) => next[dictationItemKey(currentSection.key, i)] = !allRevealed);
-                   setRevealedItems(next);
-                 }}
-                 className="px-6 py-3 bg-white border border-stone-100 text-stone-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:text-stone-900 hover:border-stone-200 transition-all flex items-center gap-2 shadow-sm"
-               >
-                 {currentSection.data.every((_, i) => isItemRevealed(currentSection.key, i)) ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                 {currentSection.data.every((_, i) => isItemRevealed(currentSection.key, i)) ? 'Hide All' : 'Reveal All'}
-               </button>}
+               {!readOnly && currentItemIndex >= 0 ? (
+                 <div className="rounded-xl border border-stone-100 bg-stone-50 px-5 py-3 text-[9px] font-black uppercase tracking-widest text-stone-400">
+                   Item {currentItemIndex + 1} of {currentSection.data.length}
+                 </div>
+               ) : null}
             </div>
             <div className="space-y-3">
               {currentSection.data.map((text, idx) => (
                 <div
                   key={idx}
+                  data-part8-item-index={idx}
+                  data-part8-item-state={isItemRevealed(currentSection.key, idx) ? 'revealed' : idx === currentItemIndex ? 'listen-write' : 'waiting'}
                   className={`flex items-center p-6 rounded-2xl border transition-all ${
                     !isItemRevealed(currentSection.key, idx)
                       ? `bg-stone-50/50 border-stone-100 border-dashed ${readOnly ? '' : 'cursor-pointer hover:bg-white hover:border-stone-200'}`
                       : 'bg-white border-stone-100 hover:border-red-800/20 hover:shadow-xl'
                   } group`}
                   onClick={!readOnly ? () => {
-                    setRevealedItems(prev => ({ ...prev, [dictationItemKey(currentSection.key, idx)]: !isItemRevealed(currentSection.key, idx) }));
+                    const revealSelected = idx === currentItemIndex && !currentItemIsRevealed;
+                    setCurrentDictationItem(idx, revealSelected);
                   } : undefined}
                 >
                   {!readOnly && <button
@@ -609,7 +640,7 @@ const Spelling: React.FC<SpellingProps> = ({
                   ) : (
                     <div className="flex items-center gap-4 text-stone-200">
                       <HelpCircle className="w-8 h-8 opacity-40" />
-                      <span className="text-xl font-serif italic opacity-40">Waiting for teacher...</span>
+                      <span className="text-xl font-serif italic opacity-40">{idx === currentItemIndex ? 'Listen and write.' : 'Waiting for teacher...'}</span>
                     </div>
                   )}
 

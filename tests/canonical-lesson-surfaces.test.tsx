@@ -219,37 +219,91 @@ test('Part 9 keeps reading uncluttered, then exposes one shared question at a ti
   assert.doesNotMatch(studentQuestionTwo, /Prior passage history is not inferred/);
 });
 
-test('Part 8 follows the source dictation sequence and uses source-shaped reveal visuals', () => {
+test('Part 8 gates every dictation section behind explicit reveal and hides prior answers on next item', () => {
   const dictation = {
-    sounds: ['/k/ → c, k, ck'],
-    wordElements: ['-struct-', '-s'],
-    realWords: ['strap'],
-    nonsenseWords: ['scrid'],
-    phrases: ['in every box'],
-    sentences: ['I think that I can split the logs.']
+    sounds: ['/zēph/ → ck'],
+    wordElements: ['-morph-'],
+    realWords: ['brindle'],
+    nonsenseWords: ['splont'],
+    phrases: ['carry the lantern'],
+    sentences: ['The silver lantern blinked twice.']
   };
-  const teacher = renderToStaticMarkup(<Spelling data={dictation} activeTab={0} />);
-  const studentHidden = renderToStaticMarkup(<Spelling data={dictation} activeTab={0} readOnly />);
-  const studentSoundRevealed = renderToStaticMarkup(
-    <Spelling data={dictation} activeTab={0} revealedItems={{ 'sounds-0': true }} readOnly />
+  const cases = [
+    { tab: 0, key: 'sounds', teacherCue: '/zēph/', answer: '>ck</span>', revealKind: 'sound' },
+    { tab: 1, key: 'word-elements', teacherCue: '-morph-', answer: '-morph-', revealKind: 'word-element' },
+    { tab: 2, key: 'real-words', teacherCue: 'brindle', answer: 'brindle' },
+    { tab: 3, key: 'nonsense-words', teacherCue: 'splont', answer: 'splont' },
+    { tab: 4, key: 'phrases', teacherCue: 'carry the lantern', answer: 'carry the lantern' },
+    { tab: 5, key: 'sentences', teacherCue: 'The silver lantern blinked twice.', answer: 'The silver lantern blinked twice.' }
+  ];
+
+  const teacherOrder = renderToStaticMarkup(<Spelling data={dictation} activeTab={0} />);
+  assert.ok(teacherOrder.indexOf('Sounds') < teacherOrder.indexOf('Word Elements'));
+  assert.ok(teacherOrder.indexOf('Word Elements') < teacherOrder.indexOf('Real Words'));
+  assert.ok(teacherOrder.indexOf('Real Words') < teacherOrder.indexOf('Nonsense Words'));
+  assert.ok(teacherOrder.indexOf('Nonsense Words') < teacherOrder.indexOf('Phrases'));
+  assert.ok(teacherOrder.indexOf('Phrases') < teacherOrder.indexOf('Sentences'));
+
+  for (const item of cases) {
+    const currentMarker = '__part8-current__:' + item.key + '-0';
+    const teacher = renderToStaticMarkup(
+      <Spelling data={dictation} activeTab={item.tab} revealedItems={{ [currentMarker]: true }} />
+    );
+    const studentHidden = renderToStaticMarkup(
+      <Spelling data={dictation} activeTab={item.tab} revealedItems={{ [currentMarker]: true }} readOnly />
+    );
+    const studentRevealed = renderToStaticMarkup(
+      <Spelling
+        data={dictation}
+        activeTab={item.tab}
+        revealedItems={{ [currentMarker]: true, [item.key + '-0']: true }}
+        readOnly
+      />
+    );
+
+    assert.match(teacher, /data-testid="teacher-dictation-cue"/);
+    assert.ok(teacher.includes(item.teacherCue));
+    assert.match(teacher, /data-part8-teacher-control="reveal"/);
+    assert.match(studentHidden, /data-part8-item-state="listen-write"/);
+    assert.match(studentHidden, /Listen and write/);
+    assert.equal(studentHidden.includes(item.teacherCue), false);
+    assert.equal(studentHidden.includes(item.answer), false);
+    assert.match(studentRevealed, /data-part8-item-state="revealed"/);
+    assert.ok(studentRevealed.includes(item.answer));
+    if (item.revealKind) assert.ok(studentRevealed.includes('data-part8-reveal-kind="' + item.revealKind + '"'));
+  }
+
+  const twoWordDictation = { ...dictation, realWords: ['brindle', 'cavern'] };
+  const nextItemHidden = renderToStaticMarkup(
+    <Spelling
+      data={twoWordDictation}
+      activeTab={2}
+      revealedItems={{
+        '__part8-current__:real-words-1': true,
+        'real-words-0': true
+      }}
+      readOnly
+    />
   );
-  const studentElementRevealed = renderToStaticMarkup(
-    <Spelling data={dictation} activeTab={1} revealedItems={{ 'word-elements-0': true }} readOnly />
+  const nextItemRevealed = renderToStaticMarkup(
+    <Spelling
+      data={twoWordDictation}
+      activeTab={2}
+      revealedItems={{
+        '__part8-current__:real-words-1': true,
+        'real-words-0': true,
+        'real-words-1': true
+      }}
+      readOnly
+    />
   );
 
-  assert.ok(teacher.indexOf('Sounds') < teacher.indexOf('Word Elements'));
-  assert.ok(teacher.indexOf('Word Elements') < teacher.indexOf('Real Words'));
-  assert.ok(teacher.indexOf('Real Words') < teacher.indexOf('Nonsense Words'));
-  assert.ok(teacher.indexOf('Nonsense Words') < teacher.indexOf('Phrases'));
-  assert.ok(teacher.indexOf('Phrases') < teacher.indexOf('Sentences'));
-  assert.match(teacher, /Optional cipher/);
-  assert.doesNotMatch(teacher, /Cipher Mission/);
-  assert.match(studentHidden, /Waiting for teacher/);
-  assert.doesNotMatch(studentHidden, /c, k, ck/);
-  assert.match(studentSoundRevealed, /data-part8-reveal-kind="sound"/);
-  assert.match(studentSoundRevealed, />ck</);
-  assert.match(studentElementRevealed, /data-part8-reveal-kind="word-element"/);
-  assert.match(studentElementRevealed, /-struct-/);
+  assert.match(nextItemHidden, /data-part8-item-index="1" data-part8-item-state="listen-write"/);
+  assert.equal(nextItemHidden.includes('brindle'), false);
+  assert.equal(nextItemHidden.includes('cavern'), false);
+  assert.match(nextItemRevealed, /data-part8-item-index="1" data-part8-item-state="revealed"/);
+  assert.equal(nextItemRevealed.includes('brindle'), false);
+  assert.ok(nextItemRevealed.includes('cavern'));
 });
 
 test('Part 10 stays source-gated and keeps teacher directions off the student display', () => {
