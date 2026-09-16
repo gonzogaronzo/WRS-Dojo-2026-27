@@ -5,7 +5,7 @@ import { WRS_PHONEME_MAP } from '../../wrsKnowledgeBase';
 import Tile from '../Tile';
 import {
   ChevronLeft, ChevronRight, Shuffle, Ear, Trash2,
-  CloudSun, Plane, Flower, Bug, BookOpen, Layers, Volume2,
+  CloudSun, Plane, Flower, Bug, BookOpen, Layers,
   CheckCircle2, Pen, MousePointer2, PenTool, Sparkles
 } from 'lucide-react';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
@@ -373,7 +373,8 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
   );
 
   const renderPart6StudentSurface = () => (
-    <div
+    <section
+      data-testid="part6-primary-surface"
       data-part6-student-state={revealedCount > 0 ? 'revealed' : 'listen'}
       className="flex h-full w-full flex-col items-center justify-center"
     >
@@ -383,7 +384,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
           <span className="text-5xl font-black font-serif text-stone-300">LISTEN</span>
         </div>
       )}
-    </div>
+    </section>
   );
   const renderVisualAnswerLog = () => (
     <div className="flex flex-wrap items-center justify-center gap-3">
@@ -437,16 +438,16 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
             </div>}
 
             <div onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined} className={`flex-[3] w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}>
-              {isReverse && readOnly ? renderPart6StudentSurface() : !isHandwritingMode ? <>
+              {isReverse && !isHandwritingMode ? renderPart6StudentSurface() : !isHandwritingMode ? <>
                 {!readOnly && <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity"><Sparkles className="w-64 h-64 text-red-900" /></div>}
                 <div className="flex flex-col items-center justify-center w-full">
-                  {isReverse ? (readOnly ? (revealedCount > 0 ? renderReverseAnswer() : <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm"><div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-12 h-12" /></div><span className="text-5xl font-black font-serif text-stone-300">LISTEN</span></div>) : <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm"><div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Volume2 className="w-12 h-12" /></div><span className={`${isWordElementItem ? 'text-7xl' : 'text-[144px]'} font-black font-serif text-stone-900 leading-none`}>{teacherPrompt}</span></div>) : <div className="flex items-center justify-center">{parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}</div>}
+                  <div className="flex items-center justify-center">{parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}</div>
                 </div>
               </> : <div ref={containerRef} className="w-full h-full bg-white rounded-3xl border border-stone-200 shadow-sm relative overflow-hidden">
                 <div className="absolute left-6 top-0 bottom-0 z-10 flex flex-col justify-around pointer-events-none opacity-20"><CloudSun className="w-8 h-8 text-blue-500" /><Plane className="w-8 h-8 text-stone-400" /><Flower className="w-8 h-8 text-green-500" /><Bug className="w-8 h-8 text-stone-600" /></div>
                 <canvas ref={gridRef} className="absolute inset-0 pointer-events-none" />
                 <canvas ref={syncedDrawing.canvasRef} onPointerDown={syncedDrawing.onPointerDown} onPointerMove={syncedDrawing.onPointerMove} onPointerUp={syncedDrawing.onPointerUp} onPointerCancel={syncedDrawing.onPointerCancel} className={`absolute inset-0 z-20 touch-none ${readOnly || tool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`} />
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 px-6 py-2 rounded-full border border-stone-100 z-30"><span className="text-stone-900 font-black text-2xl font-serif">{isReverse && readOnly ? 'Listen' : teacherPrompt}</span></div>
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 px-6 py-2 rounded-full border border-stone-100 z-30"><span className="text-stone-900 font-black text-2xl font-serif">{isReverse && revealedCount === 0 ? 'LISTEN' : teacherPrompt}</span></div>
               </div>}
             </div>
 

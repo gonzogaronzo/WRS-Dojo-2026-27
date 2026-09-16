@@ -48,6 +48,51 @@ test('actual presenter path keeps Part 6 answer-bearing data out until Reveal', 
   assert.equal(renderPart6({ quickDrillIndex: 1, quickDrillRevealed: 1, quickDrillItems: part6Items }).markup.includes('-struct-'), true);
 });
 
+const primaryPart6Surface = (markup: string): string => {
+  const match = markup.match(/<section[^>]*data-testid="part6-primary-surface"[\s\S]*?<\/section>/);
+  assert.ok(match, 'Part 6 primary instructional surface was not rendered');
+  return match[0];
+};
+
+const renderTeacherPart6 = (currentIndex: number, revealedCount: number) => {
+  const teacherLesson = {
+    ...lesson,
+    quickDrillReverse: ['/ă/ → a', '/old/ → old']
+  } as Lesson;
+  const teacherItems = ['/ă/ → a', '/old/ → old', 'word-element::-struct-'];
+  return renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={teacherLesson}>
+      <QuickDrill
+        sounds={teacherLesson.quickDrillReverse || []}
+        isReverse
+        currentIndex={currentIndex}
+        revealedCount={revealedCount}
+        shuffledItems={teacherItems}
+      />
+    </LessonRuntimeProvider>
+  );
+};
+
+test('teacher Part 6 primary card hides the sound target until Reveal and resets on Next', () => {
+  const hiddenFirst = primaryPart6Surface(renderTeacherPart6(0, 0));
+  assert.match(hiddenFirst, /data-part6-student-state="listen"/);
+  assert.match(hiddenFirst, />LISTEN<\/span>/);
+  assert.doesNotMatch(hiddenFirst, /\/ă\/|>a<\/span>|text-\[144px\]/);
+
+  const revealedFirst = primaryPart6Surface(renderTeacherPart6(0, 1));
+  assert.match(revealedFirst, /data-part6-student-state="revealed"/);
+  assert.match(revealedFirst, />a<\/span>/);
+
+  const hiddenNext = primaryPart6Surface(renderTeacherPart6(1, 0));
+  assert.match(hiddenNext, /data-part6-student-state="listen"/);
+  assert.match(hiddenNext, />LISTEN<\/span>/);
+  assert.doesNotMatch(hiddenNext, /\/old\/|>old<\/span>|text-\[144px\]/);
+
+  const hiddenWordElement = primaryPart6Surface(renderTeacherPart6(2, 0));
+  assert.match(hiddenWordElement, />LISTEN<\/span>/);
+  assert.doesNotMatch(hiddenWordElement, /-struct-/);
+});
+
 const cases = [
   { tab: 0, key: 'sounds', answer: 'qux' }, { tab: 1, key: 'word-elements', answer: '-morphx-' },
   { tab: 2, key: 'real-words', answer: 'brindlex' }, { tab: 3, key: 'nonsense-words', answer: 'splontx' },
