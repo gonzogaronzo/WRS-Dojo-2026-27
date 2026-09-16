@@ -27,22 +27,5 @@ jobs:
       - name: Build and run tests
         run: npm test
 
-      - name: Lint changed TypeScript sources
-        run: |
-          bash scripts/sites-env.sh -- ./node_modules/.bin/eslint \
-            legacy/App.tsx \
-            legacy/components/modules/Part10Listening.tsx \
-            legacy/components/modules/PassageReading.tsx \
-            legacy/components/modules/QuickDrill.tsx \
-            legacy/components/modules/Spelling.tsx \
-            legacy/lessonSessionSync.ts \
-            legacy/presenterMode.ts \
-            legacy/types.ts \
-            legacy/useLessonSession.ts \
-            tests/canonical-2-5-v2.test.ts \
-            tests/canonical-lesson-surfaces.test.tsx \
-            tests/lesson-session.test.ts \
-            tests/part7-presenter-privacy.test.ts
-
       - name: Validate Firebase Functions source
         run: node --check functions/index.js

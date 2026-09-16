@@ -482,12 +482,9 @@ const App: React.FC = () => {
         currentPart: nextPart
       };
     }
+    if (nextPart !== LessonPart.Part10) setIsSessionDossierOpen(false);
     setCurrentPart(nextPart);
   }, [currentLesson?.id, lessonSession.sessionId]);
-
-  useEffect(() => {
-    if (currentPart !== LessonPart.Part10) setIsSessionDossierOpen(false);
-  }, [currentPart]);
 
   const changeLessonPart = useCallback((nextPart: LessonPart) => {
     if (isStudentView) return;
