@@ -640,7 +640,7 @@ const Spelling: React.FC<SpellingProps> = ({
                   ) : (
                     <div className="flex items-center gap-4 text-stone-200">
                       <HelpCircle className="w-8 h-8 opacity-40" />
-                      <span className="text-xl font-serif italic opacity-40">{idx === currentItemIndex ? 'Listen and write.' : 'Waiting for teacher...'}</span>
+                      <span className="text-xl font-serif italic opacity-40">{idx === currentItemIndex ? 'Listen and write. Waiting for teacher reveal.' : 'Waiting for teacher...'}</span>
                     </div>
                   )}
 
