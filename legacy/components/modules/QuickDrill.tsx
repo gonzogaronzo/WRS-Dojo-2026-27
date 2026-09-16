@@ -45,6 +45,31 @@ interface RevealedAnswer {
 
 const WORD_ELEMENT_PREFIX = 'word-element::';
 
+export interface AuditoryDrillItem {
+  phoneme: string;
+  responses: string[];
+}
+
+/**
+ * Preserve source-authored auditory prompts and their exact response order.
+ * A curriculum map is used only as a legacy fallback for prompts that have no
+ * source-provided response.
+ */
+export const parseAuditoryDrillItem = (item: string): AuditoryDrillItem => {
+  const source = item.trim();
+  const match = source.match(/^\/([^/]+)\/\s*(?:→|->|=)\s*(.+)$/);
+  if (match) {
+    return {
+      phoneme: match[1].trim(),
+      responses: match[2].split(',').map(value => value.trim()).filter(Boolean)
+    };
+  }
+  return {
+    phoneme: source.replace(/^\//, '').replace(/\/$/, ''),
+    responses: []
+  };
+};
+
 const QuickDrill: React.FC<QuickDrillProps> = ({
   sounds,
   isReverse = false,
@@ -152,20 +177,13 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
 
   const reverseSoundItems = useMemo(() => {
     if (!isReverse) return [];
-    const lessonBase = Array.isArray(sounds) ? sounds : [];
-    const explicitPhonemes = lessonBase.flatMap(item => {
-      const trimmed = item.trim();
-      const mapped = trimmed.match(/^\/([^/]+)\/\s*(?:→|->|=)/);
-      if (mapped?.[1]) return [mapped[1]];
-      const clean = trimmed.replace(/^\//, '').replace(/\/$/, '');
-      if (learnedCorrespondences.some(c => c.phoneme === clean)) return [clean];
-      return learnedCorrespondences
-        .filter(c => c.graphemes.some(g => g === clean.replace(/[\[\]]/g, '')))
-        .map(c => c.phoneme);
-    });
-    const activePhonemes = Array.from(new Set(explicitPhonemes));
-    return activePhonemes.length > 0 ? activePhonemes : ["ă", "ĕ", "ĭ", "ŏ", "ŭ"];
-  }, [isReverse, soundsStr, learnedCorrespondences]);
+    const lessonBase = Array.isArray(sounds)
+      ? sounds.map(item => item.trim()).filter(Boolean)
+      : [];
+    return lessonBase.length > 0
+      ? lessonBase
+      : ['/ă/ → a', '/ĕ/ → e', '/ĭ/ → i', '/ŏ/ → o', '/ŭ/ → u'];
+  }, [isReverse, soundsStr]);
 
   const reverseWordElementItems = useMemo(() => (
     part6WordElements.map(element => `${WORD_ELEMENT_PREFIX}${element}`)
@@ -211,7 +229,8 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
   const currentItem = activeItems[safeCurrentIndex];
   const isWordElementItem = Boolean(currentItem?.startsWith(WORD_ELEMENT_PREFIX));
   const currentWordElement = isWordElementItem ? currentItem.slice(WORD_ELEMENT_PREFIX.length) : '';
-  const teacherPrompt = isWordElementItem ? currentWordElement : `/${currentItem || ''}/`;
+  const currentAuditoryItem = isWordElementItem ? null : parseAuditoryDrillItem(currentItem || '');
+  const teacherPrompt = isWordElementItem ? currentWordElement : '/' + (currentAuditoryItem?.phoneme || '') + '/';
   const part6Section = isReverse ? (isWordElementItem ? 'Word Elements' : 'Sounds') : null;
   const sectionItems = isWordElementItem
     ? activeItems.filter(item => item.startsWith(WORD_ELEMENT_PREFIX))
@@ -271,9 +290,13 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     if (!currentItem) return [];
     if (isWordElementItem) return [{ text: currentWordElement, isNew: false, kind: 'word-element' }];
     if (isReverse) {
-      const matches = learnedCorrespondences.filter(c => c.phoneme === currentItem);
-      return Array.from(new Set(matches.sort((a, b) => compareIntroduced(a.introduced, b.introduced)).flatMap(m => m.graphemes))).map(g => ({
-        text: g,
+      const sourceResponses = parseAuditoryDrillItem(currentItem).responses;
+      const fallbackResponses = learnedCorrespondences
+        .filter(c => c.phoneme === parseAuditoryDrillItem(currentItem).phoneme)
+        .sort((a, b) => compareIntroduced(a.introduced, b.introduced))
+        .flatMap(match => match.graphemes);
+      return (sourceResponses.length > 0 ? sourceResponses : Array.from(new Set(fallbackResponses))).map(text => ({
+        text,
         isNew: false,
         kind: 'grapheme' as const
       }));
@@ -389,8 +412,15 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
           <div className="relative w-full h-full flex flex-col p-6 gap-6 items-center">
             {isReverse && !readOnly && <div data-testid="teacher-dictation-cue" className="w-full max-w-4xl flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 shadow-sm">
               <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{isWordElementItem ? 'Dictate Word Element' : 'Dictate Sound'}</span>
-              <span className="text-2xl font-black font-serif text-stone-900">{teacherPrompt}</span>
+              <div className="min-w-0">
+                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{isWordElementItem ? 'Dictate Word Element' : 'Dictate Sound'}</span>
+                <span className="text-2xl font-black font-serif text-stone-900">{teacherPrompt}</span>
+                {isWordElementItem ? (
+                  <p data-part6-word-element-procedure className="mt-1 max-w-2xl text-xs font-semibold leading-relaxed text-amber-900">
+                    After the student repeats it, have the student select the matching word-element manipulative and finger-write it while orally spelling it, including the required dash or dashes.
+                  </p>
+                ) : null}
+              </div>
             </div>}
 
             <div onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined} className={`flex-[3] w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}>

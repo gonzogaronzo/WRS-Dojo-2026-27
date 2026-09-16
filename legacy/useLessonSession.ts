@@ -50,7 +50,10 @@ export interface LessonSessionState {
   passageIndex: number;
   passageRulerEnabled: boolean;
   passageRulerY: number;
+  passagePhase: 'reading' | 'comprehension';
+  passageQuestionIndex: number;
   spellingViewMode: SpellingViewMode;
+  spellingSectionOrderVersion: number;
   spellingActiveTab: number;
   spellingRevealedItems: Record<string, boolean>;
   spellingCipherWord: string | null;
@@ -77,7 +80,8 @@ export const createInitialLessonSession = (): LessonSessionState => ({
   teachConceptsSyllabicated: false, teachConceptsSlideMarks: {},
   teachConceptsSlideObjectStates: {}, teachConceptsSlideFullscreen: {},
   dictationCompletedIds: [], passageIndex: 0, passageRulerEnabled: false, passageRulerY: 0,
-  spellingViewMode: 'list', spellingActiveTab: 0, spellingRevealedItems: {},
+  passagePhase: 'reading', passageQuestionIndex: 0,
+  spellingViewMode: 'list', spellingSectionOrderVersion: 2, spellingActiveTab: 0, spellingRevealedItems: {},
   spellingCipherWord: null, spellingCipherResults: {}, spellingCipherCheckResult: null,
   spellingGridPage: 1, spellingIsSyllabicated: false,
   spellingMarks: [], drawings: {}
@@ -125,7 +129,10 @@ export const lessonSessionFromCloud = (cloud: CloudLessonSession): LessonSession
   teachConceptsSlideFullscreen: cloud.teachConceptsSlideFullscreen || {},
   dictationCompletedIds: cloud.dictationCompletedIds || [], passageIndex: cloud.passageIndex || 0,
   passageRulerEnabled: Boolean(cloud.passageRulerEnabled), passageRulerY: cloud.passageRulerY || 0,
+  passagePhase: cloud.passagePhase === 'comprehension' ? 'comprehension' : 'reading',
+  passageQuestionIndex: Math.max(0, cloud.passageQuestionIndex || 0),
   spellingViewMode: cloud.spellingViewMode === 'cipher' || cloud.spellingViewMode === 'grid' ? cloud.spellingViewMode : 'list',
+  spellingSectionOrderVersion: cloud.spellingSectionOrderVersion === 2 ? 2 : 1,
   spellingActiveTab: cloud.spellingActiveTab || 0, spellingRevealedItems: cloud.spellingRevealedItems || {},
   spellingCipherWord: cloud.spellingCipherWord || null,
   spellingCipherResults: cloud.spellingCipherResults || {},
@@ -165,7 +172,9 @@ export const lessonSessionToCloud = (
   teachConceptsSlideFullscreen: session.teachConceptsSlideFullscreen,
   dictationCompletedIds: session.dictationCompletedIds, passageIndex: session.passageIndex,
   passageRulerEnabled: session.passageRulerEnabled, passageRulerY: session.passageRulerY,
-  spellingViewMode: session.spellingViewMode, spellingActiveTab: session.spellingActiveTab,
+  passagePhase: session.passagePhase, passageQuestionIndex: session.passageQuestionIndex,
+  spellingViewMode: session.spellingViewMode, spellingSectionOrderVersion: session.spellingSectionOrderVersion,
+  spellingActiveTab: session.spellingActiveTab,
   spellingRevealedItems: session.spellingRevealedItems, spellingCipherWord: session.spellingCipherWord,
   spellingCipherResults: session.spellingCipherResults,
   spellingCipherCheckResult: session.spellingCipherCheckResult,
@@ -216,7 +225,9 @@ export const useLessonSession = () => {
     setSessionTeachConceptsSlideFullscreen: setter('teachConceptsSlideFullscreen'),
     setSessionDictationCompletedIds: setter('dictationCompletedIds'),
     setSessionPassageIndex: setter('passageIndex'), setSessionPassageRulerEnabled: setter('passageRulerEnabled'),
-    setSessionPassageRulerY: setter('passageRulerY'), setSessionSpellingViewMode: setter('spellingViewMode'),
+    setSessionPassageRulerY: setter('passageRulerY'), setSessionPassagePhase: setter('passagePhase'),
+    setSessionPassageQuestionIndex: setter('passageQuestionIndex'),
+    setSessionSpellingViewMode: setter('spellingViewMode'), setSessionSpellingSectionOrderVersion: setter('spellingSectionOrderVersion'),
     setSessionSpellingActiveTab: setter('spellingActiveTab'), setSessionSpellingRevealedItems: setter('spellingRevealedItems'),
     setSessionSpellingCipherWord: setter('spellingCipherWord'),
     setSessionSpellingCipherResults: setter('spellingCipherResults'),

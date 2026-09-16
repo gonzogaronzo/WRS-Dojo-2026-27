@@ -26,6 +26,7 @@ import TeachConcepts from './components/modules/TeachConcepts';
 import Spelling from './components/modules/Spelling';
 import WordlistReading from './components/modules/WordlistReading';
 import PassageReading from './components/modules/PassageReading';
+import Part10Listening from './components/modules/Part10Listening';
 
 import MissionPlayer from './components/MissionPlayer';
 import {
@@ -55,6 +56,7 @@ import {
 import { useCloudPresenter } from './useCloudPresenter';
 import { DrawingStroke, updateDrawingSurface } from './drawingSync';
 import { clearSafeBootMode, isSafeBootMode } from './safeBoot';
+import { pendingNavigationBlocksIncoming, type PendingLessonNavigation } from './lessonSessionSync';
 import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
 
 const App: React.FC = () => {
@@ -69,6 +71,8 @@ const App: React.FC = () => {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [currentPart, setCurrentPart] = useState<LessonPart>(LessonPart.Briefing);
   const [mode, setMode] = useState<'dashboard' | 'edit' | 'run' | 'mission'>('dashboard');
+  const [isSessionDossierOpen, setIsSessionDossierOpen] = useState(false);
+  const pendingLocalNavigationRef = useRef<PendingLessonNavigation | null>(null);
   const {
     session: lessonSession, resetLessonSession, replaceLessonSession,
     setSessionStudentIds, setSessionScores, setSessionNotes, setSessionDistribution,
@@ -81,7 +85,8 @@ const App: React.FC = () => {
     setSessionTeachConceptsSlideMarks, setSessionTeachConceptsSlideObjectStates,
     setSessionTeachConceptsSlideFullscreen, setSessionDictationCompletedIds, setSessionPassageIndex,
     setSessionPassageRulerEnabled, setSessionPassageRulerY,
-    setSessionSpellingViewMode, setSessionSpellingActiveTab, setSessionSpellingRevealedItems,
+    setSessionPassagePhase, setSessionPassageQuestionIndex,
+    setSessionSpellingViewMode, setSessionSpellingSectionOrderVersion, setSessionSpellingActiveTab, setSessionSpellingRevealedItems,
     setSessionSpellingCipherWord, setSessionSpellingCipherResults, setSessionSpellingCipherCheckResult,
     setSessionSpellingGridPage, setSessionSpellingIsSyllabicated,
     setSessionSpellingMarks, setSessionDrawings
@@ -105,7 +110,9 @@ const App: React.FC = () => {
     teachConceptsSlideFullscreen: sessionTeachConceptsSlideFullscreen,
     dictationCompletedIds: sessionDictationCompletedIds, passageIndex: sessionPassageIndex,
     passageRulerEnabled: sessionPassageRulerEnabled, passageRulerY: sessionPassageRulerY,
-    spellingViewMode: sessionSpellingViewMode, spellingActiveTab: sessionSpellingActiveTab,
+    passagePhase: sessionPassagePhase, passageQuestionIndex: sessionPassageQuestionIndex,
+    spellingViewMode: sessionSpellingViewMode, spellingSectionOrderVersion: sessionSpellingSectionOrderVersion,
+    spellingActiveTab: sessionSpellingActiveTab,
     spellingRevealedItems: sessionSpellingRevealedItems, spellingCipherWord: sessionSpellingCipherWord,
     spellingCipherResults: sessionSpellingCipherResults,
     spellingCipherCheckResult: sessionSpellingCipherCheckResult,
@@ -462,6 +469,22 @@ const App: React.FC = () => {
     return chartingWordCardsForLesson(currentLesson);
   }, [currentLesson]);
 
+
+  const setLocalLessonPart = useCallback((nextPart: LessonPart, sessionIdentity = lessonSession.sessionId) => {
+    if (currentLesson) {
+      pendingLocalNavigationRef.current = {
+        lessonId: currentLesson.id,
+        sessionId: sessionIdentity,
+        currentPart: nextPart
+      };
+    }
+    setCurrentPart(nextPart);
+  }, [currentLesson?.id, lessonSession.sessionId]);
+
+  useEffect(() => {
+    if (currentPart !== LessonPart.Part10) setIsSessionDossierOpen(false);
+  }, [currentPart]);
+
   const changeLessonPart = useCallback((nextPart: LessonPart) => {
     if (isStudentView) return;
     if (nextPart === LessonPart.Part4 && baseReadingCards.length > 0 && rosterSessionStudents.length > 0) {
@@ -472,8 +495,8 @@ const App: React.FC = () => {
         setSessionScores([]);
       }
     }
-    setCurrentPart(nextPart);
-  }, [baseReadingCards, isStudentView, rosterSessionStudents.length, sessionDistribution, setSessionDistribution, setSessionScores, setSessionWordlistPage]);
+    setLocalLessonPart(nextPart);
+  }, [baseReadingCards, isStudentView, rosterSessionStudents.length, sessionDistribution, setLocalLessonPart, setSessionDistribution, setSessionScores, setSessionWordlistPage]);
 
   // Keep activeGroup in sync with the latest data from the groups array
   useEffect(() => {
@@ -492,6 +515,16 @@ const App: React.FC = () => {
     if (safeBoot || isStudentDisplayWindow) return;
     if (activeSession && activeSession.lesson) {
       console.log("Received session update from cloud:", activeSession);
+      const pendingNavigation = pendingLocalNavigationRef.current;
+      if (pendingNavigationBlocksIncoming(pendingNavigation, activeSession)) return;
+      if (
+        pendingNavigation &&
+        activeSession.lesson.id === pendingNavigation.lessonId &&
+        (activeSession.sessionId || '') === pendingNavigation.sessionId &&
+        activeSession.currentPart === pendingNavigation.currentPart
+      ) {
+        pendingLocalNavigationRef.current = null;
+      }
       const incomingSession = lessonSessionFromCloud(activeSession);
       if (!isStudentView) incomingSession.notes = lessonSession.notes;
       if (!lessonSessionsMatch(incomingSession, lessonSession)) replaceLessonSession(incomingSession);
@@ -504,7 +537,7 @@ const App: React.FC = () => {
       
       if (mode !== 'run' && mode !== 'mission') setMode('run');
     }
-  }, [activeSession, groups.length, isStudentDisplayWindow, safeBoot]);
+  }, [activeSession, currentPart, groups.length, isStudentDisplayWindow, safeBoot]);
 
   // Push local changes to cloud (Debounced)
   useEffect(() => {
@@ -554,7 +587,7 @@ const App: React.FC = () => {
     if (data.isTraining) {
       setMode('mission');
     } else {
-      setCurrentPart(LessonPart.Part1); 
+      setLocalLessonPart(LessonPart.Part1, sessionIdentity.sessionId); 
     }
     
     if (activeGroup) {
@@ -796,6 +829,8 @@ const App: React.FC = () => {
             onUpdateViewMode={setSessionSpellingViewMode}
             activeTab={sessionSpellingActiveTab}
             onUpdateActiveTab={setSessionSpellingActiveTab}
+            sectionOrderVersion={sessionSpellingSectionOrderVersion}
+            onUpdateSectionOrderVersion={setSessionSpellingSectionOrderVersion}
             revealedItems={sessionSpellingRevealedItems}
             onUpdateRevealedItems={setSessionSpellingRevealedItems}
             cipherWord={sessionSpellingCipherWord}
@@ -825,23 +860,27 @@ const App: React.FC = () => {
             onUpdateRulerEnabled={setSessionPassageRulerEnabled}
             rulerY={sessionPassageRulerY}
             onUpdateRulerY={setSessionPassageRulerY}
+            phase={sessionPassagePhase}
+            onUpdatePhase={setSessionPassagePhase}
+            questionIndex={sessionPassageQuestionIndex}
+            onUpdateQuestionIndex={setSessionPassageQuestionIndex}
             strokes={sessionDrawings.passage || []}
             onUpdateStrokes={strokes => updateDrawingStrokes('passage', strokes)}
             readOnly={isStudentView}
           />
         );
       case LessonPart.Part10:
-        if (isStudentView) {
+        if (isStudentView || !isSessionDossierOpen) {
           return (
-            <div className="h-full flex flex-col items-center justify-center bg-stone-950 text-center p-10">
-              <div className="text-7xl mb-6">道</div>
-              <h2 className="text-5xl font-black font-serif text-white mb-3">Mission Complete</h2>
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-stone-500">Excellent work, students</p>
-            </div>
+            <Part10Listening
+              plan={currentLesson.listeningComprehension}
+              readOnly={isStudentView}
+              onOpenDossier={isStudentView ? undefined : () => setIsSessionDossierOpen(true)}
+            />
           );
         }
         if (!activeGroup) {
-          return <UnassignedLessonCompletion onReturn={() => setCurrentPart(LessonPart.Briefing)} />;
+          return <UnassignedLessonCompletion onReturn={() => setLocalLessonPart(LessonPart.Briefing)} />;
         }
         return (
           <SessionDossier 
@@ -857,6 +896,7 @@ const App: React.FC = () => {
             onArchiveMission={archiveMission}
             onComplete={() => { 
               setMode('dashboard'); 
+              setIsSessionDossierOpen(false);
               updateSession(null); 
               setSessionNotes('');
               discardRecoverableSession();

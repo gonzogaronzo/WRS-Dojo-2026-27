@@ -7,6 +7,7 @@ import {
   lessonSessionToCloud
 } from '../legacy/useLessonSession';
 import { Lesson, LessonPart } from '../legacy/types';
+import { pendingNavigationBlocksIncoming } from '../legacy/lessonSessionSync';
 
 const lesson: Lesson = {
   id: 'lesson-2-3', title: 'Closed Syllable Exceptions', step: '2', substep: '3',
@@ -51,7 +52,8 @@ test('round-trips every active lesson field through cloud format', () => {
     teachConceptsSlideObjectStates: { reading: { 0: { tile: { x: 10, y: 20, scale: 2 } } } },
     teachConceptsSlideFullscreen: { reading: true },
     dictationCompletedIds: ['dict-1'], passageIndex: 5, passageRulerEnabled: true, passageRulerY: 144,
-    spellingViewMode: 'grid' as const, spellingActiveTab: 2,
+    passagePhase: 'comprehension' as const, passageQuestionIndex: 2,
+    spellingViewMode: 'grid' as const, spellingSectionOrderVersion: 2, spellingActiveTab: 2,
     spellingRevealedItems: { cold: true }, spellingCipherWord: 'cold',
     spellingCipherResults: { 0: { text: 'c', type: 'consonant' } }, spellingCipherCheckResult: 'correct' as const,
     spellingGridPage: 2 as const,
@@ -77,6 +79,8 @@ test('recovers safely from malformed or incomplete older cloud data', () => {
   assert.equal(recovered.spellingViewMode, 'list');
   assert.equal(recovered.spellingGridPage, 1);
   assert.equal(recovered.teachConceptsBoardTitle, 'Target Word');
+  assert.equal(recovered.passagePhase, 'reading');
+  assert.equal(recovered.spellingSectionOrderVersion, 1);
   assert.deepEqual(recovered.scores, []);
 });
 
@@ -86,4 +90,29 @@ test('detects meaningful session changes', () => {
 
   assert.ok(lessonSessionsMatch(original, createInitialLessonSession()));
   assert.equal(lessonSessionsMatch(original, changed), false);
+});
+
+
+test('holds an older cloud part until the matching local navigation is persisted', () => {
+  const pending = {
+    lessonId: 'lesson-2-3',
+    sessionId: 'mission-123',
+    currentPart: LessonPart.Part4
+  };
+
+  assert.equal(pendingNavigationBlocksIncoming(pending, {
+    lesson,
+    sessionId: 'mission-123',
+    currentPart: LessonPart.Part1
+  }), true);
+  assert.equal(pendingNavigationBlocksIncoming(pending, {
+    lesson,
+    sessionId: 'mission-123',
+    currentPart: LessonPart.Part4
+  }), false);
+  assert.equal(pendingNavigationBlocksIncoming(pending, {
+    lesson: { ...lesson, id: 'another-lesson' },
+    sessionId: 'mission-123',
+    currentPart: LessonPart.Part1
+  }), false);
 });

@@ -1,4 +1,4 @@
-import { GroupProfile, Lesson, LessonPart, StudentProfile } from './types';
+import { GroupProfile, Lesson, LessonPart, RuntimeLessonPartData, StudentProfile, WRSRuntimeLessonPlan } from './types';
 import { createInitialLessonSession, LessonSessionState } from './useLessonSession';
 import { sanitizePart2PresentationForStudent } from './part2Presentation';
 import { sanitizePart7SpellingDataForStudent } from './components/modules/Part7SpellingRunner';
@@ -159,6 +159,7 @@ export const sanitizePresenterSession = (
   } else if (currentPart === LessonPart.Part8) {
     compact.dictationCompletedIds = session.dictationCompletedIds;
     compact.spellingViewMode = session.spellingViewMode;
+    compact.spellingSectionOrderVersion = session.spellingSectionOrderVersion;
     compact.spellingActiveTab = session.spellingActiveTab;
     compact.spellingRevealedItems = session.spellingRevealedItems;
     compact.spellingCipherWord = session.spellingCipherWord;
@@ -171,6 +172,8 @@ export const sanitizePresenterSession = (
     compact.passageIndex = session.passageIndex;
     compact.passageRulerEnabled = session.passageRulerEnabled;
     compact.passageRulerY = session.passageRulerY;
+    compact.passagePhase = session.passagePhase;
+    compact.passageQuestionIndex = session.passageQuestionIndex;
   }
 
   return compact;
@@ -179,6 +182,56 @@ export const sanitizePresenterSession = (
 const emptyDictation = (): Lesson['dictation'] => ({
   sounds: [], realWords: [], wordElements: [], nonsenseWords: [], phrases: [], sentences: []
 });
+
+const studentRuntimeForPart = (
+  runtime: WRSRuntimeLessonPlan,
+  partNumber: number,
+  data: RuntimeLessonPartData
+): WRSRuntimeLessonPlan => ({
+  schemaVersion: runtime.schemaVersion,
+  id: runtime.id,
+  title: runtime.title,
+  step: runtime.step,
+  substep: runtime.substep,
+  focus: runtime.focus,
+  lessonPath: runtime.lessonPath,
+  plannedParts: runtime.plannedParts,
+  sources: [],
+  parts: runtime.parts.map(part => ({
+    part: part.part,
+    title: '',
+    teacherDirections: [],
+    sourceIds: [],
+    data: part.part === partNumber ? data : {}
+  }))
+});
+
+const studentPart9Data = (data: RuntimeLessonPartData): RuntimeLessonPartData => {
+  const raw = data as Record<string, unknown>;
+  const questions = Array.isArray(raw.questions)
+    ? raw.questions.flatMap(candidate => {
+        const question = candidate && typeof candidate === 'object' && !Array.isArray(candidate)
+          ? (candidate as Record<string, unknown>).question
+          : undefined;
+        return typeof question === 'string' && question.trim() ? [{ question }] : [];
+      })
+    : [];
+  return {
+    passageTitle: typeof data.passageTitle === 'string' ? data.passageTitle : undefined,
+    studentReader: typeof data.studentReader === 'string' ? data.studentReader : undefined,
+    page: typeof data.page === 'string' ? data.page : undefined,
+    questions
+  } as RuntimeLessonPartData;
+};
+
+const studentListeningPlan = (plan: Lesson['listeningComprehension']) => plan ? ({
+  mode: 'teacher-selected' as const,
+  title: '',
+  teacherDirections: [],
+  studentPrompt: plan.studentPrompt,
+  sourceIds: [],
+  ...(plan.workspace ? { workspace: plan.workspace } : {})
+}) : undefined;
 
 export const sanitizePresenterLesson = (
   lesson: Lesson | null,
@@ -275,10 +328,26 @@ export const sanitizePresenterLesson = (
   } else if (currentPart === LessonPart.Part6) {
     compact.quickDrill = lesson.quickDrill;
     compact.quickDrillReverse = lesson.quickDrillReverse;
+    const part6 = lesson.runtimePlan?.parts.find(part => part.part === 6);
+    if (lesson.runtimePlan && part6) {
+      compact.runtimePlan = studentRuntimeForPart(lesson.runtimePlan, 6, {
+        wordElements: Array.isArray(part6.data.wordElements)
+          ? part6.data.wordElements.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+          : []
+      });
+    }
   } else if (currentPart === LessonPart.Part8) {
     compact.dictation = lesson.dictation;
   } else if (currentPart === LessonPart.Part9) {
     compact.passage = lesson.passage;
+    const part9 = lesson.runtimePlan?.parts.find(part => part.part === 9);
+    if (lesson.runtimePlan && part9) {
+      compact.runtimePlan = studentRuntimeForPart(lesson.runtimePlan, 9, studentPart9Data(part9.data));
+    }
+  } else if (currentPart === LessonPart.Part10) {
+    const part10 = lesson.runtimePlan?.parts.find(part => part.part === 10);
+    const plan = lesson.listeningComprehension || part10?.data.listeningComprehension;
+    compact.listeningComprehension = studentListeningPlan(plan);
   }
 
   return {
