@@ -24,7 +24,9 @@ jobs:
           fetch-depth: 0
 
       - name: Apply focused Task 8 privacy fix
-        run: python scripts/task8_apply_privacy_fix.py
+        run: |
+          python scripts/task8_apply_privacy_fix.py
+          python scripts/task8_test_adjust.py
 
       - name: Use Node 22
         uses: actions/setup-node@v4
@@ -54,7 +56,7 @@ jobs:
           else
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add legacy/presenterMode.ts legacy/components/modules/QuickDrill.tsx tests/part6-part8-preview-privacy.test.tsx package.json
+            git add legacy/presenterMode.ts legacy/components/modules/QuickDrill.tsx tests/canonical-lesson-surfaces.test.tsx tests/part6-part8-preview-privacy.test.tsx package.json
             git commit -m 'fix: gate Part 6 and Part 8 student answers until reveal'
             git push origin HEAD:fix/operational-director-parts-6-10
           fi
