@@ -1,34 +1,33 @@
 import { LessonPart } from './types';
 
-export interface PendingLessonNavigation {
-  lessonId: string;
-  sessionId: string;
-  currentPart: LessonPart;
-}
+export const normalizeLessonSyncRevision = (value: unknown): number => (
+  typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : 0
+);
 
-interface IncomingLessonPosition {
-  lesson?: { id?: string };
-  sessionId?: string;
-  currentPart?: number;
-}
+export const nextLessonSyncRevision = (current: unknown): number =>
+  normalizeLessonSyncRevision(current) + 1;
 
 /**
- * Reject only a cloud frame that predates an in-flight local part selection.
- * The matching frame clears the guard, so later remote updates still apply.
+ * A running teacher surface owns its newest local revision. Cloud frames may
+ * initialize an idle surface, but once a local lesson is active only a strictly
+ * newer revision may replace it. Equal revisions are acknowledgements, not a
+ * reason to replay an older payload over the UI.
  */
+export const shouldApplyIncomingLessonState = (
+  localRevision: unknown,
+  incomingRevision: unknown,
+  hasLocalAuthority: boolean
+): boolean => (
+  !hasLocalAuthority ||
+  normalizeLessonSyncRevision(incomingRevision) > normalizeLessonSyncRevision(localRevision)
+);
+
 export const shouldResetQuickDrillForPartChange = (
   previousPart: LessonPart,
   nextPart: LessonPart
 ): boolean => (
   previousPart !== nextPart &&
   (nextPart === LessonPart.Part1 || nextPart === LessonPart.Part6)
-);
-
-export const pendingNavigationBlocksIncoming = (
-  pending: PendingLessonNavigation | null,
-  incoming: IncomingLessonPosition
-): boolean => Boolean(
-  pending &&
-  incoming.lesson?.id === pending.lessonId &&
-  ((incoming.sessionId || '') !== pending.sessionId || incoming.currentPart !== pending.currentPart)
 );
