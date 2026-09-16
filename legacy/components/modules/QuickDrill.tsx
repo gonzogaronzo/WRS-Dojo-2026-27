@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { parseWordToTiles, TileData } from '../../utils';
+import { parseWordToTiles } from '../../utils';
 import { isSubstepAtLeast } from '../../masterCurriculum';
 import { WRS_PHONEME_MAP } from '../../wrsKnowledgeBase';
 import Tile from '../Tile';
@@ -243,9 +243,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
 
   const revealedData: RevealedAnswer[] = useMemo(() => {
     if (!currentItem) return [];
-    if (isWordElementItem) {
-      return [{ text: currentWordElement, isNew: false, kind: 'word-element' }];
-    }
+    if (isWordElementItem) return [{ text: currentWordElement, isNew: false, kind: 'word-element' }];
     if (isReverse) {
       const matches = learnedCorrespondences.filter(c => c.phoneme === currentItem);
       return Array.from(new Set(matches.sort((a, b) => compareIntroduced(a.introduced, b.introduced)).flatMap(m => m.graphemes))).map(g => ({
@@ -315,108 +313,73 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     </div>
   );
 
+  const renderVisualAnswerLog = () => (
+    <div className="flex flex-wrap items-center justify-center gap-3">
+      {revealedData.slice(0, revealedCount).map((answer, index) => (
+        <div key={`${answer.text}-${index}`} className={`px-6 py-3 rounded-2xl border-b-2 shadow-sm animate-in slide-in-from-bottom-2 flex items-center gap-3 ${answer.isNew ? 'bg-amber-50 border-amber-100 ring-1 ring-amber-400/20' : 'bg-white border-stone-100'}`}>
+          <span className={`text-lg font-black font-serif italic ${answer.isNew ? 'text-amber-900' : 'text-stone-500'}`}>{answer.text}</span>
+          {answer.isNew ? <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-500 text-white rounded-full text-[8px] font-black uppercase tracking-tighter"><Sparkles className="w-2 h-2" /> New</div> : <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="min-h-full flex flex-col bg-[#fcfbf9] font-sans overflow-hidden text-stone-900">
       <div className="h-16 flex-shrink-0 flex items-center justify-between px-6 bg-white border-b border-stone-100 shadow-sm z-30 relative">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-[#b91c1c] rounded-lg shadow-sm">
-              {isReverse ? <Ear className="w-4 h-4 text-white" /> : <Layers className="w-4 h-4 text-white" />}
-            </div>
-            <h2 className="text-lg font-bold tracking-widest uppercase font-serif text-stone-900">
-              {isReverse ? "Auditory Drill" : "Visual Drill"}
-            </h2>
+            <div className="p-1.5 bg-[#b91c1c] rounded-lg shadow-sm">{isReverse ? <Ear className="w-4 h-4 text-white" /> : <Layers className="w-4 h-4 text-white" />}</div>
+            <h2 className="text-lg font-bold tracking-widest uppercase font-serif text-stone-900">{isReverse ? "Auditory Drill" : "Visual Drill"}</h2>
           </div>
-          {!readOnly && <button onClick={() => setIsHandwritingMode(!isHandwritingMode)} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest ${isHandwritingMode ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-400 hover:text-stone-900'}`}>
-            <Pen className={`w-3.5 h-3.5 ${isHandwritingMode ? 'animate-pulse' : ''}`} /> Handwriting
-          </button>}
+          {!readOnly && <button onClick={() => setIsHandwritingMode(!isHandwritingMode)} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest ${isHandwritingMode ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-400 hover:text-stone-900'}`}><Pen className={`w-3.5 h-3.5 ${isHandwritingMode ? 'animate-pulse' : ''}`} /> Handwriting</button>}
         </div>
-
         <div className="flex items-center gap-3">
-          {isHandwritingMode && !readOnly && (
-            <div className="flex bg-stone-50 p-1 rounded-xl gap-1 border border-stone-100 mr-2">
-              <button onClick={() => setTool('cursor')} className={`p-2 rounded-lg ${tool === 'cursor' ? 'bg-white text-stone-900 shadow-md' : 'text-stone-400 hover:text-stone-600'}`}><MousePointer2 className="w-4 h-4" /></button>
-              <button onClick={() => setTool('pen-blue')} className={`p-2 rounded-lg ${tool === 'pen-blue' ? 'bg-blue-600 text-white shadow-md' : 'text-stone-400 hover:text-stone-600'}`}><PenTool className="w-4 h-4" /></button>
-              <button onClick={() => setTool('pen-red')} className={`p-2 rounded-lg ${tool === 'pen-red' ? 'bg-red-600 text-white shadow-md' : 'text-stone-400 hover:text-stone-600'}`}><PenTool className="w-4 h-4" /></button>
-              <button onClick={clearDrawing} className="p-2 rounded-lg text-stone-300 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>
-            </div>
-          )}
-          {!readOnly && <button onClick={() => { setShuffledItems([...drillItems].sort(() => Math.random() - 0.5)); setCurrentIndex(0); setRevealedCount(0); }} className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-stone-50 text-stone-400 rounded-xl transition-all font-bold text-[10px] uppercase border border-stone-100 active:scale-95 shadow-sm"><Shuffle className="w-3.5 h-3.5" />Shuffle</button>}
+          {isHandwritingMode && !readOnly && <div className="flex bg-stone-50 p-1 rounded-xl gap-1 border border-stone-100 mr-2">
+            <button onClick={() => setTool('cursor')} className={`p-2 rounded-lg ${tool === 'cursor' ? 'bg-white text-stone-900 shadow-md' : 'text-stone-400'}`}><MousePointer2 className="w-4 h-4" /></button>
+            <button onClick={() => setTool('pen-blue')} className={`p-2 rounded-lg ${tool === 'pen-blue' ? 'bg-blue-600 text-white shadow-md' : 'text-stone-400'}`}><PenTool className="w-4 h-4" /></button>
+            <button onClick={() => setTool('pen-red')} className={`p-2 rounded-lg ${tool === 'pen-red' ? 'bg-red-600 text-white shadow-md' : 'text-stone-400'}`}><PenTool className="w-4 h-4" /></button>
+            <button onClick={clearDrawing} className="p-2 rounded-lg text-stone-300 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+          </div>}
+          {!readOnly && <button onClick={() => { setShuffledItems([...drillItems].sort(() => Math.random() - 0.5)); setCurrentIndex(0); setRevealedCount(0); }} className="flex items-center gap-2 px-4 py-2 bg-white text-stone-400 rounded-xl font-bold text-[10px] uppercase border border-stone-100 shadow-sm"><Shuffle className="w-3.5 h-3.5" />Shuffle</button>}
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden relative flex flex-col items-center justify-center">
-        {activeItems.length === 0 ? (
-          <div className="w-full h-full flex items-center justify-center text-stone-400 italic font-serif text-xl">No items loaded.</div>
-        ) : (
+        {activeItems.length === 0 ? <div className="w-full h-full flex items-center justify-center text-stone-400 italic font-serif text-xl">No items loaded.</div> : (
           <div className="relative w-full h-full flex flex-col p-6 gap-6 items-center">
-            {isReverse && !readOnly && (
-              <div data-testid="teacher-dictation-cue" className="w-full max-w-4xl flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 shadow-sm">
-                <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{isWordElementItem ? 'Dictate Word Element' : 'Dictate'}</span>
-                <span className="text-2xl font-black font-serif text-stone-900">{teacherPrompt}</span>
-              </div>
-            )}
+            {isReverse && !readOnly && <div data-testid="teacher-dictation-cue" className="w-full max-w-4xl flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 shadow-sm">
+              <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{isWordElementItem ? 'Dictate Word Element' : 'Dictate'}</span>
+              <span className="text-2xl font-black font-serif text-stone-900">{teacherPrompt}</span>
+            </div>}
 
             <div onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined} className={`flex-[3] w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}>
-              {!isHandwritingMode ? (
-                <>
-                  {!readOnly && <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity"><Sparkles className="w-64 h-64 text-red-900" /></div>}
-                  <div className="flex flex-col items-center justify-center transform transition-all duration-200 w-full">
-                    {isReverse ? (
-                      readOnly ? (
-                        revealedCount > 0 ? renderReverseAnswer() : (
-                          <div className="bg-white p-8 md:p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center max-w-full shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
-                            <div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-8 h-8 md:w-12 md:h-12" /></div>
-                            <span className="text-3xl md:text-5xl font-black font-serif text-stone-300 leading-none tracking-tight">Listen</span>
-                          </div>
-                        )
-                      ) : (
-                        <div className="bg-white p-8 md:p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center animate-in zoom-in duration-500 max-w-full shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
-                          <div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Volume2 className="w-8 h-8 md:w-12 md:h-12" /></div>
-                          <span className={`${isWordElementItem ? 'text-7xl' : 'text-[144px]'} font-black font-serif text-stone-900 leading-none tracking-tighter`}>{teacherPrompt}</span>
-                        </div>
-                      )
-                    ) : (
-                      <div className="animate-in zoom-in duration-500 flex items-center justify-center">
-                        {parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div ref={containerRef} className="w-full h-full bg-white rounded-3xl border border-stone-200 shadow-sm relative overflow-hidden">
-                  <div className="absolute left-6 top-0 bottom-0 z-10 flex flex-col justify-around pointer-events-none opacity-20">
-                    <CloudSun className="w-8 h-8 text-blue-500" /><Plane className="w-8 h-8 text-stone-400" /><Flower className="w-8 h-8 text-green-500" /><Bug className="w-8 h-8 text-stone-600" />
-                  </div>
-                  <canvas ref={gridRef} className="absolute inset-0 pointer-events-none" />
-                  <canvas ref={syncedDrawing.canvasRef} onPointerDown={syncedDrawing.onPointerDown} onPointerMove={syncedDrawing.onPointerMove} onPointerUp={syncedDrawing.onPointerUp} onPointerCancel={syncedDrawing.onPointerCancel} className={`absolute inset-0 z-20 touch-none ${readOnly || tool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`} />
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-md px-6 py-2 rounded-full border border-stone-100 z-30 pointer-events-none"><span className="text-stone-900 font-black text-2xl font-serif">{isReverse && readOnly ? 'Listen' : teacherPrompt}</span></div>
+              {!isHandwritingMode ? <>
+                {!readOnly && <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity"><Sparkles className="w-64 h-64 text-red-900" /></div>}
+                <div className="flex flex-col items-center justify-center w-full">
+                  {isReverse ? (readOnly ? (revealedCount > 0 ? renderReverseAnswer() : <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm"><div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-12 h-12" /></div><span className="text-5xl font-black font-serif text-stone-300">Listen</span></div>) : <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm"><div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Volume2 className="w-12 h-12" /></div><span className={`${isWordElementItem ? 'text-7xl' : 'text-[144px]'} font-black font-serif text-stone-900 leading-none`}>{teacherPrompt}</span></div>) : <div className="flex items-center justify-center">{parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}</div>}
                 </div>
-              )}
+              </> : <div ref={containerRef} className="w-full h-full bg-white rounded-3xl border border-stone-200 shadow-sm relative overflow-hidden">
+                <div className="absolute left-6 top-0 bottom-0 z-10 flex flex-col justify-around pointer-events-none opacity-20"><CloudSun className="w-8 h-8 text-blue-500" /><Plane className="w-8 h-8 text-stone-400" /><Flower className="w-8 h-8 text-green-500" /><Bug className="w-8 h-8 text-stone-600" /></div>
+                <canvas ref={gridRef} className="absolute inset-0 pointer-events-none" />
+                <canvas ref={syncedDrawing.canvasRef} onPointerDown={syncedDrawing.onPointerDown} onPointerMove={syncedDrawing.onPointerMove} onPointerUp={syncedDrawing.onPointerUp} onPointerCancel={syncedDrawing.onPointerCancel} className={`absolute inset-0 z-20 touch-none ${readOnly || tool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`} />
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 px-6 py-2 rounded-full border border-stone-100 z-30"><span className="text-stone-900 font-black text-2xl font-serif">{isReverse && readOnly ? 'Listen' : teacherPrompt}</span></div>
+              </div>}
             </div>
 
-            {!readOnly && (
-              <div className="w-full max-w-4xl flex-[1] flex flex-col">
-                <div className="flex items-center justify-between mb-2 px-2">
-                  <div className="flex items-center gap-2"><div className={`h-2.5 w-2.5 rounded-full ${revealedCount > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`}></div><span className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Answer Check</span></div>
-                  <span className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{currentIndex + 1} / {activeItems.length}</span>
-                </div>
-                <div className="flex-1 bg-white rounded-2xl border border-stone-100 p-4 flex flex-col shadow-sm relative overflow-hidden">
-                  <div className="w-full h-full overflow-y-auto custom-scrollbar flex flex-wrap gap-3 relative z-10 items-center justify-center">
-                    {revealedCount === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full gap-2 opacity-5"><BookOpen className="w-8 h-8 text-stone-900" /><p className="text-[8px] font-black uppercase tracking-[0.4em] text-stone-900">Answer hidden</p></div>
-                    ) : renderReverseAnswer()}
-                  </div>
-                </div>
-              </div>
-            )}
+            {!readOnly && <div className="w-full max-w-4xl flex-[1] flex flex-col">
+              <div className="flex items-center justify-between mb-2 px-2"><div className="flex items-center gap-2"><div className={`h-2.5 w-2.5 rounded-full ${revealedCount > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`}></div><span className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Answer Check</span></div><span className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{currentIndex + 1} / {activeItems.length}</span></div>
+              <div className="flex-1 bg-white rounded-2xl border border-stone-100 p-4 flex flex-col shadow-sm overflow-hidden"><div className="w-full h-full overflow-y-auto flex flex-wrap gap-3 items-center justify-center">
+                {revealedCount === 0 ? <div className="flex flex-col items-center justify-center h-full gap-2 opacity-5"><BookOpen className="w-8 h-8 text-stone-900" /><p className="text-[8px] font-black uppercase tracking-[0.4em] text-stone-900">Answer hidden</p></div> : (isReverse ? renderReverseAnswer() : renderVisualAnswerLog())}
+              </div></div>
+            </div>}
           </div>
         )}
       </div>
 
-      {!readOnly && <button onClick={prevCard} className="absolute left-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white hover:bg-stone-50 text-stone-300 hover:text-stone-900 transition-all shadow-md hidden md:flex active:scale-90 z-50 group border border-stone-100"><ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" /></button>}
-      {!readOnly && <button onClick={nextCard} className="absolute right-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white hover:bg-stone-50 text-stone-300 hover:text-stone-900 transition-all shadow-md hidden md:flex active:scale-90 z-50 group border border-stone-100"><ChevronRight className="w-8 h-8 group-hover:translate-x-1 transition-transform" /></button>}
+      {!readOnly && <button onClick={prevCard} className="absolute left-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white text-stone-300 shadow-md hidden md:flex z-50 border border-stone-100"><ChevronLeft className="w-8 h-8" /></button>}
+      {!readOnly && <button onClick={nextCard} className="absolute right-4 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white text-stone-300 shadow-md hidden md:flex z-50 border border-stone-100"><ChevronRight className="w-8 h-8" /></button>}
     </div>
   );
 };
