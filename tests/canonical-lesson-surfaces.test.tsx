@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -337,7 +338,7 @@ test('Part 8 gates every dictation section behind explicit reveal and hides prio
   assert.ok(nextItemRevealed.includes('cavern'));
 });
 
-test('Part 10 stays source-gated and keeps teacher directions off the student display', () => {
+test('Part 10 is teacher-determined without preloaded content and keeps teacher controls private', () => {
   const plan = {
     mode: 'teacher-selected' as const,
     title: 'Teacher selection',
@@ -345,18 +346,46 @@ test('Part 10 stays source-gated and keeps teacher directions off the student di
     studentPrompt: 'Listen and prepare to retell what you heard.',
     sourceIds: ['teacher-selection']
   };
-  const teacherReady = renderToStaticMarkup(<Part10Listening plan={plan} onOpenDossier={() => undefined} />);
-  const studentReady = renderToStaticMarkup(<Part10Listening plan={plan} readOnly />);
-  const teacherBlocked = renderToStaticMarkup(<Part10Listening onOpenDossier={() => undefined} />);
+  const teacherWithPlan = renderToStaticMarkup(<Part10Listening plan={plan} onOpenDossier={() => undefined} />);
+  const studentWithPlan = renderToStaticMarkup(<Part10Listening plan={plan} readOnly />);
+  const teacherNoPlan = renderToStaticMarkup(<Part10Listening onOpenDossier={() => undefined} />);
+  const studentNoPlan = renderToStaticMarkup(<Part10Listening readOnly />);
 
-  assert.match(teacherReady, /data-part10-status="ready"/);
-  assert.match(teacherReady, /Read the selected text aloud/);
-  assert.match(teacherReady, /data-part10-open-dossier/);
-  assert.match(studentReady, /Listen and prepare to retell/);
-  assert.doesNotMatch(studentReady, /Read the selected text aloud/);
-  assert.doesNotMatch(studentReady, /Teacher selection/);
-  assert.match(teacherBlocked, /data-part10-status="blocked"/);
-  assert.match(teacherBlocked, /No Part 10 text or student prompt was supplied/);
+  assert.match(teacherWithPlan, /data-part10-status="ready"/);
+  assert.match(teacherWithPlan, /data-part10-mode="preloaded-selection"/);
+  assert.match(teacherWithPlan, /Read the selected text aloud/);
+  assert.match(teacherWithPlan, /data-part10-open-dossier/);
+  assert.match(studentWithPlan, /Listen and prepare to retell/);
+  assert.doesNotMatch(studentWithPlan, /Read the selected text aloud/);
+  assert.doesNotMatch(studentWithPlan, /Teacher selection/);
+
+  assert.match(teacherNoPlan, /data-part10-status="ready"/);
+  assert.match(teacherNoPlan, /data-part10-mode="teacher-determined"/);
+  assert.match(teacherNoPlan, /Teacher-led Part 10/);
+  assert.match(teacherNoPlan, /No preloaded activity is required/);
+  assert.match(teacherNoPlan, /data-part10-open-dossier/);
+  assert.doesNotMatch(teacherNoPlan, /blocked|source plan needed|Read the selected text aloud/i);
+
+  assert.match(studentNoPlan, /data-part10-status="ready"/);
+  assert.match(studentNoPlan, /Follow your teacher’s directions for the next activity/);
+  assert.doesNotMatch(studentNoPlan, /No preloaded activity is required/);
+  assert.doesNotMatch(studentNoPlan, /data-part10-open-dossier|data-part10-teacher-directions/);
+  assert.doesNotMatch(studentNoPlan, /blocked|source plan needed|Teacher-led Part 10/i);
+});
+
+test('Part 10 keeps the existing SessionDossier completion flow after the instructional surface', () => {
+  const appSource = readFileSync(new URL('../legacy/App.tsx', import.meta.url), 'utf8');
+  const part10Index = appSource.indexOf('case LessonPart.Part10:');
+  const listeningIndex = appSource.indexOf('<Part10Listening', part10Index);
+  const openDossierIndex = appSource.indexOf('setIsSessionDossierOpen(true)', listeningIndex);
+  const dossierIndex = appSource.indexOf('<SessionDossier', openDossierIndex);
+  const completionIndex = appSource.indexOf('setMode(\'dashboard\')', dossierIndex);
+
+  assert.ok(part10Index >= 0);
+  assert.ok(listeningIndex > part10Index);
+  assert.ok(openDossierIndex > listeningIndex);
+  assert.ok(dossierIndex > openDossierIndex);
+  assert.ok(completionIndex > dossierIndex);
 });
 
 const spellingData = {
