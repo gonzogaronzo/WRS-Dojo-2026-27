@@ -57,9 +57,9 @@ import { useCloudPresenter } from './useCloudPresenter';
 import { DrawingStroke, updateDrawingSurface } from './drawingSync';
 import { clearSafeBootMode, isSafeBootMode } from './safeBoot';
 import {
-  pendingNavigationBlocksIncoming,
-  shouldResetQuickDrillForPartChange,
-  type PendingLessonNavigation
+  nextLessonSyncRevision,
+  shouldApplyIncomingLessonState,
+  shouldResetQuickDrillForPartChange
 } from './lessonSessionSync';
 import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
 
@@ -76,9 +76,8 @@ const App: React.FC = () => {
   const [currentPart, setCurrentPart] = useState<LessonPart>(LessonPart.Briefing);
   const [mode, setMode] = useState<'dashboard' | 'edit' | 'run' | 'mission'>('dashboard');
   const [isSessionDossierOpen, setIsSessionDossierOpen] = useState(false);
-  const pendingLocalNavigationRef = useRef<PendingLessonNavigation | null>(null);
   const {
-    session: lessonSession, resetLessonSession, replaceLessonSession,
+    session: lessonSession, resetLessonSession, replaceLessonSession, touchLessonSession,
     setSessionStudentIds, setSessionScores, setSessionNotes, setSessionDistribution,
     setSessionWordlistPage, setSessionQuickDrillIndex, setSessionQuickDrillRevealed,
     setSessionQuickDrillHandwriting, setSessionQuickDrillItems, setSessionWordCards, setSessionSentenceIndex,
@@ -461,9 +460,10 @@ const App: React.FC = () => {
 
     const target = taggedStudents.length ? taggedStudents.map(student => student.name).join(', ') : 'Whole Group';
     const nextSessionNotes = [sessionNotes, `[Part ${currentPart} · ${target}] ${content.trim()}`].filter(Boolean).join('\n');
+    const nextRevision = nextLessonSyncRevision(lessonSession.syncRevision);
     setSessionNotes(nextSessionNotes);
     await updateSession(lessonSessionToCloud(
-      { ...lessonSession, notes: nextSessionNotes }, currentLesson, currentPart, activeGroup.id
+      { ...lessonSession, notes: nextSessionNotes, syncRevision: nextRevision }, currentLesson, currentPart, activeGroup.id
     ));
     return true;
   }, [activeGroup, currentLesson, currentPart, isStudentView, lessonSession, saveGroupNote, sessionNotes, setSessionNotes, students, updateSession]);
@@ -474,17 +474,11 @@ const App: React.FC = () => {
   }, [currentLesson]);
 
 
-  const setLocalLessonPart = useCallback((nextPart: LessonPart, sessionIdentity = lessonSession.sessionId) => {
-    if (currentLesson) {
-      pendingLocalNavigationRef.current = {
-        lessonId: currentLesson.id,
-        sessionId: sessionIdentity,
-        currentPart: nextPart
-      };
-    }
+  const setLocalLessonPart = useCallback((nextPart: LessonPart) => {
+    touchLessonSession();
     if (nextPart !== LessonPart.Part10) setIsSessionDossierOpen(false);
     setCurrentPart(nextPart);
-  }, [currentLesson?.id, lessonSession.sessionId]);
+  }, [touchLessonSession]);
 
   const changeLessonPart = useCallback((nextPart: LessonPart) => {
     if (isStudentView) return;
@@ -521,23 +515,21 @@ const App: React.FC = () => {
     }
   }, [groups, activeGroup]);
 
-  // Sync state if an active session exists in Firestore for this user
+  // Sync state if an active session exists in Firestore for this user.
+  // Local teacher actions advance one shared revision; only a strictly newer
+  // cloud revision may replace a running local lesson.
   useEffect(() => {
     if (safeBoot || isStudentDisplayWindow) return;
     if (activeSession && activeSession.lesson) {
       console.log("Received session update from cloud:", activeSession);
-      const pendingNavigation = pendingLocalNavigationRef.current;
-      if (pendingNavigationBlocksIncoming(pendingNavigation, activeSession)) return;
-      if (
-        pendingNavigation &&
-        activeSession.lesson.id === pendingNavigation.lessonId &&
-        (activeSession.sessionId || '') === pendingNavigation.sessionId &&
-        activeSession.currentPart === pendingNavigation.currentPart
-      ) {
-        pendingLocalNavigationRef.current = null;
-      }
       const incomingSession = lessonSessionFromCloud(activeSession);
-      if (!isStudentView) incomingSession.notes = lessonSession.notes;
+      const hasLocalAuthority = Boolean(currentLesson) && (mode === 'run' || mode === 'mission');
+      if (!shouldApplyIncomingLessonState(
+        lessonSession.syncRevision,
+        incomingSession.syncRevision,
+        hasLocalAuthority
+      )) return;
+
       if (!lessonSessionsMatch(incomingSession, lessonSession)) replaceLessonSession(incomingSession);
 
       if (activeSession.currentPart !== currentPart) setCurrentPart(activeSession.currentPart as LessonPart);
@@ -548,7 +540,10 @@ const App: React.FC = () => {
       
       if (mode !== 'run' && mode !== 'mission') setMode('run');
     }
-  }, [activeSession, currentPart, groups.length, isStudentDisplayWindow, safeBoot]);
+  }, [
+    activeSession, currentLesson, currentPart, groups.length, isStudentDisplayWindow,
+    lessonSession.syncRevision, mode, replaceLessonSession, safeBoot
+  ]);
 
   // Push local changes to cloud (Debounced)
   useEffect(() => {
@@ -592,13 +587,20 @@ const App: React.FC = () => {
     clearSafeBootMode();
     console.log("Mission Briefing Start:", data);
     const sessionIdentity = { sessionId: createMissionId(), sessionDate: data.date };
-    const nextSession = { ...createInitialLessonSession(), ...sessionIdentity, studentIds: data.studentIds };
+    const resetRevision = nextLessonSyncRevision(lessonSession.syncRevision);
+    const nextRevision = data.isTraining ? resetRevision : nextLessonSyncRevision(resetRevision);
+    const nextSession = {
+      ...createInitialLessonSession(),
+      ...sessionIdentity,
+      studentIds: data.studentIds,
+      syncRevision: nextRevision
+    };
     resetLessonSession({ ...sessionIdentity, studentIds: data.studentIds });
     
     if (data.isTraining) {
       setMode('mission');
     } else {
-      setLocalLessonPart(LessonPart.Part1, sessionIdentity.sessionId); 
+      setLocalLessonPart(LessonPart.Part1); 
     }
     
     if (activeGroup) {
@@ -627,7 +629,9 @@ const App: React.FC = () => {
   };
 
   const handleUpdateLessonPerpetually = async (updatedLesson: Lesson) => {
+    const nextRevision = nextLessonSyncRevision(lessonSession.syncRevision);
     setCurrentLesson(updatedLesson);
+    if (!isStudentView) touchLessonSession();
     
     // 1. Update the lesson in the group's savedLessons list (Perpetuity for future missions)
     if (activeGroup && user?.uid !== 'guest-sensei') {
@@ -640,10 +644,12 @@ const App: React.FC = () => {
 
     // 2. Update the lesson in the current session (Sync for reading part 2/7)
     if (activeSession && !isStudentView) {
-      await updateSession({
-        ...activeSession,
-        lesson: updatedLesson
-      });
+      await updateSession(lessonSessionToCloud(
+        { ...lessonSession, syncRevision: nextRevision },
+        updatedLesson,
+        currentPart,
+        activeGroup?.id || activeSession.groupId
+      ));
     }
   };
 
@@ -1090,7 +1096,7 @@ const App: React.FC = () => {
               setCurrentLesson(l);
               if (run) {
                 setMode('run');
-                setCurrentPart(LessonPart.Briefing);
+                setLocalLessonPart(LessonPart.Briefing);
               } else {
                 setMode('dashboard');
               }
@@ -1105,7 +1111,7 @@ const App: React.FC = () => {
             onComplete={(scores) => {
               setSessionScores(scores);
               setMode('run');
-              setCurrentPart(LessonPart.Part10); // Go to Dossier
+              setLocalLessonPart(LessonPart.Part10); // Go to Dossier
             }}
             onExit={() => setMode('dashboard')}
           />
