@@ -13,6 +13,7 @@ const asRecord = (value: unknown): UnknownRecord | null => (
 
 const PassageReading: React.FC<PassageReadingProps> = (props) => {
   const lesson = useLessonRuntime();
+  const [showComprehension, setShowComprehension] = React.useState(false);
   const part9Data = lesson?.runtimePlan?.parts.find(part => part.part === 9)?.data as UnknownRecord | undefined;
   const runtimeQuestions = Array.isArray(part9Data?.questions)
     ? part9Data.questions.flatMap(candidate => {
@@ -32,15 +33,33 @@ const PassageReading: React.FC<PassageReadingProps> = (props) => {
       ? part9Data.historyNote
       : undefined
   );
+  const hasTeacherComprehension = !props.readOnly && (questions.length > 0 || Boolean(historyNote));
+
+  React.useEffect(() => {
+    setShowComprehension(false);
+  }, [props.text, title, sourceLabel]);
 
   return (
-    <PassageReadingLegacy
-      {...props}
-      title={title}
-      sourceLabel={sourceLabel}
-      questions={questions}
-      historyNote={historyNote}
-    />
+    <div className="relative h-full min-h-0" data-part9-reading-flow={showComprehension ? 'comprehension' : 'passage'}>
+      <PassageReadingLegacy
+        {...props}
+        title={title}
+        sourceLabel={sourceLabel}
+        questions={showComprehension ? questions : []}
+        historyNote={showComprehension ? historyNote : undefined}
+      />
+      {hasTeacherComprehension ? (
+        <button
+          type="button"
+          data-part9-comprehension-toggle
+          aria-pressed={showComprehension}
+          onClick={() => setShowComprehension(value => !value)}
+          className="absolute right-6 top-5 z-[70] rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-900 shadow-sm hover:bg-amber-100"
+        >
+          {showComprehension ? 'Hide Questions' : 'Comprehension Questions'}
+        </button>
+      ) : null}
+    </div>
   );
 };
 
