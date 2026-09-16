@@ -78,13 +78,13 @@ test('round-trips every active lesson field and sync revision through cloud form
   assert.ok(lessonSessionsMatch(lessonSessionFromCloud(cloud), session));
 });
 
-test('recovers safely and backward-compatibly from older cloud data without a sync revision', () => {
+test('recovers legacy cloud data once without letting the same frame replay forever', () => {
   const recovered = lessonSessionFromCloud({
     lesson, currentPart: LessonPart.Part1, groupId: 'group-1', studentIds: ['student-1'],
     wordDistribution: '{not-json', spellingViewMode: 'unknown', spellingGridPage: 99
   });
 
-  assert.equal(recovered.syncRevision, 0);
+  assert.equal(recovered.syncRevision, 1);
   assert.deepEqual(recovered.distribution, []);
   assert.equal(recovered.spellingViewMode, 'list');
   assert.equal(recovered.spellingGridPage, 1);
@@ -92,7 +92,12 @@ test('recovers safely and backward-compatibly from older cloud data without a sy
   assert.equal(recovered.passagePhase, 'reading');
   assert.equal(recovered.spellingSectionOrderVersion, 1);
   assert.deepEqual(recovered.scores, []);
-  assert.equal(shouldApplyIncomingLessonState(0, 0, false), true);
+
+  // A legacy persisted session can hydrate a brand-new local revision 0 once.
+  assert.equal(shouldApplyIncomingLessonState(0, recovered.syncRevision, false), true);
+  // Once hydrated, replaying the exact same legacy frame is an acknowledgement,
+  // not an instruction to restore the old screen or lesson state again.
+  assert.equal(shouldApplyIncomingLessonState(recovered.syncRevision, recovered.syncRevision, false), false);
 });
 
 test('detects meaningful session changes', () => {
@@ -172,6 +177,74 @@ test('newer teacher state survives stale cloud replay, accepts newer remote stat
   assert.equal(presenter.currentPart, LessonPart.Part6);
   assert.equal(presenter.session.quickDrillIndex, 2);
   assert.equal(presenter.session.quickDrillRevealed, 2);
+});
+
+test('leaving the runner cannot make an equal cached cloud frame authoritative again', () => {
+  const cloud = lessonSessionToCloud({
+    ...createInitialLessonSession(),
+    syncRevision: 12,
+    sessionId: 'mission-runtime-race',
+    sessionDate: '2026-09-16',
+    studentIds: ['student-1'],
+    spellingActiveTab: 0,
+    spellingRevealedItems: {}
+  }, lesson, LessonPart.Part8, 'group-1');
+
+  let localSession = lessonSessionFromCloud(cloud);
+  let localPart = LessonPart.Part8;
+  let localMode: 'dashboard' | 'edit' | 'run' | 'mission' = 'run';
+
+  // This is the preview failure: Dashboard/Edit changes mode locally. Because
+  // mode is an App sync-effect dependency, the same already-seen activeSession
+  // is reconciled again. Task 6's old `!hasLocalAuthority` shortcut accepted
+  // this equal frame and immediately put the teacher back into `run`.
+  localMode = 'dashboard';
+  const sameIncoming = lessonSessionFromCloud(cloud);
+  const hasLocalAuthority = localMode === 'run' || localMode === 'mission';
+  if (shouldApplyIncomingLessonState(localSession.syncRevision, sameIncoming.syncRevision, hasLocalAuthority)) {
+    localSession = sameIncoming;
+    localPart = cloud.currentPart as LessonPart;
+    localMode = 'run';
+  }
+
+  assert.equal(localMode, 'dashboard');
+  assert.equal(localPart, LessonPart.Part8);
+  assert.equal(localSession.syncRevision, 12);
+
+  // A truly stale cached frame also stays rejected while the teacher is off the
+  // runner instead of regaining authority merely because local mode changed.
+  const staleCloud = { ...cloud, syncRevision: 11, currentPart: LessonPart.Part7 };
+  const staleIncoming = lessonSessionFromCloud(staleCloud);
+  if (shouldApplyIncomingLessonState(localSession.syncRevision, staleIncoming.syncRevision, false)) {
+    localSession = staleIncoming;
+    localPart = staleCloud.currentPart as LessonPart;
+    localMode = 'run';
+  }
+
+  assert.equal(localMode, 'dashboard');
+  assert.equal(localPart, LessonPart.Part8);
+  assert.equal(localSession.syncRevision, 12);
+
+  // A genuinely newer remote frame remains valid and can update both a shared
+  // section selector and reveal state. This keeps remote/presenter recovery live.
+  const newerCloud = lessonSessionToCloud({
+    ...localSession,
+    syncRevision: 13,
+    spellingActiveTab: 2,
+    spellingRevealedItems: { 'real:0': true }
+  }, lesson, LessonPart.Part8, 'group-1');
+  const newerIncoming = lessonSessionFromCloud(newerCloud);
+  if (shouldApplyIncomingLessonState(localSession.syncRevision, newerIncoming.syncRevision, false)) {
+    localSession = newerIncoming;
+    localPart = newerCloud.currentPart as LessonPart;
+    localMode = 'run';
+  }
+
+  assert.equal(localMode, 'run');
+  assert.equal(localPart, LessonPart.Part8);
+  assert.equal(localSession.syncRevision, 13);
+  assert.equal(localSession.spellingActiveTab, 2);
+  assert.equal(localSession.spellingRevealedItems['real:0'], true);
 });
 
 test('starts each Quick Drill part with a fresh index and unrevealed prompt', () => {
