@@ -223,7 +223,7 @@ test('Part 9 keeps reading uncluttered, then exposes one shared question at a ti
 
 test('Part 8 follows the source dictation sequence and uses source-shaped reveal visuals', () => {
   const dictation = {
-    sounds: ['/old/ → old'],
+    sounds: ['/k/ → c, k, ck'],
     wordElements: ['-struct-', '-s'],
     realWords: ['strap'],
     nonsenseWords: ['scrid'],
