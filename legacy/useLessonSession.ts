@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useReducer } from 'react';
 import { DojoMasterData, Lesson, LessonPart, WordCard, WordlistScore } from './types';
 import { DrawingMap } from './drawingSync';
+import { nextLessonSyncRevision, normalizeLessonSyncRevision } from './lessonSessionSync';
 import { normalizeWordDistribution } from './wordDistribution';
 
 export type SpellingViewMode = 'list' | 'cipher' | 'grid';
@@ -20,6 +21,7 @@ export interface WordCardsSessionState {
 }
 
 export interface LessonSessionState {
+  syncRevision: number;
   sessionId: string;
   sessionDate: string;
   studentIds: string[];
@@ -66,6 +68,7 @@ export interface LessonSessionState {
 }
 
 export const createInitialLessonSession = (): LessonSessionState => ({
+  syncRevision: 0,
   sessionId: '', sessionDate: '', studentIds: [], scores: [], notes: '', distribution: [], wordlistPage: 0,
   quickDrillIndex: 0, quickDrillRevealed: 0, quickDrillHandwriting: false,
   quickDrillItems: [],
@@ -87,7 +90,7 @@ export const createInitialLessonSession = (): LessonSessionState => ({
   spellingMarks: [], drawings: {}
 });
 
-export type CloudLessonSession = NonNullable<DojoMasterData['activeSession']>;
+export type CloudLessonSession = NonNullable<DojoMasterData['activeSession']> & { syncRevision?: number };
 
 const parseDistribution = (value: CloudLessonSession['wordDistribution']): any[][] => {
   if (!value) return [];
@@ -101,6 +104,7 @@ const parseDistribution = (value: CloudLessonSession['wordDistribution']): any[]
 
 export const lessonSessionFromCloud = (cloud: CloudLessonSession): LessonSessionState => ({
   ...createInitialLessonSession(),
+  syncRevision: normalizeLessonSyncRevision(cloud.syncRevision),
   sessionId: cloud.sessionId || '', sessionDate: cloud.sessionDate || '',
   studentIds: cloud.studentIds || [], scores: cloud.scores || [], notes: cloud.notes || '',
   distribution: parseDistribution(cloud.wordDistribution), wordlistPage: cloud.wordlistPage || 0,
@@ -150,7 +154,8 @@ export const lessonSessionToCloud = (
   currentPart: LessonPart,
   groupId: string
 ): CloudLessonSession => ({
-  lesson, currentPart, groupId, sessionId: session.sessionId, sessionDate: session.sessionDate,
+  lesson, currentPart, groupId, syncRevision: session.syncRevision,
+  sessionId: session.sessionId, sessionDate: session.sessionDate,
   studentIds: session.studentIds, scores: session.scores, notes: session.notes,
   wordDistribution: JSON.stringify(session.distribution), wordlistPage: session.wordlistPage,
   quickDrillIndex: session.quickDrillIndex, quickDrillRevealed: session.quickDrillRevealed,
@@ -185,28 +190,62 @@ export const lessonSessionToCloud = (
 export const lessonSessionsMatch = (left: LessonSessionState, right: LessonSessionState) =>
   JSON.stringify(left) === JSON.stringify(right);
 
+type MutableLessonSessionKey = Exclude<keyof LessonSessionState, 'syncRevision'>;
+
+export const applyLocalLessonSessionChange = <K extends MutableLessonSessionKey>(
+  state: LessonSessionState,
+  key: K,
+  update: SetStateAction<LessonSessionState[K]>
+): LessonSessionState => {
+  const previous = state[key];
+  const value = typeof update === 'function'
+    ? (update as (current: LessonSessionState[K]) => LessonSessionState[K])(previous)
+    : update;
+  if (Object.is(previous, value)) return state;
+  return {
+    ...state,
+    [key]: value,
+    syncRevision: nextLessonSyncRevision(state.syncRevision)
+  };
+};
+
+export const touchLessonSessionState = (state: LessonSessionState): LessonSessionState => ({
+  ...state,
+  syncRevision: nextLessonSyncRevision(state.syncRevision)
+});
+
+export const resetLocalLessonSessionState = (
+  state: LessonSessionState,
+  overrides?: Partial<LessonSessionState>
+): LessonSessionState => ({
+  ...createInitialLessonSession(),
+  ...overrides,
+  syncRevision: nextLessonSyncRevision(state.syncRevision)
+});
+
 type Action =
-  | { type: 'set'; key: keyof LessonSessionState; value: SetStateAction<any> }
+  | { type: 'set'; key: MutableLessonSessionKey; value: SetStateAction<any> }
   | { type: 'replace'; value: LessonSessionState }
+  | { type: 'touch' }
   | { type: 'reset'; overrides?: Partial<LessonSessionState> };
 
 const reducer = (state: LessonSessionState, action: Action): LessonSessionState => {
   if (action.type === 'replace') return action.value;
-  if (action.type === 'reset') return { ...createInitialLessonSession(), ...action.overrides };
-  const previous = state[action.key];
-  const value = typeof action.value === 'function' ? action.value(previous) : action.value;
-  return { ...state, [action.key]: value };
+  if (action.type === 'touch') return touchLessonSessionState(state);
+  if (action.type === 'reset') return resetLocalLessonSessionState(state, action.overrides);
+  return applyLocalLessonSessionChange(state, action.key, action.value);
 };
 
 export const useLessonSession = () => {
   const [session, dispatch] = useReducer(reducer, undefined, createInitialLessonSession);
-  const setter = useCallback(<K extends keyof LessonSessionState>(key: K) =>
+  const setter = useCallback(<K extends MutableLessonSessionKey>(key: K) =>
     ((value: SetStateAction<LessonSessionState[K]>) => dispatch({ type: 'set', key, value })) as Dispatch<SetStateAction<LessonSessionState[K]>>, []);
 
   return {
     session,
     resetLessonSession: useCallback((overrides?: Partial<LessonSessionState>) => dispatch({ type: 'reset', overrides }), []),
     replaceLessonSession: useCallback((value: LessonSessionState) => dispatch({ type: 'replace', value }), []),
+    touchLessonSession: useCallback(() => dispatch({ type: 'touch' }), []),
     setSessionStudentIds: setter('studentIds'), setSessionScores: setter('scores'),
     setSessionNotes: setter('notes'), setSessionDistribution: setter('distribution'),
     setSessionWordlistPage: setter('wordlistPage'), setSessionQuickDrillIndex: setter('quickDrillIndex'),
