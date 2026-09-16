@@ -1,4 +1,4 @@
-import type { LessonPart } from './types';
+import { LessonPart } from './types';
 
 export interface PendingLessonNavigation {
   lessonId: string;

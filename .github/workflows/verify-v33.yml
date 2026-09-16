@@ -27,5 +27,8 @@ jobs:
       - name: Build and run tests
         run: npm test
 
+      - name: Lint source
+        run: npm run lint
+
       - name: Validate Firebase Functions source
         run: node --check functions/index.js
