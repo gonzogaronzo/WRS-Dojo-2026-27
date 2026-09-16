@@ -170,7 +170,7 @@ test('Part 6 keeps source responses and word elements in a distinct reveal-gated
   assert.match(studentWordElementRevealed, /-struct-/);
 });
 
-test('Part 9 keeps reading uncluttered, then exposes one shared question at a time', () => {
+test('Part 9 keeps the passage visible while questions use a hideable non-overlay panel', () => {
   const currentLesson = lesson({}, {
     passageTitle: 'The Spring Job',
     studentReader: 'Student Reader 2',
@@ -192,6 +192,11 @@ test('Part 9 keeps reading uncluttered, then exposes one shared question at a ti
       <PassageReading text={currentLesson.passage || ''} phase="comprehension" questionIndex={1} />
     </LessonRuntimeProvider>
   );
+  const teacherHiddenAgain = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <PassageReading text={currentLesson.passage || ''} phase="reading" questionIndex={1} />
+    </LessonRuntimeProvider>
+  );
   const studentReading = renderToStaticMarkup(
     <LessonRuntimeProvider lesson={currentLesson}>
       <PassageReading text={currentLesson.passage || ''} readOnly />
@@ -204,18 +209,44 @@ test('Part 9 keeps reading uncluttered, then exposes one shared question at a ti
   );
 
   assert.match(teacherReading, /data-part9-reading-flow="passage"/);
-  assert.match(teacherReading, /data-part9-begin-comprehension/);
+  assert.match(teacherReading, /data-part9-layout="passage-only"/);
+  assert.match(teacherReading, /data-part9-passage-region/);
+  assert.match(teacherReading, /data-part9-question-toggle="show"/);
+  assert.match(teacherReading, /Show Questions/);
+  assert.match(teacherReading, /Spring is coming/);
+  assert.doesNotMatch(teacherReading, /data-part9-question-panel/);
   assert.doesNotMatch(teacherReading, /What season is coming in the passage/);
   assert.doesNotMatch(teacherReading, /Prior passage history is not inferred/);
+
   assert.match(teacherQuestionTwo, /data-part9-reading-flow="comprehension"/);
+  assert.match(teacherQuestionTwo, /data-part9-layout="passage-and-questions"/);
+  assert.match(teacherQuestionTwo, /data-part9-passage-region/);
+  assert.match(teacherQuestionTwo, /Spring is coming/);
+  assert.match(teacherQuestionTwo, /data-part9-question-panel/);
+  assert.match(teacherQuestionTwo, /data-part9-panel-placement="sibling"/);
+  assert.match(teacherQuestionTwo, /data-part9-question-toggle="hide"/);
+  assert.match(teacherQuestionTwo, /Hide Questions/);
   assert.match(teacherQuestionTwo, /data-part9-teacher-history/);
   assert.match(teacherQuestionTwo, /What message does the passage give/);
   assert.doesNotMatch(teacherQuestionTwo, /What season is coming in the passage/);
+
+  assert.match(teacherHiddenAgain, /data-part9-reading-flow="passage"/);
+  assert.match(teacherHiddenAgain, /Spring is coming/);
+  assert.doesNotMatch(teacherHiddenAgain, /data-part9-question-panel/);
+  assert.doesNotMatch(teacherHiddenAgain, /What message does the passage give/);
+
   assert.match(studentReading, /The Spring Job/);
   assert.match(studentReading, /Spring is coming/);
+  assert.doesNotMatch(studentReading, /data-part9-question-panel/);
+  assert.doesNotMatch(studentReading, /data-part9-question-toggle/);
   assert.doesNotMatch(studentReading, /What season is coming in the passage/);
   assert.doesNotMatch(studentReading, /Prior passage history is not inferred/);
+
+  assert.match(studentQuestionTwo, /data-part9-passage-region/);
+  assert.match(studentQuestionTwo, /Spring is coming/);
+  assert.match(studentQuestionTwo, /data-part9-panel-placement="sibling"/);
   assert.match(studentQuestionTwo, /What message does the passage give/);
+  assert.doesNotMatch(studentQuestionTwo, /data-part9-question-toggle/);
   assert.doesNotMatch(studentQuestionTwo, /Prior passage history is not inferred/);
 });
 

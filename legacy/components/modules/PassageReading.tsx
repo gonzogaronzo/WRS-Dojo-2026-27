@@ -55,6 +55,9 @@ const PassageReading: React.FC<PassageReadingProps> = (props) => {
   const safeQuestionIndex = questions.length
     ? Math.max(0, Math.min(questionIndex, questions.length - 1))
     : 0;
+  const currentQuestion = questions[safeQuestionIndex];
+  const hasComprehensionMaterial = questions.length > 0 || Boolean(historyNote);
+  const questionsVisible = phase === 'comprehension';
 
   const updatePhase = (next: PassagePhase) => {
     if (onUpdatePhase) onUpdatePhase(next);
@@ -70,94 +73,108 @@ const PassageReading: React.FC<PassageReadingProps> = (props) => {
     if (syncedQuestionIndex === undefined) setLocalQuestionIndex(0);
   }, [legacyProps.text, title, sourceLabel, syncedPhase, syncedQuestionIndex]);
 
-  if (phase === 'comprehension') {
-    const currentQuestion = questions[safeQuestionIndex];
-    return (
-      <div className="min-h-full flex flex-col bg-[#fcfbf9] text-stone-900" data-part9-reading-flow="comprehension">
-        <header className="flex shrink-0 items-center justify-between border-b border-stone-100 bg-white px-8 py-5 shadow-sm">
-          <div className="min-w-0">
-            <h2 className="flex items-center gap-3 font-serif text-xl font-bold uppercase tracking-wider text-stone-900">
-              <FileText className="h-5 w-5 text-red-800" />
-              {title || 'Passage Reading'}
-            </h2>
-            {sourceLabel ? <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-stone-400">{sourceLabel}</p> : null}
-          </div>
-          {!legacyProps.readOnly ? (
-            <button
-              type="button"
-              data-part9-return-to-passage
-              onClick={() => updatePhase('reading')}
-              className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-stone-600 shadow-sm hover:border-stone-400"
-            >
-              Return to passage
-            </button>
-          ) : null}
-        </header>
-        <main className="flex flex-1 flex-col items-center justify-center p-8 text-center">
-          {!legacyProps.readOnly && historyNote ? (
-            <aside data-part9-teacher-history className="mb-6 w-full max-w-3xl rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-left text-sm font-semibold leading-relaxed text-amber-950">
-              {historyNote}
-            </aside>
-          ) : null}
-          {currentQuestion ? (
-            <section data-part9-comprehension-question className="w-full max-w-4xl rounded-[2rem] border border-stone-100 bg-white px-8 py-12 shadow-sm">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-stone-400">
-                Comprehension question {safeQuestionIndex + 1} of {questions.length}
-              </p>
-              <p className="mt-6 font-serif text-3xl font-bold leading-relaxed text-stone-900">{currentQuestion}</p>
-            </section>
-          ) : (
-            <section data-part9-comprehension-unavailable className="w-full max-w-3xl rounded-[2rem] border border-dashed border-stone-300 bg-white px-8 py-12 text-stone-500">
-              No source-provided comprehension questions are available for this passage.
-            </section>
-          )}
-          {!legacyProps.readOnly && questions.length > 1 ? (
-            <div className="mt-8 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => updateQuestionIndex(Math.max(0, safeQuestionIndex - 1))}
-                disabled={safeQuestionIndex === 0}
-                className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-stone-700 shadow-sm disabled:opacity-35"
-              >
-                <ChevronLeft className="h-4 w-4" /> Previous
-              </button>
-              <button
-                type="button"
-                onClick={() => updateQuestionIndex(Math.min(questions.length - 1, safeQuestionIndex + 1))}
-                disabled={safeQuestionIndex === questions.length - 1}
-                className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-stone-700 shadow-sm disabled:opacity-35"
-              >
-                Next <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          ) : null}
-        </main>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative h-full min-h-0" data-part9-reading-flow="passage">
-      <PassageReadingLegacy
-        {...legacyProps}
-        title={title}
-        sourceLabel={sourceLabel}
-        questions={[]}
-        historyNote={undefined}
-      />
-      {!legacyProps.readOnly && (questions.length > 0 || Boolean(historyNote)) ? (
-        <button
-          type="button"
-          data-part9-begin-comprehension
-          onClick={() => {
-            updateQuestionIndex(0);
-            updatePhase('comprehension');
-          }}
-          className="absolute right-6 top-5 z-[70] rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-900 shadow-sm hover:bg-amber-100"
+    <div
+      className="flex h-full min-h-0 flex-col bg-[#fcfbf9] text-stone-900"
+      data-part9-reading-flow={questionsVisible ? 'comprehension' : 'passage'}
+    >
+      {!legacyProps.readOnly && hasComprehensionMaterial ? (
+        <div
+          data-part9-question-controls
+          className="flex shrink-0 justify-end border-b border-stone-100 bg-white px-6 py-3"
         >
-          Begin comprehension
-        </button>
+          <button
+            type="button"
+            data-part9-question-toggle={questionsVisible ? 'hide' : 'show'}
+            onClick={() => {
+              if (!questionsVisible) updateQuestionIndex(0);
+              updatePhase(questionsVisible ? 'reading' : 'comprehension');
+            }}
+            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-900 shadow-sm hover:bg-amber-100"
+          >
+            {questionsVisible ? 'Hide Questions' : 'Show Questions'}
+          </button>
+        </div>
       ) : null}
+
+      <div
+        className={`flex min-h-0 flex-1 ${questionsVisible ? 'flex-col lg:flex-row' : ''}`}
+        data-part9-layout={questionsVisible ? 'passage-and-questions' : 'passage-only'}
+      >
+        <section
+          data-part9-passage-region
+          className="h-full min-h-[24rem] min-w-0 flex-1"
+        >
+          <PassageReadingLegacy
+            {...legacyProps}
+            title={title}
+            sourceLabel={sourceLabel}
+            questions={[]}
+            historyNote={undefined}
+          />
+        </section>
+
+        {questionsVisible ? (
+          <aside
+            data-part9-question-panel
+            data-part9-panel-placement="sibling"
+            className="w-full shrink-0 overflow-y-auto border-t border-stone-200 bg-stone-50 p-6 lg:h-full lg:w-[380px] lg:border-l lg:border-t-0"
+          >
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-stone-500">
+              <FileText className="h-4 w-4 text-red-800" />
+              Comprehension
+            </div>
+            {!legacyProps.readOnly && historyNote ? (
+              <div
+                data-part9-teacher-history
+                className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-relaxed text-amber-950"
+              >
+                {historyNote}
+              </div>
+            ) : null}
+            {currentQuestion ? (
+              <section
+                data-part9-comprehension-question
+                className="mt-5 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+              >
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400">
+                  Question {safeQuestionIndex + 1} of {questions.length}
+                </p>
+                <p className="mt-4 font-serif text-2xl font-bold leading-relaxed text-stone-900">
+                  {currentQuestion}
+                </p>
+              </section>
+            ) : (
+              <section
+                data-part9-comprehension-unavailable
+                className="mt-5 rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-sm text-stone-500"
+              >
+                No source-provided comprehension questions are available for this passage.
+              </section>
+            )}
+            {!legacyProps.readOnly && questions.length > 1 ? (
+              <div className="mt-5 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => updateQuestionIndex(Math.max(0, safeQuestionIndex - 1))}
+                  disabled={safeQuestionIndex === 0}
+                  className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-stone-700 shadow-sm disabled:opacity-35"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateQuestionIndex(Math.min(questions.length - 1, safeQuestionIndex + 1))}
+                  disabled={safeQuestionIndex === questions.length - 1}
+                  className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-widest text-stone-700 shadow-sm disabled:opacity-35"
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
+          </aside>
+        ) : null}
+      </div>
     </div>
   );
 };
