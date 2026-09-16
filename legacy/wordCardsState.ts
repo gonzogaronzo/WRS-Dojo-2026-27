@@ -4,22 +4,32 @@ import { WordCardsFilter, WordCardsMode, WordCardsSessionState } from './useLess
 export const buildWordCardsDeck = (
   cards: WordCard[],
   hfw: string[] = [],
-  filter: WordCardsFilter = 'all',
+  filter: WordCardsFilter | 'word-elements' = 'all',
   mode: WordCardsMode = 'standard',
-  random: () => number = Math.random
+  random: () => number = Math.random,
+  wordElements: string[] = []
 ): WordCard[] => {
   const regular = (cards || []).filter((card): card is WordCard => Boolean(card?.id));
+  const elements: WordCard[] = (wordElements || []).map((element, index) => ({
+    id: `word-element-${index}-${element}`,
+    text: element,
+    type: 'regular' as const
+  }));
+
   let pool: WordCard[] = [];
   if (filter === 'all' || filter === 'regular') pool.push(...regular);
   if (filter === 'all' || filter === 'hfw') {
     pool.push(...(hfw || []).map((word, index) => ({ id: `hfw-${index}`, text: word, type: 'hfw' as const })));
   }
+  if (filter === 'word-elements') pool.push(...elements);
+
   if (mode === 'oops') {
     const count = Math.max(3, Math.floor(pool.length / 6));
     for (let index = 0; index < count; index += 1) {
       pool.push({ id: `oops-${index}`, text: 'OOPS!', type: 'oops' });
     }
   }
+
   pool = [...pool];
   for (let index = pool.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(random() * (index + 1));
