@@ -56,7 +56,11 @@ import {
 import { useCloudPresenter } from './useCloudPresenter';
 import { DrawingStroke, updateDrawingSurface } from './drawingSync';
 import { clearSafeBootMode, isSafeBootMode } from './safeBoot';
-import { pendingNavigationBlocksIncoming, type PendingLessonNavigation } from './lessonSessionSync';
+import {
+  pendingNavigationBlocksIncoming,
+  shouldResetQuickDrillForPartChange,
+  type PendingLessonNavigation
+} from './lessonSessionSync';
 import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
 
 const App: React.FC = () => {
@@ -495,8 +499,18 @@ const App: React.FC = () => {
         setSessionScores([]);
       }
     }
+    if (shouldResetQuickDrillForPartChange(currentPart, nextPart)) {
+      setSessionQuickDrillIndex(0);
+      setSessionQuickDrillRevealed(0);
+      setSessionQuickDrillHandwriting(false);
+      setSessionQuickDrillItems([]);
+    }
     setLocalLessonPart(nextPart);
-  }, [baseReadingCards, isStudentView, rosterSessionStudents.length, sessionDistribution, setLocalLessonPart, setSessionDistribution, setSessionScores, setSessionWordlistPage]);
+  }, [
+    baseReadingCards, currentPart, isStudentView, rosterSessionStudents.length, sessionDistribution,
+    setLocalLessonPart, setSessionDistribution, setSessionQuickDrillHandwriting, setSessionQuickDrillIndex,
+    setSessionQuickDrillItems, setSessionQuickDrillRevealed, setSessionScores, setSessionWordlistPage
+  ]);
 
   // Keep activeGroup in sync with the latest data from the groups array
   useEffect(() => {

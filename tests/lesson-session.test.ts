@@ -7,7 +7,10 @@ import {
   lessonSessionToCloud
 } from '../legacy/useLessonSession';
 import { Lesson, LessonPart } from '../legacy/types';
-import { pendingNavigationBlocksIncoming } from '../legacy/lessonSessionSync';
+import {
+  pendingNavigationBlocksIncoming,
+  shouldResetQuickDrillForPartChange
+} from '../legacy/lessonSessionSync';
 
 const lesson: Lesson = {
   id: 'lesson-2-3', title: 'Closed Syllable Exceptions', step: '2', substep: '3',
@@ -115,4 +118,12 @@ test('holds an older cloud part until the matching local navigation is persisted
     sessionId: 'mission-123',
     currentPart: LessonPart.Part1
   }), false);
+});
+
+
+test('starts each Quick Drill part with a fresh index and unrevealed prompt', () => {
+  assert.equal(shouldResetQuickDrillForPartChange(LessonPart.Part2, LessonPart.Part6), true);
+  assert.equal(shouldResetQuickDrillForPartChange(LessonPart.Part6, LessonPart.Part1), true);
+  assert.equal(shouldResetQuickDrillForPartChange(LessonPart.Part1, LessonPart.Part1), false);
+  assert.equal(shouldResetQuickDrillForPartChange(LessonPart.Part4, LessonPart.Part5), false);
 });

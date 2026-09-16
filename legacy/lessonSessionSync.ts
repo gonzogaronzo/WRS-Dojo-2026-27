@@ -16,6 +16,14 @@ interface IncomingLessonPosition {
  * Reject only a cloud frame that predates an in-flight local part selection.
  * The matching frame clears the guard, so later remote updates still apply.
  */
+export const shouldResetQuickDrillForPartChange = (
+  previousPart: LessonPart,
+  nextPart: LessonPart
+): boolean => (
+  previousPart !== nextPart &&
+  (nextPart === LessonPart.Part1 || nextPart === LessonPart.Part6)
+);
+
 export const pendingNavigationBlocksIncoming = (
   pending: PendingLessonNavigation | null,
   incoming: IncomingLessonPosition
