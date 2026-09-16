@@ -33,8 +33,8 @@ jobs:
       - name: Install Firebase Functions dependencies
         run: npm ci --prefix functions
 
-      - name: Run targeted state-sync and presenter tests
-        run: node --import tsx --test tests/lesson-session.test.ts tests/presenter-mode.test.ts
+      - name: Run targeted Part 6 and relevant presenter/render tests
+        run: node --import tsx --test tests/part6-part8-preview-privacy.test.tsx tests/canonical-lesson-surfaces.test.tsx tests/presenter-mode.test.ts
 
       - name: Run verification suite
         run: npm test
