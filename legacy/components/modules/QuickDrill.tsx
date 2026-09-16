@@ -372,6 +372,19 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     </div>
   );
 
+  const renderPart6StudentSurface = () => (
+    <div
+      data-part6-student-state={revealedCount > 0 ? 'revealed' : 'listen'}
+      className="flex h-full w-full flex-col items-center justify-center"
+    >
+      {revealedCount > 0 ? renderReverseAnswer() : (
+        <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm">
+          <div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-12 h-12" /></div>
+          <span className="text-5xl font-black font-serif text-stone-300">Listen</span>
+        </div>
+      )}
+    </div>
+  );
   const renderVisualAnswerLog = () => (
     <div className="flex flex-wrap items-center justify-center gap-3">
       {revealedData.slice(0, revealedCount).map((answer, index) => (
@@ -424,7 +437,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
             </div>}
 
             <div onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined} className={`flex-[3] w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}>
-              {!isHandwritingMode ? <>
+              {isReverse && readOnly ? renderPart6StudentSurface() : !isHandwritingMode ? <>
                 {!readOnly && <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity"><Sparkles className="w-64 h-64 text-red-900" /></div>}
                 <div className="flex flex-col items-center justify-center w-full">
                   {isReverse ? (readOnly ? (revealedCount > 0 ? renderReverseAnswer() : <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm"><div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-12 h-12" /></div><span className="text-5xl font-black font-serif text-stone-300">Listen</span></div>) : <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm"><div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Volume2 className="w-12 h-12" /></div><span className={`${isWordElementItem ? 'text-7xl' : 'text-[144px]'} font-black font-serif text-stone-900 leading-none`}>{teacherPrompt}</span></div>) : <div className="flex items-center justify-center">{parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}</div>}

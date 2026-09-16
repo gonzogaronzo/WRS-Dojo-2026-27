@@ -81,13 +81,23 @@ test('Part 5 weave question is visible to teacher but not student', () => {
 
 test('Part 6 keeps source responses and word elements in a distinct reveal-gated phase', () => {
   const currentLesson = lesson({}, {}, { wordElements: ['-struct-'] });
-  const sharedItems = ['/k/ → c, k, ck', 'word-element::-struct-'];
+  const sharedItems = ['/old/ → old', 'word-element::-struct-'];
   const teacherWordElement = renderToStaticMarkup(
     <LessonRuntimeProvider lesson={currentLesson}>
       <QuickDrill
-        sounds={['/k/ → c, k, ck']}
+        sounds={['/old/ → old']}
         isReverse
         currentIndex={1}
+        shuffledItems={sharedItems}
+      />
+    </LessonRuntimeProvider>
+  );
+  const teacherSound = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <QuickDrill
+        sounds={['/old/ → old']}
+        isReverse
+        currentIndex={0}
         shuffledItems={sharedItems}
       />
     </LessonRuntimeProvider>
@@ -95,9 +105,21 @@ test('Part 6 keeps source responses and word elements in a distinct reveal-gated
   const studentHidden = renderToStaticMarkup(
     <LessonRuntimeProvider lesson={currentLesson}>
       <QuickDrill
-        sounds={['/k/ → c, k, ck']}
+        sounds={['/old/ → old']}
         isReverse
         currentIndex={1}
+        revealedCount={0}
+        shuffledItems={sharedItems}
+        readOnly
+      />
+    </LessonRuntimeProvider>
+  );
+  const studentSoundHidden = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <QuickDrill
+        sounds={['/old/ → old']}
+        isReverse
+        currentIndex={0}
         revealedCount={0}
         shuffledItems={sharedItems}
         readOnly
@@ -107,7 +129,7 @@ test('Part 6 keeps source responses and word elements in a distinct reveal-gated
   const studentWordElementRevealed = renderToStaticMarkup(
     <LessonRuntimeProvider lesson={currentLesson}>
       <QuickDrill
-        sounds={['/k/ → c, k, ck']}
+        sounds={['/old/ → old']}
         isReverse
         currentIndex={1}
         revealedCount={1}
@@ -119,25 +141,35 @@ test('Part 6 keeps source responses and word elements in a distinct reveal-gated
   const studentSoundRevealed = renderToStaticMarkup(
     <LessonRuntimeProvider lesson={currentLesson}>
       <QuickDrill
-        sounds={['/k/ → c, k, ck']}
+        sounds={['/old/ → old']}
         isReverse
         currentIndex={0}
-        revealedCount={3}
+        revealedCount={1}
         shuffledItems={sharedItems}
         readOnly
       />
     </LessonRuntimeProvider>
   );
 
+  assert.match(teacherSound, /data-testid="teacher-dictation-cue"/);
+  assert.match(teacherSound, /data-part6-section="sounds"/);
+  assert.match(teacherSound, />\/old\/<\/span>/);
   assert.match(teacherWordElement, /data-part6-section="word-elements"/);
   assert.match(teacherWordElement, /data-part6-word-element-procedure/);
   assert.match(teacherWordElement, /-struct-/);
-  assert.match(studentHidden, />Listen</);
+  assert.match(studentSoundHidden, /data-part6-student-state="listen"/);
+  assert.match(studentSoundHidden, />Listen<\/span>/);
+  assert.doesNotMatch(studentSoundHidden, /\/old\//);
+  assert.doesNotMatch(studentSoundHidden, />old</);
+  assert.match(studentHidden, /data-part6-student-state="listen"/);
+  assert.match(studentHidden, />Listen<\/span>/);
   assert.doesNotMatch(studentHidden, /-struct-/);
+  assert.match(studentSoundRevealed, /data-part6-student-state="revealed"/);
+  assert.match(studentSoundRevealed, />o<\/span>/);
+  assert.match(studentSoundRevealed, />l<\/span>/);
+  assert.match(studentSoundRevealed, />d<\/span>/);
+  assert.match(studentWordElementRevealed, /data-part6-student-state="revealed"/);
   assert.match(studentWordElementRevealed, /-struct-/);
-  assert.match(studentSoundRevealed, />c</);
-  assert.match(studentSoundRevealed, />k</);
-  assert.match(studentSoundRevealed, />ck</);
 });
 
 test('Part 9 keeps reading uncluttered, then exposes one shared question at a time', () => {
@@ -191,7 +223,7 @@ test('Part 9 keeps reading uncluttered, then exposes one shared question at a ti
 
 test('Part 8 follows the source dictation sequence and uses source-shaped reveal visuals', () => {
   const dictation = {
-    sounds: ['/k/ → c, k, ck'],
+    sounds: ['/old/ → old'],
     wordElements: ['-struct-', '-s'],
     realWords: ['strap'],
     nonsenseWords: ['scrid'],
