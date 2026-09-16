@@ -15,18 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Apply focused Task 8 privacy fix
-        run: |
-          python scripts/task8_apply_privacy_fix.py
-          python scripts/task8_test_adjust.py
 
       - name: Use Node 22
         uses: actions/setup-node@v4
@@ -40,26 +33,14 @@ jobs:
       - name: Install Firebase Functions dependencies
         run: npm ci --prefix functions
 
-      - name: Run targeted Part 6 and Part 8 privacy tests
-        run: node --import tsx --test tests/part6-part8-preview-privacy.test.tsx tests/canonical-lesson-surfaces.test.tsx tests/presenter-mode.test.ts
+      - name: Run targeted state-sync and presenter tests
+        run: node --import tsx --test tests/lesson-session.test.ts tests/presenter-mode.test.ts
 
       - name: Run verification suite
         run: npm test
 
       - name: Build standalone Firebase app
         run: npm run build:standalone
-
-      - name: Commit focused Task 8 fix
-        run: |
-          if git diff --quiet; then
-            echo 'No Task 8 source changes to commit.'
-          else
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add legacy/presenterMode.ts legacy/components/modules/QuickDrill.tsx tests/canonical-lesson-surfaces.test.tsx tests/null-safe-render.test.tsx tests/part6-part8-preview-privacy.test.tsx package.json
-            git commit -m 'fix: gate Part 6 and Part 8 student answers until reveal'
-            git push origin HEAD:fix/operational-director-parts-6-10
-          fi
 
       - name: Deploy Hosting preview channel only
         id: preview
