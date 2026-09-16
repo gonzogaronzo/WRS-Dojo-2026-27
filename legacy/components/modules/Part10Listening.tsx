@@ -17,19 +17,22 @@ const Part10Listening: React.FC<Part10ListeningProps> = ({
 
   return (
     <section
-      data-part10-status={hasPlan ? 'ready' : 'blocked'}
+      data-part10-status="ready"
+      data-part10-mode={hasPlan ? 'preloaded-selection' : 'teacher-determined'}
       className="min-h-full flex flex-col items-center justify-center bg-stone-950 p-8 text-center text-white"
     >
       <div className="w-full max-w-4xl rounded-[2rem] border border-stone-800 bg-stone-900/70 p-8 shadow-2xl">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-800 text-white">
           <Headphones className="h-8 w-8" />
         </div>
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-red-300">Part 10 · Listening comprehension</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-red-300">
+          Part 10 · Listening / reading fluency &amp; comprehension
+        </p>
         {hasPlan ? (
           <>
             {!readOnly ? (
               <>
-                <h2 className="mt-4 font-serif text-4xl font-black text-white">{plan?.title || 'Teacher-selected text'}</h2>
+                <h2 className="mt-4 font-serif text-4xl font-black text-white">{plan?.title || 'Teacher-selected activity'}</h2>
                 {plan?.teacherDirections.length ? (
                   <ol data-part10-teacher-directions className="mx-auto mt-6 max-w-3xl space-y-3 text-left text-base leading-relaxed text-stone-200">
                     {plan.teacherDirections.map((direction, index) => <li key={index}>{direction}</li>)}
@@ -44,12 +47,12 @@ const Part10Listening: React.FC<Part10ListeningProps> = ({
         ) : (
           <>
             <h2 className="mt-4 font-serif text-4xl font-black text-white">
-              {readOnly ? 'Waiting for the listening text' : 'Part 10 source plan needed'}
+              {readOnly ? 'Part 10' : 'Teacher-led Part 10'}
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-stone-300">
               {readOnly
-                ? 'The teacher will begin when a teacher-selected listening text is ready.'
-                : 'No Part 10 text or student prompt was supplied for this lesson. Choose a teacher-selected text before beginning Part 10.'}
+                ? 'Follow your teacher’s directions for the next activity.'
+                : 'Select the Part 10 listening/reading fluency and comprehension activity at instruction time. No preloaded activity is required.'}
             </p>
           </>
         )}
