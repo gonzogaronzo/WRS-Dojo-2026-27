@@ -4,7 +4,7 @@ import { WordCardsFilter, WordCardsMode, WordCardsSessionState } from './useLess
 export const buildWordCardsDeck = (
   cards: WordCard[],
   hfw: string[] = [],
-  filter: WordCardsFilter = 'all',
+  filter: WordCardsFilter | 'word-elements' = 'all',
   mode: WordCardsMode = 'standard',
   random: () => number = Math.random,
   wordElements: string[] = []
