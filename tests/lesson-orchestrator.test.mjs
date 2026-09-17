@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 
-import { runPreflight } from '../scripts/wrs-lesson-orchestrator.mjs';
+import { runPreflight, validateSourcePacket } from '../scripts/wrs-lesson-orchestrator.mjs';
 
 const makeSnapshot = () => ({
   schemaVersion: 'wrs-group-planning-snapshot-v1',
@@ -250,6 +251,12 @@ test('runtime mismatch and absent final gate reports cannot be presented as comp
   assert.ok(result.issues.some(item => item.code === 'runtime_substep_mismatch'));
   assert.ok(result.issues.some(item => item.code === 'contract_report_missing'));
   assert.ok(result.issues.some(item => item.code === 'compatibility_report_missing'));
+});
+
+test('real 5.5 source packet is accepted by the orchestration source gate', () => {
+  const packet = JSON.parse(fs.readFileSync(new URL('../curriculum/source-packets/5.5.v1.json', import.meta.url), 'utf8'));
+  const issues = validateSourcePacket(packet);
+  assert.deepEqual(issues, []);
 });
 
 test('real student data are not embedded in orchestration regression fixtures', () => {
