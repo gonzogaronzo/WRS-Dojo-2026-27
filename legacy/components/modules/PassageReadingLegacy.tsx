@@ -53,6 +53,7 @@ const PassageReading: React.FC<PassageReadingProps> = ({
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const passageScrollRef = useRef<HTMLDivElement>(null);
   const lastPointRef = useRef<{ x: number, y: number } | null>(null);
   const rectRef = useRef<DOMRect | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -90,6 +91,21 @@ const PassageReading: React.FC<PassageReadingProps> = ({
       const displayedY = e.clientY - rect.top;
       setRulerY(displayedY * (containerRef.current.clientHeight / rect.height));
     }
+  };
+
+  const handlePassageWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    const scrollRegion = passageScrollRef.current;
+    if (!scrollRegion || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+
+    const maxScrollTop = scrollRegion.scrollHeight - scrollRegion.clientHeight;
+    if (maxScrollTop <= 0) return;
+
+    const nextScrollTop = Math.max(0, Math.min(maxScrollTop, scrollRegion.scrollTop + e.deltaY));
+    if (nextScrollTop === scrollRegion.scrollTop) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    scrollRegion.scrollTop = nextScrollTop;
   };
 
   const clearCanvas = () => {
@@ -294,7 +310,11 @@ const PassageReading: React.FC<PassageReadingProps> = ({
            <ChevronRight className="w-6 h-6 group-hover:scale-110 transition-transform" />
         </button>
 
-        <div className={`absolute inset-0 flex p-4 md:p-12 lg:p-24 z-0 overflow-y-auto ${showTeacherQuestions ? 'pr-[390px]' : ''}`}>
+        <div
+          ref={passageScrollRef}
+          data-part9-passage-scroll
+          className={`absolute inset-0 flex p-4 md:p-12 lg:p-24 z-0 overflow-y-auto ${showTeacherQuestions ? 'pr-[390px]' : ''}`}
+        >
           <div className="max-w-6xl w-full mx-auto my-auto py-12">
              <p className="text-[38px] font-medium text-stone-900 leading-[3] font-serif tracking-wide select-none text-left break-words">
                 {paragraphs[currentIndex]}
@@ -308,6 +328,7 @@ const PassageReading: React.FC<PassageReadingProps> = ({
           onPointerMove={syncedDrawing.onPointerMove}
           onPointerUp={syncedDrawing.onPointerUp}
           onPointerCancel={syncedDrawing.onPointerCancel}
+          onWheel={handlePassageWheel}
           className={`absolute inset-0 z-20 touch-none ${readOnly || tool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`}
         />
 
