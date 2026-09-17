@@ -3,15 +3,15 @@
   "packetId": "wrs-5.5-source-packet-v1",
   "substep": "5.5",
   "curriculumRelease": "WRS-CURRICULUM-1.0.1-2026-09-02",
-  "packetVersion": "1.0.0",
-  "verifiedAt": "2026-09-17T12:45:00-05:00",
+  "packetVersion": "1.0.1",
+  "verifiedAt": "2026-09-17T12:58:00-05:00",
   "authority": [
     {
       "sourceId": "step-instruction-5.5-visual",
       "kind": "step-instruction",
       "label": "Wilson Instructors Manual (4th Ed.) EDITABLE.pdf — Substep 5.5 Step Instruction",
       "edition": "Fourth Edition",
-      "locator": "gdrive:1eT7Eg_Gy6d9mTPS2SdSmI3Eebcg1GHfb#printed-pp-345-355",
+      "locator": "gdrive:1eT7Eg_Gy6d9mTPS2SdSmI3Eebcg1GHfb#pdf-pp-338-348#printed-pp-346-356",
       "priority": 1,
       "verificationStatus": "visual-verified"
     },
@@ -29,7 +29,7 @@
       "kind": "dictation-book",
       "label": "Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf",
       "edition": "Fourth Edition",
-      "locator": "project:file_00000000a1e481fd885221751510b3e3#5.5-pdf-pp-83-86",
+      "locator": "project:file_00000000a1e481fd885221751510b3e3#5.5-words-pdf-pp-123-126#phrases-pdf-p-128#sentences-pdf-pp-137-138",
       "priority": 3,
       "verificationStatus": "visual-verified"
     },
@@ -38,7 +38,7 @@
       "kind": "student-reader",
       "label": "Student Reader Five (4th Ed.).pdf",
       "edition": "Fourth Edition",
-      "locator": "gdrive:1XngtnoaqzfW4KDWA-i29cncGU2NJHbDn#substep-5.5",
+      "locator": "gdrive:1XngtnoaqzfW4KDWA-i29cncGU2NJHbDn#substep-5.5#printed-pp-108-141",
       "priority": 4,
       "verificationStatus": "visual-verified"
     },
@@ -47,7 +47,7 @@
       "kind": "student-notebook-answer-key",
       "label": "Wilson Student Notebook 1-6 Answer Key.pdf",
       "edition": "Fourth Edition",
-      "locator": "project:WRS Student Notebooks Answer Keys.zip::Wilson Student Notebook 1-6 Answer Key.pdf#substep-5.5",
+      "locator": "project:WRS Student Notebooks Answer Keys.zip::Wilson Student Notebook 1-6 Answer Key.pdf#pdf-pp-15-16,22,24,40,49,51,57-58,71-72",
       "priority": 5,
       "verificationStatus": "visual-verified"
     },
@@ -68,22 +68,13 @@
       "locator": "library:file_00000000a4ec81fd88b6362cdf209719#substep-5.5",
       "priority": 9,
       "verificationStatus": "searchable-companion"
-    },
-    {
-      "sourceId": "dictation-steps1-12-searchable",
-      "kind": "derived-index",
-      "label": "wrs-dictation-book-steps-01-12-reference(1).md",
-      "edition": "Searchable OCR companion",
-      "locator": "project:file_000000009d1c81fb956c140494ccce59#step-5.5",
-      "priority": 9,
-      "verificationStatus": "searchable-companion"
     }
   ],
   "currentConcept": [
     {
       "contentId": "5.5-open-syllable-exceptions",
       "sourceId": "step-instruction-5.5-visual",
-      "locator": "printed-pp-345-349",
+      "locator": "printed-pp-346-350",
       "verificationStatus": "verified",
       "role": "current concept: open-syllable exceptions with unstressed a and i",
       "notes": "Use exact source wording/notation from the visual manual when rendering instruction."
@@ -91,25 +82,25 @@
     {
       "contentId": "5.5-prefix-a",
       "sourceId": "step-instruction-5.5-visual",
-      "locator": "printed-pp-347-355",
+      "locator": "printed-pp-348,354",
       "verificationStatus": "verified",
       "role": "current concept: prefix a-",
-      "notes": "Source sequence includes reading and spelling work with the prefix."
+      "notes": "Source sequence includes both reading and spelling work with the prefix."
     }
   ],
   "sourceOrderedTeachingSequence": [
     {
       "contentId": "5.5-step-sequence-reading",
       "sourceId": "step-instruction-5.5-visual",
-      "locator": "printed-pp-345-350",
+      "locator": "printed-pp-346-351",
       "verificationStatus": "verified",
-      "role": "Part 2 source-ordered reading instruction",
+      "role": "Parts 1-5 source-ordered reading instruction",
       "notes": "Follow source order; do not introduce later-Substep content."
     },
     {
       "contentId": "5.5-step-sequence-spelling",
       "sourceId": "step-instruction-5.5-visual",
-      "locator": "printed-pp-351-355",
+      "locator": "printed-pp-352-356",
       "verificationStatus": "verified",
       "role": "Parts 6-8 spelling sequence",
       "notes": "Use exact source-supported cards, prompts, and spelling procedures."
@@ -121,25 +112,25 @@
       {
         "contentId": "5.5-cumulative-sounds",
         "sourceId": "student-notebook-1-6-visual",
-        "locator": "Sounds section through Substep 5.5",
+        "locator": "pdf-pp-15-16: Vowels in Open Syllables / Vowel Sounds Chart through 5.5",
         "verificationStatus": "verified",
-        "role": "cumulative Letter-Sound Card / phoneme-grapheme eligibility"
+        "role": "cumulative vowel sound-spelling eligibility through 5.5"
       }
     ],
     "wordElementRefs": [
       {
         "contentId": "5.5-word-elements",
-        "sourceId": "step-instruction-5.5-visual",
-        "locator": "printed-pp-345-355",
+        "sourceId": "student-notebook-1-6-visual",
+        "locator": "pdf-p-40: Prefixes with Open Syllables, including a-",
         "verificationStatus": "verified",
-        "role": "current and cumulative Word Elements applicable through 5.5"
+        "role": "current and cumulative open-syllable prefix eligibility through 5.5"
       }
     ],
     "hfwRefs": [
       {
         "contentId": "5.5-hfw",
         "sourceId": "student-notebook-1-6-visual",
-        "locator": "High-Frequency Words section, Substep 5.5",
+        "locator": "pdf-pp-51,57-58,71-72: almost, early, family, families, since, soon",
         "verificationStatus": "verified",
         "role": "current 5.5 HFW set"
       }
@@ -148,7 +139,7 @@
       {
         "contentId": "5.5-reader-review-pool",
         "sourceId": "student-reader-5-visual",
-        "locator": "Substep 5.5 word-list sequence beginning printed p. 108",
+        "locator": "printed-pp-108-117: 5.5 word-list sequence",
         "verificationStatus": "verified",
         "role": "source-valid current controlled reading pool"
       }
@@ -161,14 +152,14 @@
         {
           "contentId": "5.5-part1-sounds",
           "sourceId": "student-notebook-1-6-visual",
-          "locator": "Sounds section through 5.5",
+          "locator": "pdf-pp-15-16 plus Step Instruction printed p. 346",
           "verificationStatus": "verified",
-          "role": "eligible cumulative Part 1 card pool"
+          "role": "eligible cumulative Part 1 sound-card pool"
         }
       ],
       "selectionRules": [
-        "Include all taught vowel Letter-Sound Cards through 5.5; add purposeful cumulative consonant/welded review from verified scope.",
-        "Do not place a new card before its source-ordered introduction."
+        "Drill all previously taught vowel Letter-Sound Cards; select previously taught consonant and welded review purposefully.",
+        "Do not treat the 5.5 open-syllable exception sound-spellings as pre-taught before their source-ordered introduction."
       ]
     },
     "2": {
@@ -177,14 +168,14 @@
         {
           "contentId": "5.5-part2-sequence",
           "sourceId": "step-instruction-5.5-visual",
-          "locator": "printed-pp-345-350",
+          "locator": "printed-pp-346-350",
           "verificationStatus": "verified",
           "role": "source-ordered Teach & Review Concepts for Reading sequence"
         }
       ],
       "selectionRules": [
-        "Use 3-4 actual 5.4 review words before current 5.5 instruction.",
-        "For Introduction, preserve the full source-ordered 5.5 sequence under the 2026-27 project pacing convention."
+        "Begin with 3-4 actual previous-Substep review words.",
+        "For an Introduction lesson, preserve the source order for the new 5.5 concepts under the active project pacing protocol."
       ]
     },
     "3": {
@@ -193,14 +184,14 @@
         {
           "contentId": "5.5-part3-word-cards",
           "sourceId": "step-instruction-5.5-visual",
-          "locator": "printed-p-349",
+          "locator": "printed-p-350",
           "verificationStatus": "verified",
           "role": "current Word Card direction and scope"
         },
         {
           "contentId": "5.5-part3-hfw",
           "sourceId": "student-notebook-1-6-visual",
-          "locator": "High-Frequency Words section, 5.5",
+          "locator": "pdf-pp-51,57-58,71-72: current 5.5 HFW set",
           "verificationStatus": "verified",
           "role": "current HFW packet"
         }
@@ -216,13 +207,13 @@
         {
           "contentId": "5.5-part4-reader-lists",
           "sourceId": "student-reader-5-visual",
-          "locator": "Substep 5.5 word-list pages beginning printed p. 108",
+          "locator": "printed-pp-108-117",
           "verificationStatus": "verified",
           "role": "practice/charting source pool"
         }
       ],
       "selectionRules": [
-        "Use exact current controlled Reader material and separate student charting lists when charting is planned."
+        "Use exact controlled Reader material from the appropriate 5.5 list and separate student charting lists when charting is planned."
       ]
     },
     "5": {
@@ -231,9 +222,9 @@
         {
           "contentId": "5.5-part5-sentences",
           "sourceId": "student-reader-5-visual",
-          "locator": "Substep 5.5 sentence pages beginning printed p. 118",
+          "locator": "printed-pp-118-127",
           "verificationStatus": "verified",
-          "role": "current sentence-reading pages"
+          "role": "current 5.5 sentence-reading pages"
         }
       ],
       "selectionRules": [
@@ -246,7 +237,7 @@
         {
           "contentId": "5.5-part6-reverse-drill",
           "sourceId": "step-instruction-5.5-visual",
-          "locator": "printed-p-351 and cumulative sound inventory through 5.5",
+          "locator": "printed-p-352; notebook pdf-pp-15-16",
           "verificationStatus": "verified",
           "role": "Quick Drill in Reverse requirements"
         }
@@ -261,13 +252,13 @@
         {
           "contentId": "5.5-part7-spelling",
           "sourceId": "step-instruction-5.5-visual",
-          "locator": "printed-pp-351-355",
+          "locator": "printed-pp-352-356",
           "verificationStatus": "verified",
           "role": "current spelling instruction and procedures"
         }
       ],
       "selectionRules": [
-        "Use 3-4 actual 5.4 words plus 5-8 source-valid current 5.5 words, limited to taught concepts at that instructional point."
+        "Use 3-4 actual previous-Substep words plus source-valid current 5.5 words, limited to concepts already taught at that instructional point."
       ]
     },
     "8": {
@@ -276,13 +267,13 @@
         {
           "contentId": "5.5-part8-dictation",
           "sourceId": "dictation-steps1-6-visual",
-          "locator": "5.5 material on PDF pp. 83-86",
+          "locator": "words: PDF pp. 123-126; phrases: PDF p. 128; sentences: PDF pp. 137-138",
           "verificationStatus": "verified",
           "role": "current/cumulative written-work dictation pools"
         }
       ],
       "selectionRules": [
-        "Use only source-verified Dictation Book items and current-substep sentences; apply the project Part 8 category/count rules."
+        "Use only source-verified Dictation Book items and current-substep sentences; apply the active project Part 8 category/count contract."
       ]
     },
     "9": {
@@ -291,13 +282,13 @@
         {
           "contentId": "5.5-part9-passages",
           "sourceId": "student-reader-5-visual",
-          "locator": "Substep 5.5 controlled-passage sequence",
+          "locator": "printed-pp-128-141",
           "verificationStatus": "verified",
-          "role": "ordered controlled passage pool"
+          "role": "ordered 5.5 controlled-passage pool"
         }
       ],
       "selectionRules": [
-        "Select the next unread short controlled passage using the group snapshot passage history; if history is uncertain, flag it rather than infer it."
+        "Select the next unread controlled passage using the group snapshot passage history; if history is uncertain, flag it rather than infer it."
       ]
     },
     "10": {
@@ -312,25 +303,32 @@
     {
       "contentId": "5.5-notebook-open-syllable-exceptions",
       "sourceId": "student-notebook-1-6-visual",
-      "locator": "Syllable Exceptions / 5.5 entries for unstressed open-syllable a and i",
+      "locator": "pdf-p-22 Open Syllable exceptions; pdf-p-24 Syllable Exception Chart",
       "verificationStatus": "verified",
-      "role": "notebook entry/reference"
+      "role": "Syllables notebook entry/reference"
     },
     {
       "contentId": "5.5-notebook-prefix-a",
       "sourceId": "student-notebook-1-6-visual",
-      "locator": "Word Study / prefix a- entry",
+      "locator": "pdf-p-40 Prefixes with Open Syllables: a-",
       "verificationStatus": "verified",
-      "role": "notebook entry/reference"
+      "role": "Word Elements notebook entry/reference"
+    },
+    {
+      "contentId": "5.5-notebook-spelling-options",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "pdf-p-49 Spelling Options for Sounds: 5.5 entries",
+      "verificationStatus": "verified",
+      "role": "Spelling notebook entry/reference"
     }
   ],
   "knownGaps": [],
   "ocrConcerns": [
-    "Searchable/OCR companions are retrieval aids only. Exact phoneme notation, markings, page-dependent layout, and source sequence must be checked against the visual PDFs."
+    "Searchable/OCR companions are retrieval aids only. Exact phoneme notation, markings, page-dependent layout, and source sequence must be checked against the original PDFs."
   ],
   "verification": {
     "status": "verified",
-    "verifiedBy": "2026-09-17 source reconciliation",
+    "verifiedBy": "2026-09-17 source reconciliation with original visual/PDF authorities",
     "sourceReleaseId": "WRS-CURRICULUM-1.0.1-2026-09-02",
     "blockingIssues": []
   }
