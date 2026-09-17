@@ -15,30 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-        with:
-          ref: fix/operational-director-parts-6-10
-          fetch-depth: 0
-
-      - name: Apply exact Part 8 teacher-side reveal fix
-        run: python scripts/task10_part8_patch.py
-
-      - name: Commit direct Part 8 repair if needed
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add legacy/components/modules/Spelling.tsx tests/part6-part8-preview-privacy.test.tsx
-          if git diff --cached --quiet; then
-            echo "Part 8 repair already present"
-          else
-            git commit -m "Fix actual Part 8 teacher-side pre-reveal leakage"
-            git push origin HEAD:fix/operational-director-parts-6-10
-          fi
 
       - name: Use Node 22
         uses: actions/setup-node@v4
@@ -51,9 +32,6 @@ jobs:
 
       - name: Install Firebase Functions dependencies
         run: npm ci --prefix functions
-
-      - name: Run targeted Part 6 and Part 8 privacy tests
-        run: node --import tsx --test tests/part6-part8-preview-privacy.test.tsx
 
       - name: Run targeted state-sync and presenter tests
         run: node --import tsx --test tests/lesson-session.test.ts tests/presenter-mode.test.ts
