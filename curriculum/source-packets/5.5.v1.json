@@ -3,8 +3,8 @@
   "packetId": "wrs-5.5-source-packet-v1",
   "substep": "5.5",
   "curriculumRelease": "WRS-CURRICULUM-1.0.1-2026-09-02",
-  "packetVersion": "1.0.3",
-  "verifiedAt": "2026-09-17T13:06:00-05:00",
+  "packetVersion": "1.0.4",
+  "verifiedAt": "2026-09-17T15:18:00-05:00",
   "authority": [
     {
       "sourceId": "step-instruction-5.5-visual",
@@ -38,7 +38,7 @@
       "kind": "student-reader",
       "label": "Student Reader Five (4th Ed.).pdf",
       "edition": "Fourth Edition",
-      "locator": "gdrive:1XngtnoaqzfW4KDWA-i29cncGU2NJHbDn#substep-5.5#printed-pp-108-141",
+      "locator": "gdrive:1XngtnoaqzfW4KDWA-i29cncGU2NJHbDn#5.2N-printed-p-31-pdf-p-33#5.5-printed-pp-108-141",
       "priority": 4,
       "verificationStatus": "visual-verified"
     },
@@ -65,7 +65,7 @@
       "kind": "derived-index",
       "label": "student-reader-05.md",
       "edition": "Fourth Edition searchable companion",
-      "locator": "library-source:student-reader-05.md#substep-5.5",
+      "locator": "library-source:student-reader-05.md#substeps-5.2N-and-5.5",
       "priority": 9,
       "verificationStatus": "searchable-companion"
     }
@@ -142,6 +142,14 @@
         "locator": "printed-pp-108-117: 5.5 word-list sequence",
         "verificationStatus": "verified",
         "role": "source-valid current controlled reading pool"
+      },
+      {
+        "contentId": "5.5-cumulative-nonsense-review-pool",
+        "sourceId": "student-reader-5-visual",
+        "locator": "Substep 5.2N, printed-p-31 / PDF-p-33",
+        "verificationStatus": "verified",
+        "role": "verified prior-Substep Wilson nonsense-word pool eligible only as cumulative review when Part 8 calls for nonsense words",
+        "notes": "Visual verification completed against Student Reader Five PDF page 33. Do not label these as current-Substep 5.5 nonsense words."
       }
     ]
   },
@@ -270,10 +278,18 @@
           "locator": "words: PDF pp. 123-126; phrases: PDF p. 128; sentences: PDF pp. 137-138",
           "verificationStatus": "verified",
           "role": "current/cumulative written-work dictation pools"
+        },
+        {
+          "contentId": "5.5-part8-cumulative-nonsense",
+          "sourceId": "student-reader-5-visual",
+          "locator": "Substep 5.2N, printed-p-31 / PDF-p-33",
+          "verificationStatus": "verified",
+          "role": "verified cumulative Wilson nonsense-word pool for the required Part 8 nonsense category"
         }
       ],
       "selectionRules": [
-        "Use only source-verified Dictation Book items and current-substep sentences; apply the active project Part 8 category/count contract."
+        "Use only source-verified Dictation Book items for sounds, Word Elements, real words, phrases, and current-substep sentences; apply the active project Part 8 category/count contract.",
+        "Substep 5.5 supplies no current nonsense-word list. When Part 8 calls for nonsense words, select verified prior-Substep Wilson nonsense words from the registered 5.2N Reader pool and label them Cumulative review; never present them as 5.5 Wilson nonsense words."
       ]
     },
     "9": {
@@ -328,7 +344,7 @@
   ],
   "verification": {
     "status": "verified",
-    "verifiedBy": "2026-09-17 source reconciliation with original visual/PDF authorities",
+    "verifiedBy": "2026-09-17 source reconciliation with original visual/PDF authorities; 5.2N cumulative nonsense page visually verified 2026-09-17",
     "sourceReleaseId": "WRS-CURRICULUM-1.0.1-2026-09-02",
     "blockingIssues": []
   }
