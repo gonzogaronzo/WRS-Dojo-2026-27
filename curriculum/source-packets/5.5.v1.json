@@ -3,8 +3,8 @@
   "packetId": "wrs-5.5-source-packet-v1",
   "substep": "5.5",
   "curriculumRelease": "WRS-CURRICULUM-1.0.1-2026-09-02",
-  "packetVersion": "1.0.1",
-  "verifiedAt": "2026-09-17T12:58:00-05:00",
+  "packetVersion": "1.0.2",
+  "verifiedAt": "2026-09-17T13:02:00-05:00",
   "authority": [
     {
       "sourceId": "step-instruction-5.5-visual",
@@ -29,7 +29,7 @@
       "kind": "dictation-book",
       "label": "Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf",
       "edition": "Fourth Edition",
-      "locator": "project:file_00000000a1e481fd885221751510b3e3#5.5-words-pdf-pp-123-126#phrases-pdf-p-128#sentences-pdf-pp-137-138",
+      "locator": "project-source:Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf#5.5-words-pdf-pp-123-126#phrases-pdf-p-128#sentences-pdf-pp-137-138",
       "priority": 3,
       "verificationStatus": "visual-verified"
     },
@@ -47,7 +47,7 @@
       "kind": "student-notebook-answer-key",
       "label": "Wilson Student Notebook 1-6 Answer Key.pdf",
       "edition": "Fourth Edition",
-      "locator": "project:WRS Student Notebooks Answer Keys.zip::Wilson Student Notebook 1-6 Answer Key.pdf#pdf-pp-15-16,22,24,40,49,51,57-58,71-72",
+      "locator": "project-source:WRS Student Notebooks Answer Keys.zip::Wilson Student Notebook 1-6 Answer Key.pdf#pdf-pp-15-16,22,24,40,49,51,57-58,71-72",
       "priority": 5,
       "verificationStatus": "visual-verified"
     },
@@ -56,7 +56,7 @@
       "kind": "derived-index",
       "label": "wrs-instructor-manual-steps-01-06-fourth-edition(1).md",
       "edition": "Fourth Edition searchable companion",
-      "locator": "library:file_00000000e04c81fb87dc87c9172f0c8b#substep-5.5",
+      "locator": "library-source:wrs-instructor-manual-steps-01-06-fourth-edition(1).md#substep-5.5",
       "priority": 9,
       "verificationStatus": "searchable-companion"
     },
@@ -65,7 +65,7 @@
       "kind": "derived-index",
       "label": "student-reader-05.md",
       "edition": "Fourth Edition searchable companion",
-      "locator": "library:file_00000000a4ec81fd88b6362cdf209719#substep-5.5",
+      "locator": "library-source:student-reader-05.md#substep-5.5",
       "priority": 9,
       "verificationStatus": "searchable-companion"
     }
