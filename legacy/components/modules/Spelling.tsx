@@ -26,6 +26,8 @@ interface SpellingProps {
   onUpdateViewMode?: (mode: 'list' | 'cipher' | 'grid') => void;
   activeTab?: number;
   onUpdateActiveTab?: (tab: number) => void;
+  sectionOrderVersion?: number;
+  onUpdateSectionOrderVersion?: (version: number) => void;
   revealedItems?: Record<string, boolean>;
   onUpdateRevealedItems?: (items: Record<string, boolean>) => void;
   cipherWord?: string | null;
@@ -45,6 +47,37 @@ interface SpellingProps {
   onUpdateCipherCheckResult?: (result: 'correct' | 'incorrect' | null) => void;
 }
 
+const DICTATION_SECTION_KEYS = ['sounds', 'word-elements', 'real-words', 'nonsense-words', 'phrases', 'sentences'] as const;
+const LEGACY_CURRENT_INDEX_BY_SECTION: Record<string, number> = {
+  sounds: 0,
+  'real-words': 1,
+  'word-elements': 2,
+  'nonsense-words': 3,
+  phrases: 4,
+  sentences: 5
+};
+const CURRENT_INDEX_FOR_LEGACY = [0, 2, 1, 3, 4, 5];
+const dictationItemKey = (sectionKey: string, index: number) => sectionKey + '-' + index;
+const DICTATION_CURRENT_ITEM_PREFIX = '__part8-current__:';
+const dictationCurrentItemKey = (sectionKey: string, index: number) =>
+  DICTATION_CURRENT_ITEM_PREFIX + sectionKey + '-' + index;
+
+const parseDictationSound = (text: string) => {
+  const match = text.trim().match(/^\/([^/]+)\/\s*(?:→|->|=)\s*(.+)$/);
+  if (match) {
+    return {
+      cue: '/' + match[1].trim() + '/',
+      phoneme: match[1].trim(),
+      spellings: match[2].split(',').map(value => value.trim()).filter(Boolean)
+    };
+  }
+  return {
+    cue: text,
+    phoneme: text.replace(/^\//, '').replace(/\/$/, ''),
+    spellings: [] as string[]
+  };
+};
+
 const Spelling: React.FC<SpellingProps> = ({
   data,
   lessonStep = "1",
@@ -53,6 +86,8 @@ const Spelling: React.FC<SpellingProps> = ({
   onUpdateViewMode,
   activeTab: syncedActiveTab,
   onUpdateActiveTab,
+  sectionOrderVersion: syncedSectionOrderVersion,
+  onUpdateSectionOrderVersion,
   revealedItems: syncedRevealedItems,
   onUpdateRevealedItems,
   cipherWord: syncedCipherWord,
@@ -76,6 +111,11 @@ const Spelling: React.FC<SpellingProps> = ({
   const [isSlow, setIsSlow] = useState(false);
 
   const [activeTab, setActiveTab] = useSyncState(syncedActiveTab, onUpdateActiveTab, 0);
+  const [sectionOrderVersion, setSectionOrderVersion] = useSyncState(
+    syncedSectionOrderVersion,
+    onUpdateSectionOrderVersion,
+    2
+  );
   const [viewMode, setViewMode] = useSyncState(syncedViewMode, onUpdateViewMode, 'list' as 'list' | 'cipher' | 'grid');
   const [gridPage, setGridPage] = useSyncState(syncedGridPage, onUpdateGridPage, 1 as 1 | 2);
   const [marks, setMarks] = useSyncState(syncedMarks, onUpdateMarks, [] as CodingMark[]);
@@ -97,7 +137,6 @@ const Spelling: React.FC<SpellingProps> = ({
     readOnly
   });
 
-  const CIPHER_WORDS_71 = ['decent', 'giant', 'suggest', 'place', 'stingy', 'engage', 'fancy'];
   const [displayTiles, setDisplayTiles] = useState<(TileData & { isCipher?: boolean, phoneme?: string })[]>([]);
   const [cipherResults, setCipherResults] = useSyncState(syncedCipherResults, onUpdateCipherResults, {} as Record<number, TileData>);
   const [openDropdownIdx, setOpenDropdownIdx] = useState<number | null>(null);
@@ -122,13 +161,12 @@ const Spelling: React.FC<SpellingProps> = ({
   }, [viewMode, displayTiles, cipherWord]);
 
   const sections = [
-    { title: "Sounds", data: data.sounds || [], icon: Ear },
-    { title: "Real Words", data: data.realWords || [], icon: Book },
-    { title: "Word Elements", data: data.wordElements || [], icon: Layers },
-    { title: "Nonsense Words", data: data.nonsenseWords || [], icon: HelpCircle },
-    { title: "Phrases", data: data.phrases || [], icon: AlignLeft },
-    { title: "Sentences", data: data.sentences || [], icon: FileText },
-    { title: "Cipher Mission", data: CIPHER_WORDS_71, icon: Gamepad2 }
+    { key: DICTATION_SECTION_KEYS[0], title: 'Sounds', data: data.sounds || [], icon: Ear },
+    { key: DICTATION_SECTION_KEYS[1], title: 'Word Elements', data: data.wordElements || [], icon: Layers },
+    { key: DICTATION_SECTION_KEYS[2], title: 'Real Words', data: data.realWords || [], icon: Book },
+    { key: DICTATION_SECTION_KEYS[3], title: 'Nonsense Words', data: data.nonsenseWords || [], icon: HelpCircle },
+    { key: DICTATION_SECTION_KEYS[4], title: 'Phrases', data: data.phrases || [], icon: AlignLeft },
+    { key: DICTATION_SECTION_KEYS[5], title: 'Sentences', data: data.sentences || [], icon: FileText }
   ];
 
   useEffect(() => {
@@ -330,17 +368,119 @@ const Spelling: React.FC<SpellingProps> = ({
     setCheckResult(allCorrect ? 'correct' : 'incorrect');
   };
 
-  const currentSection = sections[activeTab];
-  const SectionIcon = currentSection.icon;
-  const nextUnrevealedIndex = currentSection.data.findIndex((_, idx) => !revealedItems[`${activeTab}-${idx}`]);
-  const nextDictationItem = nextUnrevealedIndex >= 0 ? currentSection.data[nextUnrevealedIndex] : null;
+  useEffect(() => {
+    if (sectionOrderVersion >= 2) return;
+    const migratedIndex = CURRENT_INDEX_FOR_LEGACY[activeTab] ?? 0;
+    if (migratedIndex !== activeTab) setActiveTab(migratedIndex);
+    setRevealedItems(previous => {
+      let changed = false;
+      const next = { ...previous };
+      Object.entries(previous).forEach(([key, value]) => {
+        const match = key.match(/^([0-5])-(\d+)$/);
+        if (!match) return;
+        const targetIndex = CURRENT_INDEX_FOR_LEGACY[Number(match[1])];
+        const targetSection = DICTATION_SECTION_KEYS[targetIndex];
+        if (value) next[dictationItemKey(targetSection, Number(match[2]))] = true;
+        delete next[key];
+        changed = true;
+      });
+      return changed ? next : previous;
+    });
+    setSectionOrderVersion(2);
+  }, [activeTab, sectionOrderVersion, setActiveTab, setRevealedItems, setSectionOrderVersion]);
 
-  const getSoundRevealText = (text: string) => {
+  const activeIndex = sectionOrderVersion < 2
+    ? (CURRENT_INDEX_FOR_LEGACY[activeTab] ?? 0)
+    : activeTab;
+  const safeActiveTab = Math.max(0, Math.min(activeIndex, sections.length - 1));
+  const currentSection = sections[safeActiveTab];
+  const SectionIcon = currentSection.icon;
+  const storedCurrentItemIndex = currentSection.data.findIndex((_, index) =>
+    Boolean(revealedItems[dictationCurrentItemKey(currentSection.key, index)])
+  );
+  const currentItemIndex = currentSection.data.length > 0
+    ? (storedCurrentItemIndex >= 0 ? storedCurrentItemIndex : 0)
+    : -1;
+  const currentDictationItem = currentItemIndex >= 0 ? currentSection.data[currentItemIndex] : null;
+  const currentItemIsRevealed = currentItemIndex >= 0 && Boolean(
+    revealedItems[dictationCurrentItemKey(currentSection.key, currentItemIndex)] &&
+    revealedItems[dictationItemKey(currentSection.key, currentItemIndex)]
+  );
+  const isItemRevealed = (sectionKey: string, index: number) => (
+    sectionKey === currentSection.key &&
+    index === currentItemIndex &&
+    currentItemIsRevealed
+  );
+  const setCurrentDictationItem = (index: number, reveal: boolean) => {
+    if (currentSection.data.length === 0) return;
+    const boundedIndex = Math.max(0, Math.min(index, currentSection.data.length - 1));
+    setRevealedItems(previous => {
+      const next = { ...previous };
+      const legacySectionIndex = LEGACY_CURRENT_INDEX_BY_SECTION[currentSection.key];
+      currentSection.data.forEach((_, itemIndex) => {
+        delete next[dictationCurrentItemKey(currentSection.key, itemIndex)];
+        delete next[dictationItemKey(currentSection.key, itemIndex)];
+        delete next[String(legacySectionIndex) + '-' + itemIndex];
+      });
+      next[dictationCurrentItemKey(currentSection.key, boundedIndex)] = true;
+      if (reveal) next[dictationItemKey(currentSection.key, boundedIndex)] = true;
+      return next;
+    });
+  };
+  const teacherPromptForItem = (text: string) => currentSection.key === 'sounds'
+    ? parseDictationSound(text).cue
+    : text;
+  const soundReveal = (text: string) => {
+    const source = parseDictationSound(text);
     const step = parseInt(lessonStep, 10);
     const substep = parseInt(lessonSubstep, 10);
-    const options = getOptionsForPhoneme(text, step, substep);
-    if (options.length === 0) return text;
-    return `${text} = ${options.join(', ')}`;
+    return {
+      cue: source.cue,
+      spellings: source.spellings.length > 0
+        ? source.spellings
+        : getOptionsForPhoneme(source.phoneme, step, substep)
+    };
+  };
+  const renderRevealedItem = (text: string) => {
+    if (currentSection.key === 'sounds') {
+      const reveal = soundReveal(text);
+      return (
+        <div data-part8-reveal-kind="sound" className="flex flex-wrap items-center gap-3">
+          <span className="font-serif text-2xl font-black text-stone-700">{reveal.cue}</span>
+          <span className="text-stone-400">→</span>
+          <div className="flex flex-wrap gap-2">
+            {reveal.spellings.map((spelling, index) => (
+              <Tile key={index} data={parseWordToTiles(spelling)[0] || { text: spelling, type: 'consonant' }} size="md" />
+            ))}
+          </div>
+        </div>
+      );
+    }
+    if (currentSection.key === 'word-elements') {
+      const suffix = text.startsWith('-') && !text.endsWith('-');
+      return (
+        <div
+          data-part8-reveal-kind="word-element"
+          className={suffix
+            ? 'rounded-2xl border-4 border-amber-500 bg-amber-200 px-6 py-4 text-3xl font-black text-stone-900 shadow-md'
+            : 'rounded-2xl border-4 border-stone-500 bg-stone-300 px-6 py-4 text-3xl font-black text-stone-900 shadow-md'}
+        >
+          {text}
+        </div>
+      );
+    }
+    if (isSyllabicated && (currentSection.key === 'real-words' || currentSection.key === 'nonsense-words')) {
+      return (
+        <div className="flex flex-wrap gap-2 md:gap-4">
+          {splitIntoSyllables(text).map((syllable, index) => (
+            <div key={index} className="transition-transform hover:-translate-y-1">
+              <Tile data={{ text: syllable, type: 'syllable' }} size="md" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return <span className="text-2xl md:text-4xl font-bold text-stone-900 tracking-tight">{text}</span>;
   };
 
   const [showCodingTray, setShowCodingTray] = useState(true);
@@ -360,7 +500,7 @@ const Spelling: React.FC<SpellingProps> = ({
            {!readOnly && <div className="flex bg-stone-800 p-1 rounded-2xl border border-stone-700 shadow-inner">
              <button onClick={() => setViewMode('list')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all tracking-widest ${viewMode === 'list' ? 'bg-stone-100 text-stone-900' : 'text-stone-500 hover:text-white'}`}>List</button>
              <button onClick={() => setViewMode('grid')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all tracking-widest ${viewMode === 'grid' ? 'bg-red-800 text-white' : 'text-stone-500 hover:text-white'}`}>Dictation</button>
-             <button onClick={() => { setViewMode('cipher'); setCipherWord(null); }} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all tracking-widest ${viewMode === 'cipher' ? 'bg-purple-900 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-stone-500 hover:text-white'}`}>Cipher</button>
+             <button onClick={() => { setViewMode('cipher'); setCipherWord(null); }} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all tracking-widest ${viewMode === 'cipher' ? 'bg-purple-900 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'text-stone-500 hover:text-white'}`}>Optional cipher</button>
            </div>}
 
            <div className="w-px h-8 bg-stone-700 mx-1" />
@@ -404,7 +544,7 @@ const Spelling: React.FC<SpellingProps> = ({
               <button
                 key={idx}
                 onClick={!readOnly ? () => setActiveTab(idx) : undefined}
-                className={`flex items-center gap-2 px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === idx ? 'border-red-800 bg-white text-stone-900 shadow-sm' : 'border-transparent text-stone-300'} ${readOnly ? 'cursor-default' : 'hover:text-stone-900'}`}
+                className={`flex items-center gap-2 px-6 py-4 text-[9px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${safeActiveTab === idx ? 'border-red-800 bg-white text-stone-900 shadow-sm' : 'border-transparent text-stone-300'} ${readOnly ? 'cursor-default' : 'hover:text-stone-900'}`}
               >
                 <sec.icon className="w-3 h-3" />
                 {sec.title}
@@ -414,19 +554,26 @@ const Spelling: React.FC<SpellingProps> = ({
         </div>
       )}
 
-      {!readOnly && viewMode !== 'cipher' && nextDictationItem && (
+      {!readOnly && viewMode !== 'cipher' && currentDictationItem && (
         <div data-testid="teacher-dictation-cue" className="flex-shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-3 shadow-sm z-20">
           <div className="mx-auto flex max-w-5xl items-center gap-4">
             <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
             <div className="min-w-0 flex-1">
               <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700">Dictate next • {currentSection.title}</div>
-              <div className="truncate text-2xl font-black font-serif text-stone-900">{nextDictationItem}</div>
+              <div className="truncate text-2xl font-black font-serif text-stone-900">{teacherPromptForItem(currentDictationItem)}</div>
             </div>
             <button
-              onClick={() => setRevealedItems(prev => ({ ...prev, [`${activeTab}-${nextUnrevealedIndex}`]: true }))}
+              data-part8-teacher-control={currentItemIsRevealed ? 'next' : 'reveal'}
+              onClick={() => {
+                if (currentItemIsRevealed) {
+                  setCurrentDictationItem((currentItemIndex + 1) % currentSection.data.length, false);
+                } else {
+                  setCurrentDictationItem(currentItemIndex, true);
+                }
+              }}
               className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-[9px] font-black uppercase tracking-widest text-amber-900 shadow-sm hover:bg-amber-100"
             >
-              {viewMode === 'list' ? 'Reveal & next' : 'Done & next'}
+              {currentItemIsRevealed ? 'Next item' : 'Reveal'}
             </button>
           </div>
         </div>
@@ -445,34 +592,30 @@ const Spelling: React.FC<SpellingProps> = ({
                <div className="flex items-center gap-3 md:gap-5">
                   <div className="p-3 md:p-4 bg-stone-900 rounded-2xl text-white shadow-lg"><SectionIcon className="w-6 h-6 md:w-8 md:h-8" /></div>
                   <div>
-                     <h3 className="text-2xl md:text-3xl font-serif font-black text-stone-900 italic">{currentSection.title}</h3>
+                     <h3 data-part8-section={currentSection.key} className="text-2xl md:text-3xl font-serif font-black text-stone-900 italic">{currentSection.title}</h3>
                      <p className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-stone-300">Registry Data • Mission Dictation</p>
                   </div>
                </div>
-               {!readOnly && <button
-                 onClick={() => {
-                   const allRevealed = currentSection.data.every((_, i) => revealedItems[`${activeTab}-${i}`]);
-                   const next = { ...revealedItems };
-                   currentSection.data.forEach((_, i) => next[`${activeTab}-${i}`] = !allRevealed);
-                   setRevealedItems(next);
-                 }}
-                 className="px-6 py-3 bg-white border border-stone-100 text-stone-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:text-stone-900 hover:border-stone-200 transition-all flex items-center gap-2 shadow-sm"
-               >
-                 {currentSection.data.every((_, i) => revealedItems[`${activeTab}-${i}`]) ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                 {currentSection.data.every((_, i) => revealedItems[`${activeTab}-${i}`]) ? 'Hide All' : 'Reveal All'}
-               </button>}
+               {!readOnly && currentItemIndex >= 0 ? (
+                 <div className="rounded-xl border border-stone-100 bg-stone-50 px-5 py-3 text-[9px] font-black uppercase tracking-widest text-stone-400">
+                   Item {currentItemIndex + 1} of {currentSection.data.length}
+                 </div>
+               ) : null}
             </div>
             <div className="space-y-3">
               {currentSection.data.map((text, idx) => (
                 <div
                   key={idx}
+                  data-part8-item-index={idx}
+                  data-part8-item-state={isItemRevealed(currentSection.key, idx) ? 'revealed' : idx === currentItemIndex ? 'listen-write' : 'waiting'}
                   className={`flex items-center p-6 rounded-2xl border transition-all ${
-                    !revealedItems[`${activeTab}-${idx}`]
+                    !isItemRevealed(currentSection.key, idx)
                       ? `bg-stone-50/50 border-stone-100 border-dashed ${readOnly ? '' : 'cursor-pointer hover:bg-white hover:border-stone-200'}`
                       : 'bg-white border-stone-100 hover:border-red-800/20 hover:shadow-xl'
                   } group`}
                   onClick={!readOnly ? () => {
-                    setRevealedItems(prev => ({ ...prev, [`${activeTab}-${idx}`]: !prev[`${activeTab}-${idx}`] }));
+                    const revealSelected = idx === currentItemIndex && !currentItemIsRevealed;
+                    setCurrentDictationItem(idx, revealSelected);
                   } : undefined}
                 >
                   {!readOnly && <button
@@ -485,38 +628,26 @@ const Spelling: React.FC<SpellingProps> = ({
                     <Play className="w-4 h-4 md:w-5 md:h-5 ml-1" />
                   </button>}
 
-                  {revealedItems[`${activeTab}-${idx}`] ? (
+                  {isItemRevealed(currentSection.key, idx) ? (
                     <div className="flex-1 animate-in fade-in slide-in-from-left-4 duration-300">
-                      {isSyllabicated && activeTab !== 0 && activeTab !== 5 && activeTab !== 4 ? (
-                        <div className="flex flex-wrap gap-2 md:gap-4">
-                          {splitIntoSyllables(text).map((syllable, sIdx) => (
-                            <div key={sIdx} className="transition-transform hover:-translate-y-1">
-                               <Tile data={{ text: syllable, type: 'syllable' }} size="md" />
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-2xl md:text-4xl font-bold text-stone-900 tracking-tight">
-                          {activeTab === 0 ? getSoundRevealText(text) : text}
-                        </span>
-                      )}
-                    </div>
-                  ) : !readOnly ? (
-                    <div className="flex flex-1 items-center gap-4">
-                      <div className="rounded-lg bg-amber-100 px-2 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-amber-800">Teacher cue</div>
-                      <span className="text-xl md:text-2xl font-black font-serif text-stone-700">{text}</span>
+                      {renderRevealedItem(text)}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-4 text-stone-200">
+                    <div
+                      data-part8-primary-state={idx === currentItemIndex ? 'listen-write' : 'waiting'}
+                      className="flex items-center gap-4 text-stone-300"
+                    >
                       <HelpCircle className="w-8 h-8 opacity-40" />
-                      <span className="text-xl font-serif italic opacity-40">Waiting for teacher...</span>
+                      <span className="text-xl font-serif italic opacity-60">
+                        {idx === currentItemIndex ? 'Listen and write. Waiting for teacher reveal.' : 'Waiting for teacher...'}
+                      </span>
                     </div>
                   )}
 
                   {!readOnly && activeTab !== 0 && (
                     <button onClick={(e) => { e.stopPropagation(); initCipherGame(text); }} className="ml-auto opacity-0 group-hover:opacity-100 bg-white border border-stone-100 text-stone-300 px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-sm transition-all hover:text-stone-900 hover:border-stone-200 flex items-center gap-2">
                       <Gamepad2 className="w-3.5 h-3.5" />
-                      {activeTab === 6 ? 'Start' : 'Cipher'}
+                      Optional cipher
                     </button>
                   )}
                 </div>
@@ -593,6 +724,9 @@ const Spelling: React.FC<SpellingProps> = ({
 
         {viewMode === 'cipher' && (
           <div className="max-w-4xl w-full z-10 flex flex-col items-center justify-center flex-1">
+            <p data-part8-optional-cipher className="mb-6 rounded-full border border-purple-200 bg-purple-50 px-4 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-purple-900">
+              Teacher-created optional practice — outside the required Written Work sequence.
+            </p>
             {!cipherWord ? (
               <div className="text-center bg-white/40 backdrop-blur-md p-16 rounded-[4rem] border-4 border-dashed border-stone-300 animate-pulse">
                 <div className="relative w-32 h-32 mx-auto mb-8">

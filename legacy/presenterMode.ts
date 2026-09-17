@@ -1,4 +1,4 @@
-import { GroupProfile, Lesson, LessonPart, StudentProfile } from './types';
+import { GroupProfile, Lesson, LessonPart, RuntimeLessonPartData, StudentProfile, WRSRuntimeLessonPlan } from './types';
 import { createInitialLessonSession, LessonSessionState } from './useLessonSession';
 import { sanitizePart2PresentationForStudent } from './part2Presentation';
 import { sanitizePart7SpellingDataForStudent } from './components/modules/Part7SpellingRunner';
@@ -72,6 +72,35 @@ export const createStudentDisplayUrl = (currentHref: string, presenterId: string
   return url.toString();
 };
 
+// TASK 8: live presenter privacy gate
+const PART8_SECTION_KEYS = ['sounds', 'word-elements', 'real-words', 'nonsense-words', 'phrases', 'sentences'] as const;
+const PART8_LEGACY_TO_CURRENT: number[] = [0, 2, 1, 3, 4, 5];
+type Part8SectionKey = typeof PART8_SECTION_KEYS[number];
+
+const part8RevealState = (session: LessonSessionState) => {
+  const activeIndex = session.spellingSectionOrderVersion < 2
+    ? (PART8_LEGACY_TO_CURRENT[session.spellingActiveTab] ?? 0)
+    : session.spellingActiveTab;
+  const boundedIndex = Math.max(0, Math.min(activeIndex, PART8_SECTION_KEYS.length - 1));
+  const sectionKey: Part8SectionKey = PART8_SECTION_KEYS[boundedIndex];
+  const currentPrefix = `__part8-current__:${sectionKey}-`;
+  const currentEntry = Object.entries(session.spellingRevealedItems || {}).find(
+    ([key, value]) => Boolean(value) && key.startsWith(currentPrefix)
+  );
+  const parsedIndex = currentEntry ? Number.parseInt(currentEntry[0].slice(currentPrefix.length), 10) : 0;
+  const itemIndex = Number.isFinite(parsedIndex) && parsedIndex >= 0 ? parsedIndex : 0;
+  const currentMarker = `${currentPrefix}${itemIndex}`;
+  const answerMarker = `${sectionKey}-${itemIndex}`;
+  return {
+    sectionKey,
+    itemIndex,
+    currentMarker,
+    answerMarker,
+    revealed: Boolean(session.spellingRevealedItems?.[currentMarker] && session.spellingRevealedItems?.[answerMarker])
+  };
+};
+
+
 export const sanitizePresenterSession = (
   session: LessonSessionState,
   showDrawings = true,
@@ -119,11 +148,18 @@ export const sanitizePresenterSession = (
     drawings
   };
 
-  if (currentPart === LessonPart.Part1 || currentPart === LessonPart.Part6) {
+  if (currentPart === LessonPart.Part1) {
     compact.quickDrillIndex = session.quickDrillIndex;
     compact.quickDrillRevealed = session.quickDrillRevealed;
     compact.quickDrillHandwriting = session.quickDrillHandwriting;
     compact.quickDrillItems = session.quickDrillItems;
+  } else if (currentPart === LessonPart.Part6) {
+    const revealed = session.quickDrillRevealed > 0;
+    compact.quickDrillIndex = revealed ? session.quickDrillIndex : 0;
+    compact.quickDrillRevealed = session.quickDrillRevealed;
+    compact.quickDrillHandwriting = revealed ? session.quickDrillHandwriting : false;
+    compact.quickDrillItems = revealed ? session.quickDrillItems : [];
+    if (!revealed) compact.drawings = {};
   } else if (currentPart === LessonPart.Part2 || currentPart === LessonPart.Part7) {
     const branch = currentPart === LessonPart.Part7 ? 'spelling' : 'reading';
     compact.teachConceptsMode = session.teachConceptsMode;
@@ -157,20 +193,28 @@ export const sanitizePresenterSession = (
   } else if (currentPart === LessonPart.Part5) {
     compact.sentenceIndex = session.sentenceIndex;
   } else if (currentPart === LessonPart.Part8) {
+    const revealState = part8RevealState(session);
     compact.dictationCompletedIds = session.dictationCompletedIds;
-    compact.spellingViewMode = session.spellingViewMode;
+    compact.spellingViewMode = 'list';
+    compact.spellingSectionOrderVersion = session.spellingSectionOrderVersion;
     compact.spellingActiveTab = session.spellingActiveTab;
-    compact.spellingRevealedItems = session.spellingRevealedItems;
-    compact.spellingCipherWord = session.spellingCipherWord;
-    compact.spellingCipherResults = session.spellingCipherResults;
-    compact.spellingCipherCheckResult = session.spellingCipherCheckResult;
+    compact.spellingRevealedItems = {
+      [revealState.currentMarker]: true,
+      ...(revealState.revealed ? { [revealState.answerMarker]: true } : {})
+    };
+    compact.spellingCipherWord = null;
+    compact.spellingCipherResults = {};
+    compact.spellingCipherCheckResult = null;
     compact.spellingGridPage = session.spellingGridPage;
     compact.spellingIsSyllabicated = session.spellingIsSyllabicated;
-    compact.spellingMarks = showDrawings ? session.spellingMarks : [];
+    compact.spellingMarks = revealState.revealed && showDrawings ? session.spellingMarks : [];
+    if (!revealState.revealed) compact.drawings = {};
   } else if (currentPart === LessonPart.Part9) {
     compact.passageIndex = session.passageIndex;
     compact.passageRulerEnabled = session.passageRulerEnabled;
     compact.passageRulerY = session.passageRulerY;
+    compact.passagePhase = session.passagePhase;
+    compact.passageQuestionIndex = session.passageQuestionIndex;
   }
 
   return compact;
@@ -180,9 +224,82 @@ const emptyDictation = (): Lesson['dictation'] => ({
   sounds: [], realWords: [], wordElements: [], nonsenseWords: [], phrases: [], sentences: []
 });
 
+const studentPart8Dictation = (lesson: Lesson, session: LessonSessionState): Lesson['dictation'] => {
+  const redacted: Lesson['dictation'] = {
+    sounds: lesson.dictation.sounds.map(() => ''),
+    realWords: lesson.dictation.realWords.map(() => ''),
+    wordElements: lesson.dictation.wordElements.map(() => ''),
+    nonsenseWords: lesson.dictation.nonsenseWords.map(() => ''),
+    phrases: lesson.dictation.phrases.map(() => ''),
+    sentences: lesson.dictation.sentences.map(() => '')
+  };
+  const revealState = part8RevealState(session);
+  if (!revealState.revealed) return redacted;
+  const index = revealState.itemIndex;
+  if (revealState.sectionKey === 'sounds' && lesson.dictation.sounds[index] !== undefined) redacted.sounds[index] = lesson.dictation.sounds[index];
+  if (revealState.sectionKey === 'word-elements' && lesson.dictation.wordElements[index] !== undefined) redacted.wordElements[index] = lesson.dictation.wordElements[index];
+  if (revealState.sectionKey === 'real-words' && lesson.dictation.realWords[index] !== undefined) redacted.realWords[index] = lesson.dictation.realWords[index];
+  if (revealState.sectionKey === 'nonsense-words' && lesson.dictation.nonsenseWords[index] !== undefined) redacted.nonsenseWords[index] = lesson.dictation.nonsenseWords[index];
+  if (revealState.sectionKey === 'phrases' && lesson.dictation.phrases[index] !== undefined) redacted.phrases[index] = lesson.dictation.phrases[index];
+  if (revealState.sectionKey === 'sentences' && lesson.dictation.sentences[index] !== undefined) redacted.sentences[index] = lesson.dictation.sentences[index];
+  return redacted;
+};
+
+
+const studentRuntimeForPart = (
+  runtime: WRSRuntimeLessonPlan,
+  partNumber: number,
+  data: RuntimeLessonPartData
+): WRSRuntimeLessonPlan => ({
+  schemaVersion: runtime.schemaVersion,
+  id: runtime.id,
+  title: runtime.title,
+  step: runtime.step,
+  substep: runtime.substep,
+  focus: runtime.focus,
+  lessonPath: runtime.lessonPath,
+  plannedParts: runtime.plannedParts,
+  sources: [],
+  parts: runtime.parts.map(part => ({
+    part: part.part,
+    title: '',
+    teacherDirections: [],
+    sourceIds: [],
+    data: part.part === partNumber ? data : {}
+  }))
+});
+
+const studentPart9Data = (data: RuntimeLessonPartData): RuntimeLessonPartData => {
+  const raw = data as Record<string, unknown>;
+  const questions = Array.isArray(raw.questions)
+    ? raw.questions.flatMap(candidate => {
+        const question = candidate && typeof candidate === 'object' && !Array.isArray(candidate)
+          ? (candidate as Record<string, unknown>).question
+          : undefined;
+        return typeof question === 'string' && question.trim() ? [{ question }] : [];
+      })
+    : [];
+  return {
+    passageTitle: typeof data.passageTitle === 'string' ? data.passageTitle : undefined,
+    studentReader: typeof data.studentReader === 'string' ? data.studentReader : undefined,
+    page: typeof data.page === 'string' ? data.page : undefined,
+    questions
+  } as RuntimeLessonPartData;
+};
+
+const studentListeningPlan = (plan: Lesson['listeningComprehension']) => plan ? ({
+  mode: 'teacher-selected' as const,
+  title: '',
+  teacherDirections: [],
+  studentPrompt: plan.studentPrompt,
+  sourceIds: [],
+  ...(plan.workspace ? { workspace: plan.workspace } : {})
+}) : undefined;
+
 export const sanitizePresenterLesson = (
   lesson: Lesson | null,
-  currentPart: LessonPart
+  currentPart: LessonPart,
+  session?: LessonSessionState
 ): Lesson | null => {
   if (!lesson) return null;
   const compact: Lesson = {
@@ -273,12 +390,29 @@ export const sanitizePresenterLesson = (
   } else if (currentPart === LessonPart.Part5) {
     compact.sentences = lesson.sentences;
   } else if (currentPart === LessonPart.Part6) {
-    compact.quickDrill = lesson.quickDrill;
-    compact.quickDrillReverse = lesson.quickDrillReverse;
+    const revealed = !session || session.quickDrillRevealed > 0;
+    compact.quickDrill = revealed ? lesson.quickDrill : ['LISTEN'];
+    compact.quickDrillReverse = revealed ? lesson.quickDrillReverse : ['LISTEN'];
+    const part6 = lesson.runtimePlan?.parts.find(part => part.part === 6);
+    if (lesson.runtimePlan && part6) {
+      compact.runtimePlan = studentRuntimeForPart(lesson.runtimePlan, 6, {
+        wordElements: revealed && Array.isArray(part6.data.wordElements)
+          ? part6.data.wordElements.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+          : []
+      });
+    }
   } else if (currentPart === LessonPart.Part8) {
-    compact.dictation = lesson.dictation;
+    compact.dictation = session ? studentPart8Dictation(lesson, session) : lesson.dictation;
   } else if (currentPart === LessonPart.Part9) {
     compact.passage = lesson.passage;
+    const part9 = lesson.runtimePlan?.parts.find(part => part.part === 9);
+    if (lesson.runtimePlan && part9) {
+      compact.runtimePlan = studentRuntimeForPart(lesson.runtimePlan, 9, studentPart9Data(part9.data));
+    }
+  } else if (currentPart === LessonPart.Part10) {
+    const part10 = lesson.runtimePlan?.parts.find(part => part.part === 10);
+    const plan = lesson.listeningComprehension || part10?.data.listeningComprehension;
+    compact.listeningComprehension = studentListeningPlan(plan);
   }
 
   return {
@@ -320,7 +454,7 @@ export const createPresenterSnapshot = (
   type: 'presenter-state',
   presenterId,
   mode,
-  lesson: sanitizePresenterLesson(lesson, currentPart),
+  lesson: sanitizePresenterLesson(lesson, currentPart, session),
   currentPart,
   group: sanitizePresenterGroup(group),
   session: sanitizePresenterSession(session, showDrawings, currentPart),

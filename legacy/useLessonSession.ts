@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useReducer } from 'react';
 import { DojoMasterData, Lesson, LessonPart, WordCard, WordlistScore } from './types';
 import { DrawingMap } from './drawingSync';
+import { nextLessonSyncRevision, normalizeLessonSyncRevision } from './lessonSessionSync';
 import { normalizeWordDistribution } from './wordDistribution';
 
 export type SpellingViewMode = 'list' | 'cipher' | 'grid';
@@ -20,6 +21,7 @@ export interface WordCardsSessionState {
 }
 
 export interface LessonSessionState {
+  syncRevision: number;
   sessionId: string;
   sessionDate: string;
   studentIds: string[];
@@ -50,7 +52,10 @@ export interface LessonSessionState {
   passageIndex: number;
   passageRulerEnabled: boolean;
   passageRulerY: number;
+  passagePhase: 'reading' | 'comprehension';
+  passageQuestionIndex: number;
   spellingViewMode: SpellingViewMode;
+  spellingSectionOrderVersion: number;
   spellingActiveTab: number;
   spellingRevealedItems: Record<string, boolean>;
   spellingCipherWord: string | null;
@@ -63,6 +68,7 @@ export interface LessonSessionState {
 }
 
 export const createInitialLessonSession = (): LessonSessionState => ({
+  syncRevision: 0,
   sessionId: '', sessionDate: '', studentIds: [], scores: [], notes: '', distribution: [], wordlistPage: 0,
   quickDrillIndex: 0, quickDrillRevealed: 0, quickDrillHandwriting: false,
   quickDrillItems: [],
@@ -77,13 +83,14 @@ export const createInitialLessonSession = (): LessonSessionState => ({
   teachConceptsSyllabicated: false, teachConceptsSlideMarks: {},
   teachConceptsSlideObjectStates: {}, teachConceptsSlideFullscreen: {},
   dictationCompletedIds: [], passageIndex: 0, passageRulerEnabled: false, passageRulerY: 0,
-  spellingViewMode: 'list', spellingActiveTab: 0, spellingRevealedItems: {},
+  passagePhase: 'reading', passageQuestionIndex: 0,
+  spellingViewMode: 'list', spellingSectionOrderVersion: 2, spellingActiveTab: 0, spellingRevealedItems: {},
   spellingCipherWord: null, spellingCipherResults: {}, spellingCipherCheckResult: null,
   spellingGridPage: 1, spellingIsSyllabicated: false,
   spellingMarks: [], drawings: {}
 });
 
-export type CloudLessonSession = NonNullable<DojoMasterData['activeSession']>;
+export type CloudLessonSession = NonNullable<DojoMasterData['activeSession']> & { syncRevision?: number };
 
 const parseDistribution = (value: CloudLessonSession['wordDistribution']): any[][] => {
   if (!value) return [];
@@ -97,6 +104,7 @@ const parseDistribution = (value: CloudLessonSession['wordDistribution']): any[]
 
 export const lessonSessionFromCloud = (cloud: CloudLessonSession): LessonSessionState => ({
   ...createInitialLessonSession(),
+  syncRevision: normalizeLessonSyncRevision(cloud.syncRevision),
   sessionId: cloud.sessionId || '', sessionDate: cloud.sessionDate || '',
   studentIds: cloud.studentIds || [], scores: cloud.scores || [], notes: cloud.notes || '',
   distribution: parseDistribution(cloud.wordDistribution), wordlistPage: cloud.wordlistPage || 0,
@@ -125,7 +133,10 @@ export const lessonSessionFromCloud = (cloud: CloudLessonSession): LessonSession
   teachConceptsSlideFullscreen: cloud.teachConceptsSlideFullscreen || {},
   dictationCompletedIds: cloud.dictationCompletedIds || [], passageIndex: cloud.passageIndex || 0,
   passageRulerEnabled: Boolean(cloud.passageRulerEnabled), passageRulerY: cloud.passageRulerY || 0,
+  passagePhase: cloud.passagePhase === 'comprehension' ? 'comprehension' : 'reading',
+  passageQuestionIndex: Math.max(0, cloud.passageQuestionIndex || 0),
   spellingViewMode: cloud.spellingViewMode === 'cipher' || cloud.spellingViewMode === 'grid' ? cloud.spellingViewMode : 'list',
+  spellingSectionOrderVersion: cloud.spellingSectionOrderVersion === 2 ? 2 : 1,
   spellingActiveTab: cloud.spellingActiveTab || 0, spellingRevealedItems: cloud.spellingRevealedItems || {},
   spellingCipherWord: cloud.spellingCipherWord || null,
   spellingCipherResults: cloud.spellingCipherResults || {},
@@ -143,7 +154,8 @@ export const lessonSessionToCloud = (
   currentPart: LessonPart,
   groupId: string
 ): CloudLessonSession => ({
-  lesson, currentPart, groupId, sessionId: session.sessionId, sessionDate: session.sessionDate,
+  lesson, currentPart, groupId, syncRevision: session.syncRevision,
+  sessionId: session.sessionId, sessionDate: session.sessionDate,
   studentIds: session.studentIds, scores: session.scores, notes: session.notes,
   wordDistribution: JSON.stringify(session.distribution), wordlistPage: session.wordlistPage,
   quickDrillIndex: session.quickDrillIndex, quickDrillRevealed: session.quickDrillRevealed,
@@ -165,7 +177,9 @@ export const lessonSessionToCloud = (
   teachConceptsSlideFullscreen: session.teachConceptsSlideFullscreen,
   dictationCompletedIds: session.dictationCompletedIds, passageIndex: session.passageIndex,
   passageRulerEnabled: session.passageRulerEnabled, passageRulerY: session.passageRulerY,
-  spellingViewMode: session.spellingViewMode, spellingActiveTab: session.spellingActiveTab,
+  passagePhase: session.passagePhase, passageQuestionIndex: session.passageQuestionIndex,
+  spellingViewMode: session.spellingViewMode, spellingSectionOrderVersion: session.spellingSectionOrderVersion,
+  spellingActiveTab: session.spellingActiveTab,
   spellingRevealedItems: session.spellingRevealedItems, spellingCipherWord: session.spellingCipherWord,
   spellingCipherResults: session.spellingCipherResults,
   spellingCipherCheckResult: session.spellingCipherCheckResult,
@@ -176,28 +190,62 @@ export const lessonSessionToCloud = (
 export const lessonSessionsMatch = (left: LessonSessionState, right: LessonSessionState) =>
   JSON.stringify(left) === JSON.stringify(right);
 
+type MutableLessonSessionKey = Exclude<keyof LessonSessionState, 'syncRevision'>;
+
+export const applyLocalLessonSessionChange = <K extends MutableLessonSessionKey>(
+  state: LessonSessionState,
+  key: K,
+  update: SetStateAction<LessonSessionState[K]>
+): LessonSessionState => {
+  const previous = state[key];
+  const value = typeof update === 'function'
+    ? (update as (current: LessonSessionState[K]) => LessonSessionState[K])(previous)
+    : update;
+  if (Object.is(previous, value)) return state;
+  return {
+    ...state,
+    [key]: value,
+    syncRevision: nextLessonSyncRevision(state.syncRevision)
+  };
+};
+
+export const touchLessonSessionState = (state: LessonSessionState): LessonSessionState => ({
+  ...state,
+  syncRevision: nextLessonSyncRevision(state.syncRevision)
+});
+
+export const resetLocalLessonSessionState = (
+  state: LessonSessionState,
+  overrides?: Partial<LessonSessionState>
+): LessonSessionState => ({
+  ...createInitialLessonSession(),
+  ...overrides,
+  syncRevision: nextLessonSyncRevision(state.syncRevision)
+});
+
 type Action =
-  | { type: 'set'; key: keyof LessonSessionState; value: SetStateAction<any> }
+  | { type: 'set'; key: MutableLessonSessionKey; value: SetStateAction<any> }
   | { type: 'replace'; value: LessonSessionState }
+  | { type: 'touch' }
   | { type: 'reset'; overrides?: Partial<LessonSessionState> };
 
 const reducer = (state: LessonSessionState, action: Action): LessonSessionState => {
   if (action.type === 'replace') return action.value;
-  if (action.type === 'reset') return { ...createInitialLessonSession(), ...action.overrides };
-  const previous = state[action.key];
-  const value = typeof action.value === 'function' ? action.value(previous) : action.value;
-  return { ...state, [action.key]: value };
+  if (action.type === 'touch') return touchLessonSessionState(state);
+  if (action.type === 'reset') return resetLocalLessonSessionState(state, action.overrides);
+  return applyLocalLessonSessionChange(state, action.key, action.value);
 };
 
 export const useLessonSession = () => {
   const [session, dispatch] = useReducer(reducer, undefined, createInitialLessonSession);
-  const setter = useCallback(<K extends keyof LessonSessionState>(key: K) =>
+  const setter = useCallback(<K extends MutableLessonSessionKey>(key: K) =>
     ((value: SetStateAction<LessonSessionState[K]>) => dispatch({ type: 'set', key, value })) as Dispatch<SetStateAction<LessonSessionState[K]>>, []);
 
   return {
     session,
     resetLessonSession: useCallback((overrides?: Partial<LessonSessionState>) => dispatch({ type: 'reset', overrides }), []),
     replaceLessonSession: useCallback((value: LessonSessionState) => dispatch({ type: 'replace', value }), []),
+    touchLessonSession: useCallback(() => dispatch({ type: 'touch' }), []),
     setSessionStudentIds: setter('studentIds'), setSessionScores: setter('scores'),
     setSessionNotes: setter('notes'), setSessionDistribution: setter('distribution'),
     setSessionWordlistPage: setter('wordlistPage'), setSessionQuickDrillIndex: setter('quickDrillIndex'),
@@ -216,7 +264,9 @@ export const useLessonSession = () => {
     setSessionTeachConceptsSlideFullscreen: setter('teachConceptsSlideFullscreen'),
     setSessionDictationCompletedIds: setter('dictationCompletedIds'),
     setSessionPassageIndex: setter('passageIndex'), setSessionPassageRulerEnabled: setter('passageRulerEnabled'),
-    setSessionPassageRulerY: setter('passageRulerY'), setSessionSpellingViewMode: setter('spellingViewMode'),
+    setSessionPassageRulerY: setter('passageRulerY'), setSessionPassagePhase: setter('passagePhase'),
+    setSessionPassageQuestionIndex: setter('passageQuestionIndex'),
+    setSessionSpellingViewMode: setter('spellingViewMode'), setSessionSpellingSectionOrderVersion: setter('spellingSectionOrderVersion'),
     setSessionSpellingActiveTab: setter('spellingActiveTab'), setSessionSpellingRevealedItems: setter('spellingRevealedItems'),
     setSessionSpellingCipherWord: setter('spellingCipherWord'),
     setSessionSpellingCipherResults: setter('spellingCipherResults'),

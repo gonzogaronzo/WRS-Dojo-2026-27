@@ -1,22 +1,30 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import SentenceReading from '../legacy/components/modules/SentenceReading';
 import PassageReading from '../legacy/components/modules/PassageReading';
+import QuickDrill from '../legacy/components/modules/QuickDrill';
+import Spelling from '../legacy/components/modules/Spelling';
+import Part10Listening from '../legacy/components/modules/Part10Listening';
 import Part7SpellingRunner, { part7SpellingItemsFromData } from '../legacy/components/modules/Part7SpellingRunner';
 import { LessonRuntimeProvider } from '../legacy/components/lessonRuntimeContext';
 import type { Lesson, RuntimeLessonPart } from '../legacy/types';
 
 const part = (number: RuntimeLessonPart['part'], data: RuntimeLessonPart['data'] = {}): RuntimeLessonPart => ({
   part: number,
-  title: `Part ${number}`,
+  title: 'Part ' + number,
   teacherDirections: [],
   sourceIds: number === 10 ? [] : ['source'],
   data
 });
 
-const lesson = (part5Data: Record<string, unknown>, part9Data: Record<string, unknown>): Lesson => ({
+const lesson = (
+  part5Data: Record<string, unknown>,
+  part9Data: Record<string, unknown>,
+  part6Data: Record<string, unknown> = {}
+): Lesson => ({
   schemaVersion: 2,
   id: 'surface-test',
   title: 'Surface test',
@@ -39,12 +47,12 @@ const lesson = (part5Data: Record<string, unknown>, part9Data: Record<string, un
     substep: '5',
     focus: 'accuracy',
     lessonPath: 'full',
-    plannedParts: [1,2,3,4,5,6,7,8,9,10],
+    plannedParts: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     planningContext: { conceptsToWeave: '', troubleSpots: '' },
     sources: [{ id: 'source', label: 'Test source', kind: 'teacher-selection', locator: 'test only' }],
     parts: [
       part(1), part(2), part(3), part(4), part(5, part5Data),
-      part(6), part(7), part(8), part(9, part9Data), part(10)
+      part(6, part6Data), part(7), part(8), part(9, part9Data), part(10)
     ]
   }
 });
@@ -72,7 +80,98 @@ test('Part 5 weave question is visible to teacher but not student', () => {
   assert.match(student, /Grab some string so we can bind the two boxes/);
 });
 
-test('Part 9 questions and history stay teacher-only while passage remains student-safe', () => {
+test('Part 6 keeps source responses and word elements in a distinct reveal-gated phase', () => {
+  const currentLesson = lesson({}, {}, { wordElements: ['-struct-'] });
+  const sharedItems = ['/old/ → old', 'word-element::-struct-'];
+  const teacherWordElement = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <QuickDrill
+        sounds={['/old/ → old']}
+        isReverse
+        currentIndex={1}
+        shuffledItems={sharedItems}
+      />
+    </LessonRuntimeProvider>
+  );
+  const teacherSound = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <QuickDrill
+        sounds={['/old/ → old']}
+        isReverse
+        currentIndex={0}
+        shuffledItems={sharedItems}
+      />
+    </LessonRuntimeProvider>
+  );
+  const studentHidden = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <QuickDrill
+        sounds={['/old/ → old']}
+        isReverse
+        currentIndex={1}
+        revealedCount={0}
+        shuffledItems={sharedItems}
+        readOnly
+      />
+    </LessonRuntimeProvider>
+  );
+  const studentSoundHidden = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <QuickDrill
+        sounds={['/old/ → old']}
+        isReverse
+        currentIndex={0}
+        revealedCount={0}
+        shuffledItems={sharedItems}
+        readOnly
+      />
+    </LessonRuntimeProvider>
+  );
+  const studentWordElementRevealed = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <QuickDrill
+        sounds={['/old/ → old']}
+        isReverse
+        currentIndex={1}
+        revealedCount={1}
+        shuffledItems={sharedItems}
+        readOnly
+      />
+    </LessonRuntimeProvider>
+  );
+  const studentSoundRevealed = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <QuickDrill
+        sounds={['/old/ → old']}
+        isReverse
+        currentIndex={0}
+        revealedCount={1}
+        shuffledItems={sharedItems}
+        readOnly
+      />
+    </LessonRuntimeProvider>
+  );
+
+  assert.match(teacherSound, /data-testid="teacher-dictation-cue"/);
+  assert.match(teacherSound, /data-part6-section="sounds"/);
+  assert.match(teacherSound, />\/old\/<\/span>/);
+  assert.match(teacherWordElement, /data-part6-section="word-elements"/);
+  assert.match(teacherWordElement, /data-part6-word-element-procedure/);
+  assert.match(teacherWordElement, /-struct-/);
+  assert.match(studentSoundHidden, /data-part6-student-state="listen"/);
+  assert.match(studentSoundHidden, />LISTEN<\/span>/);
+  assert.doesNotMatch(studentSoundHidden, /\/old\//);
+  assert.doesNotMatch(studentSoundHidden, />old</);
+  assert.match(studentHidden, /data-part6-student-state="listen"/);
+  assert.match(studentHidden, />LISTEN<\/span>/);
+  assert.doesNotMatch(studentHidden, /-struct-/);
+  assert.match(studentSoundRevealed, /data-part6-student-state="revealed"/);
+  assert.match(studentSoundRevealed, />old<\/span>/);
+  assert.match(studentWordElementRevealed, /data-part6-student-state="revealed"/);
+  assert.match(studentWordElementRevealed, /-struct-/);
+});
+
+test('Part 9 keeps the passage visible while questions use a hideable non-overlay panel', () => {
   const currentLesson = lesson({}, {
     passageTitle: 'The Spring Job',
     studentReader: 'Student Reader 2',
@@ -84,26 +183,209 @@ test('Part 9 questions and history stay teacher-only while passage remains stude
     historyStatus: 'uncertain-flagged',
     historyNote: 'Prior passage history is not inferred.'
   });
-  const teacher = renderToStaticMarkup(
+  const teacherReading = renderToStaticMarkup(
     <LessonRuntimeProvider lesson={currentLesson}>
       <PassageReading text={currentLesson.passage || ''} />
     </LessonRuntimeProvider>
   );
-  const student = renderToStaticMarkup(
+  const teacherQuestionTwo = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <PassageReading text={currentLesson.passage || ''} phase="comprehension" questionIndex={1} />
+    </LessonRuntimeProvider>
+  );
+  const teacherHiddenAgain = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <PassageReading text={currentLesson.passage || ''} phase="reading" questionIndex={1} />
+    </LessonRuntimeProvider>
+  );
+  const studentReading = renderToStaticMarkup(
     <LessonRuntimeProvider lesson={currentLesson}>
       <PassageReading text={currentLesson.passage || ''} readOnly />
     </LessonRuntimeProvider>
   );
+  const studentQuestionTwo = renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={currentLesson}>
+      <PassageReading text={currentLesson.passage || ''} phase="comprehension" questionIndex={1} readOnly />
+    </LessonRuntimeProvider>
+  );
 
-  assert.match(teacher, /data-part9-teacher-questions/);
-  assert.match(teacher, /What season is coming in the passage/);
-  assert.match(teacher, /Prior passage history is not inferred/);
-  assert.match(teacher, /The Spring Job/);
-  assert.match(student, /The Spring Job/);
-  assert.match(student, /Spring is coming/);
-  assert.doesNotMatch(student, /data-part9-teacher-questions/);
-  assert.doesNotMatch(student, /What season is coming in the passage/);
-  assert.doesNotMatch(student, /Prior passage history is not inferred/);
+  assert.match(teacherReading, /data-part9-reading-flow="passage"/);
+  assert.match(teacherReading, /data-part9-layout="passage-only"/);
+  assert.match(teacherReading, /data-part9-passage-region/);
+  assert.match(teacherReading, /data-part9-question-toggle="show"/);
+  assert.match(teacherReading, /Show Questions/);
+  assert.match(teacherReading, /Spring is coming/);
+  assert.doesNotMatch(teacherReading, /data-part9-question-panel/);
+  assert.doesNotMatch(teacherReading, /What season is coming in the passage/);
+  assert.doesNotMatch(teacherReading, /Prior passage history is not inferred/);
+
+  assert.match(teacherQuestionTwo, /data-part9-reading-flow="comprehension"/);
+  assert.match(teacherQuestionTwo, /data-part9-layout="passage-and-questions"/);
+  assert.match(teacherQuestionTwo, /data-part9-passage-region/);
+  assert.match(teacherQuestionTwo, /Spring is coming/);
+  assert.match(teacherQuestionTwo, /data-part9-question-panel/);
+  assert.match(teacherQuestionTwo, /data-part9-panel-placement="sibling"/);
+  assert.match(teacherQuestionTwo, /data-part9-question-toggle="hide"/);
+  assert.match(teacherQuestionTwo, /Hide Questions/);
+  assert.match(teacherQuestionTwo, /data-part9-teacher-history/);
+  assert.match(teacherQuestionTwo, /What message does the passage give/);
+  assert.doesNotMatch(teacherQuestionTwo, /What season is coming in the passage/);
+
+  assert.match(teacherHiddenAgain, /data-part9-reading-flow="passage"/);
+  assert.match(teacherHiddenAgain, /Spring is coming/);
+  assert.doesNotMatch(teacherHiddenAgain, /data-part9-question-panel/);
+  assert.doesNotMatch(teacherHiddenAgain, /What message does the passage give/);
+
+  assert.match(studentReading, /The Spring Job/);
+  assert.match(studentReading, /Spring is coming/);
+  assert.doesNotMatch(studentReading, /data-part9-question-panel/);
+  assert.doesNotMatch(studentReading, /data-part9-question-toggle/);
+  assert.doesNotMatch(studentReading, /What season is coming in the passage/);
+  assert.doesNotMatch(studentReading, /Prior passage history is not inferred/);
+
+  assert.match(studentQuestionTwo, /data-part9-passage-region/);
+  assert.match(studentQuestionTwo, /Spring is coming/);
+  assert.match(studentQuestionTwo, /data-part9-panel-placement="sibling"/);
+  assert.match(studentQuestionTwo, /What message does the passage give/);
+  assert.doesNotMatch(studentQuestionTwo, /data-part9-question-toggle/);
+  assert.doesNotMatch(studentQuestionTwo, /Prior passage history is not inferred/);
+});
+
+test('Part 8 gates every dictation section behind explicit reveal and hides prior answers on next item', () => {
+  const dictation = {
+    sounds: ['/zēph/ → ck'],
+    wordElements: ['-morph-'],
+    realWords: ['brindle'],
+    nonsenseWords: ['splont'],
+    phrases: ['carry the lantern'],
+    sentences: ['The silver lantern blinked twice.']
+  };
+  const cases = [
+    { tab: 0, key: 'sounds', teacherCue: '/zēph/', answer: '>ck</span>', revealKind: 'sound' },
+    { tab: 1, key: 'word-elements', teacherCue: '-morph-', answer: '-morph-', revealKind: 'word-element' },
+    { tab: 2, key: 'real-words', teacherCue: 'brindle', answer: 'brindle' },
+    { tab: 3, key: 'nonsense-words', teacherCue: 'splont', answer: 'splont' },
+    { tab: 4, key: 'phrases', teacherCue: 'carry the lantern', answer: 'carry the lantern' },
+    { tab: 5, key: 'sentences', teacherCue: 'The silver lantern blinked twice.', answer: 'The silver lantern blinked twice.' }
+  ];
+
+  const teacherOrder = renderToStaticMarkup(<Spelling data={dictation} activeTab={0} />);
+  assert.ok(teacherOrder.indexOf('Sounds') < teacherOrder.indexOf('Word Elements'));
+  assert.ok(teacherOrder.indexOf('Word Elements') < teacherOrder.indexOf('Real Words'));
+  assert.ok(teacherOrder.indexOf('Real Words') < teacherOrder.indexOf('Nonsense Words'));
+  assert.ok(teacherOrder.indexOf('Nonsense Words') < teacherOrder.indexOf('Phrases'));
+  assert.ok(teacherOrder.indexOf('Phrases') < teacherOrder.indexOf('Sentences'));
+
+  for (const item of cases) {
+    const currentMarker = '__part8-current__:' + item.key + '-0';
+    const teacher = renderToStaticMarkup(
+      <Spelling data={dictation} activeTab={item.tab} revealedItems={{ [currentMarker]: true }} />
+    );
+    const studentHidden = renderToStaticMarkup(
+      <Spelling data={dictation} activeTab={item.tab} revealedItems={{ [currentMarker]: true }} readOnly />
+    );
+    const studentRevealed = renderToStaticMarkup(
+      <Spelling
+        data={dictation}
+        activeTab={item.tab}
+        revealedItems={{ [currentMarker]: true, [item.key + '-0']: true }}
+        readOnly
+      />
+    );
+
+    assert.match(teacher, /data-testid="teacher-dictation-cue"/);
+    assert.ok(teacher.includes(item.teacherCue));
+    assert.match(teacher, /data-part8-teacher-control="reveal"/);
+    assert.match(studentHidden, /data-part8-item-state="listen-write"/);
+    assert.match(studentHidden, /Listen and write/);
+    assert.equal(studentHidden.includes(item.teacherCue), false);
+    assert.equal(studentHidden.includes(item.answer), false);
+    assert.match(studentRevealed, /data-part8-item-state="revealed"/);
+    assert.ok(studentRevealed.includes(item.answer));
+    if (item.revealKind) assert.ok(studentRevealed.includes('data-part8-reveal-kind="' + item.revealKind + '"'));
+  }
+
+  const twoWordDictation = { ...dictation, realWords: ['brindle', 'cavern'] };
+  const nextItemHidden = renderToStaticMarkup(
+    <Spelling
+      data={twoWordDictation}
+      activeTab={2}
+      revealedItems={{
+        '__part8-current__:real-words-1': true,
+        'real-words-0': true
+      }}
+      readOnly
+    />
+  );
+  const nextItemRevealed = renderToStaticMarkup(
+    <Spelling
+      data={twoWordDictation}
+      activeTab={2}
+      revealedItems={{
+        '__part8-current__:real-words-1': true,
+        'real-words-0': true,
+        'real-words-1': true
+      }}
+      readOnly
+    />
+  );
+
+  assert.match(nextItemHidden, /data-part8-item-index="1" data-part8-item-state="listen-write"/);
+  assert.equal(nextItemHidden.includes('brindle'), false);
+  assert.equal(nextItemHidden.includes('cavern'), false);
+  assert.match(nextItemRevealed, /data-part8-item-index="1" data-part8-item-state="revealed"/);
+  assert.equal(nextItemRevealed.includes('brindle'), false);
+  assert.ok(nextItemRevealed.includes('cavern'));
+});
+
+test('Part 10 is teacher-determined without preloaded content and keeps teacher controls private', () => {
+  const plan = {
+    mode: 'teacher-selected' as const,
+    title: 'Teacher selection',
+    teacherDirections: ['Read the selected text aloud.'],
+    studentPrompt: 'Listen and prepare to retell what you heard.',
+    sourceIds: ['teacher-selection']
+  };
+  const teacherWithPlan = renderToStaticMarkup(<Part10Listening plan={plan} onOpenDossier={() => undefined} />);
+  const studentWithPlan = renderToStaticMarkup(<Part10Listening plan={plan} readOnly />);
+  const teacherNoPlan = renderToStaticMarkup(<Part10Listening onOpenDossier={() => undefined} />);
+  const studentNoPlan = renderToStaticMarkup(<Part10Listening readOnly />);
+
+  assert.match(teacherWithPlan, /data-part10-status="ready"/);
+  assert.match(teacherWithPlan, /data-part10-mode="preloaded-selection"/);
+  assert.match(teacherWithPlan, /Read the selected text aloud/);
+  assert.match(teacherWithPlan, /data-part10-open-dossier/);
+  assert.match(studentWithPlan, /Listen and prepare to retell/);
+  assert.doesNotMatch(studentWithPlan, /Read the selected text aloud/);
+  assert.doesNotMatch(studentWithPlan, /Teacher selection/);
+
+  assert.match(teacherNoPlan, /data-part10-status="ready"/);
+  assert.match(teacherNoPlan, /data-part10-mode="teacher-determined"/);
+  assert.match(teacherNoPlan, /Teacher-led Part 10/);
+  assert.match(teacherNoPlan, /No preloaded activity is required/);
+  assert.match(teacherNoPlan, /data-part10-open-dossier/);
+  assert.doesNotMatch(teacherNoPlan, /blocked|source plan needed|Read the selected text aloud/i);
+
+  assert.match(studentNoPlan, /data-part10-status="ready"/);
+  assert.match(studentNoPlan, /Follow your teacher’s directions for the next activity/);
+  assert.doesNotMatch(studentNoPlan, /No preloaded activity is required/);
+  assert.doesNotMatch(studentNoPlan, /data-part10-open-dossier|data-part10-teacher-directions/);
+  assert.doesNotMatch(studentNoPlan, /blocked|source plan needed|Teacher-led Part 10/i);
+});
+
+test('Part 10 keeps the existing SessionDossier completion flow after the instructional surface', () => {
+  const appSource = readFileSync(new URL('../legacy/App.tsx', import.meta.url), 'utf8');
+  const part10Index = appSource.indexOf('case LessonPart.Part10:');
+  const listeningIndex = appSource.indexOf('<Part10Listening', part10Index);
+  const openDossierIndex = appSource.indexOf('setIsSessionDossierOpen(true)', listeningIndex);
+  const dossierIndex = appSource.indexOf('<SessionDossier', openDossierIndex);
+  const completionIndex = appSource.indexOf('setMode(\'dashboard\')', dossierIndex);
+
+  assert.ok(part10Index >= 0);
+  assert.ok(listeningIndex > part10Index);
+  assert.ok(openDossierIndex > listeningIndex);
+  assert.ok(dossierIndex > openDossierIndex);
+  assert.ok(completionIndex > dossierIndex);
 });
 
 const spellingData = {
@@ -145,7 +427,9 @@ test('Part 7 uses explicit source-owned representations and rejects inferred/mal
   const items = part7SpellingItemsFromData(spellingData);
   assert.ok(items);
   assert.deepEqual(items.map(item => item.representation), [
-    'letter-sound-tiles', 'syllable-cards', 'prefix-suffix-cards'
+    'letter-sound-tiles',
+    'syllable-cards',
+    'prefix-suffix-cards'
   ]);
 
   const malformedSuffix = JSON.parse(JSON.stringify(spellingData));

@@ -5,7 +5,7 @@ import { WRS_PHONEME_MAP } from '../../wrsKnowledgeBase';
 import Tile from '../Tile';
 import {
   ChevronLeft, ChevronRight, Shuffle, Ear, Trash2,
-  CloudSun, Plane, Flower, Bug, BookOpen, Layers, Volume2,
+  CloudSun, Plane, Flower, Bug, BookOpen, Layers,
   CheckCircle2, Pen, MousePointer2, PenTool, Sparkles
 } from 'lucide-react';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
@@ -44,6 +44,31 @@ interface RevealedAnswer {
 }
 
 const WORD_ELEMENT_PREFIX = 'word-element::';
+
+export interface AuditoryDrillItem {
+  phoneme: string;
+  responses: string[];
+}
+
+/**
+ * Preserve source-authored auditory prompts and their exact response order.
+ * A curriculum map is used only as a legacy fallback for prompts that have no
+ * source-provided response.
+ */
+export const parseAuditoryDrillItem = (item: string): AuditoryDrillItem => {
+  const source = item.trim();
+  const match = source.match(/^\/([^/]+)\/\s*(?:→|->|=)\s*(.+)$/);
+  if (match) {
+    return {
+      phoneme: match[1].trim(),
+      responses: match[2].split(',').map(value => value.trim()).filter(Boolean)
+    };
+  }
+  return {
+    phoneme: source.replace(/^\//, '').replace(/\/$/, ''),
+    responses: []
+  };
+};
 
 const QuickDrill: React.FC<QuickDrillProps> = ({
   sounds,
@@ -150,26 +175,26 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
   const soundsStr = Array.isArray(sounds) ? sounds.join(',') : '';
   const wordElementsStr = part6WordElements.join(',');
 
+  const reverseSoundItems = useMemo(() => {
+    if (!isReverse) return [];
+    const lessonBase = Array.isArray(sounds)
+      ? sounds.map(item => item.trim()).filter(Boolean)
+      : [];
+    return lessonBase.length > 0
+      ? lessonBase
+      : ['/ă/ → a', '/ĕ/ → e', '/ĭ/ → i', '/ŏ/ → o', '/ŭ/ → u'];
+  }, [isReverse, soundsStr]);
+
+  const reverseWordElementItems = useMemo(() => (
+    part6WordElements.map(element => `${WORD_ELEMENT_PREFIX}${element}`)
+  ), [wordElementsStr]);
+
   const drillItems = useMemo(() => {
     const lessonBase = Array.isArray(sounds) ? sounds : [];
-    if (isReverse) {
-      const explicitPhonemes = lessonBase.flatMap(item => {
-        const trimmed = item.trim();
-        const mapped = trimmed.match(/^\/([^/]+)\/\s*(?:→|->|=)/);
-        if (mapped?.[1]) return [mapped[1]];
-        const clean = trimmed.replace(/^\//, '').replace(/\/$/, '');
-        if (learnedCorrespondences.some(c => c.phoneme === clean)) return [clean];
-        return learnedCorrespondences
-          .filter(c => c.graphemes.some(g => g === clean.replace(/[\[\]]/g, '')))
-          .map(c => c.phoneme);
-      });
-      const activePhonemes = Array.from(new Set(explicitPhonemes));
-      const phonemes = activePhonemes.length > 0 ? activePhonemes : ["ă", "ĕ", "ĭ", "ŏ", "ŭ"];
-      return [...phonemes, ...part6WordElements.map(element => `${WORD_ELEMENT_PREFIX}${element}`)];
-    }
+    if (isReverse) return [...reverseSoundItems, ...reverseWordElementItems];
     const filtered = lessonBase.filter(s => !s.endsWith('-e'));
     return filtered.length > 0 ? filtered : ["a", "e", "i", "o", "u"];
-  }, [isReverse, soundsStr, wordElementsStr, learnedCorrespondences]);
+  }, [isReverse, soundsStr, reverseSoundItems, reverseWordElementItems]);
 
   const drillItemsStr = drillItems.join(',');
 
@@ -187,14 +212,34 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     if (!shuffledItems.length || shuffledItems.length !== drillItems.length) return false;
     const shuffledSorted = [...shuffledItems].sort();
     const drillSorted = [...drillItems].sort();
-    return shuffledSorted.every((item, index) => item === drillSorted[index]);
-  }, [shuffledItems, drillItemsStr]);
+    const sameItems = shuffledSorted.every((item, index) => item === drillSorted[index]);
+    if (!sameItems) return false;
+    if (!isReverse) return true;
+
+    // Part 6 has two distinct procedures. A persisted/shuffled sound set is
+    // valid only when every sound remains before the Word Element section.
+    const soundSlice = shuffledItems.slice(0, reverseSoundItems.length);
+    const wordElementSlice = shuffledItems.slice(reverseSoundItems.length);
+    return soundSlice.every(item => !item.startsWith(WORD_ELEMENT_PREFIX))
+      && wordElementSlice.every(item => item.startsWith(WORD_ELEMENT_PREFIX));
+  }, [shuffledItems, drillItemsStr, isReverse, reverseSoundItems.length]);
 
   const activeItems = shuffledItemsMatchDrill ? shuffledItems : sortedItems;
-  const currentItem = activeItems[currentIndex];
+  const safeCurrentIndex = activeItems.length ? Math.min(currentIndex, activeItems.length - 1) : 0;
+  const currentItem = activeItems[safeCurrentIndex];
   const isWordElementItem = Boolean(currentItem?.startsWith(WORD_ELEMENT_PREFIX));
   const currentWordElement = isWordElementItem ? currentItem.slice(WORD_ELEMENT_PREFIX.length) : '';
-  const teacherPrompt = isWordElementItem ? currentWordElement : `/${currentItem || ''}/`;
+  const currentAuditoryItem = isWordElementItem ? null : parseAuditoryDrillItem(currentItem || '');
+  const teacherPrompt = isWordElementItem ? currentWordElement : '/' + (currentAuditoryItem?.phoneme || '') + '/';
+  const part6Section = isReverse ? (isWordElementItem ? 'Word Elements' : 'Sounds') : null;
+  const sectionItems = isWordElementItem
+    ? activeItems.filter(item => item.startsWith(WORD_ELEMENT_PREFIX))
+    : activeItems.filter(item => !item.startsWith(WORD_ELEMENT_PREFIX));
+  const currentSectionIndex = Math.max(0, sectionItems.indexOf(currentItem)) + 1;
+
+  useEffect(() => {
+    if (activeItems.length > 0 && currentIndex !== safeCurrentIndex) setCurrentIndex(safeCurrentIndex);
+  }, [activeItems.length, currentIndex, safeCurrentIndex]);
 
   const drawGrid = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
     const drawLine = (y: number, color: string, dashed = false) => {
@@ -245,9 +290,13 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     if (!currentItem) return [];
     if (isWordElementItem) return [{ text: currentWordElement, isNew: false, kind: 'word-element' }];
     if (isReverse) {
-      const matches = learnedCorrespondences.filter(c => c.phoneme === currentItem);
-      return Array.from(new Set(matches.sort((a, b) => compareIntroduced(a.introduced, b.introduced)).flatMap(m => m.graphemes))).map(g => ({
-        text: g,
+      const sourceResponses = parseAuditoryDrillItem(currentItem).responses;
+      const fallbackResponses = learnedCorrespondences
+        .filter(c => c.phoneme === parseAuditoryDrillItem(currentItem).phoneme)
+        .sort((a, b) => compareIntroduced(a.introduced, b.introduced))
+        .flatMap(match => match.graphemes);
+      return (sourceResponses.length > 0 ? sourceResponses : Array.from(new Set(fallbackResponses))).map(text => ({
+        text,
         isNew: false,
         kind: 'grapheme' as const
       }));
@@ -277,21 +326,31 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
 
   const nextCard = () => {
     setRevealedCount(0);
-    if (currentIndex < activeItems.length - 1) setCurrentIndex(prev => prev + 1);
+    if (safeCurrentIndex < activeItems.length - 1) setCurrentIndex(safeCurrentIndex + 1);
     else setCurrentIndex(0);
     if (isHandwritingMode) clearDrawing();
   };
 
   const prevCard = () => {
     setRevealedCount(0);
-    if (currentIndex > 0) setCurrentIndex(prev => prev - 1);
-    else setCurrentIndex(activeItems.length - 1);
+    if (safeCurrentIndex > 0) setCurrentIndex(safeCurrentIndex - 1);
+    else setCurrentIndex(Math.max(0, activeItems.length - 1));
     if (isHandwritingMode) clearDrawing();
   };
 
   const handleReveal = () => {
     if (revealedCount < revealedData.length) setRevealedCount(prev => prev + 1);
     else nextCard();
+  };
+
+  const shuffleDrill = () => {
+    const randomize = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+    const nextItems = isReverse
+      ? [...randomize(reverseSoundItems), ...reverseWordElementItems]
+      : randomize(drillItems);
+    setShuffledItems(nextItems);
+    setCurrentIndex(0);
+    setRevealedCount(0);
   };
 
   const renderWordElementCard = (text: string) => {
@@ -313,6 +372,20 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     </div>
   );
 
+  const renderPart6StudentSurface = () => (
+    <section
+      data-testid="part6-primary-surface"
+      data-part6-student-state={revealedCount > 0 ? 'revealed' : 'listen'}
+      className="flex h-full w-full flex-col items-center justify-center"
+    >
+      {revealedCount > 0 ? renderReverseAnswer() : (
+        <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm">
+          <div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-12 h-12" /></div>
+          <span className="text-5xl font-black font-serif text-stone-300">LISTEN</span>
+        </div>
+      )}
+    </section>
+  );
   const renderVisualAnswerLog = () => (
     <div className="flex flex-wrap items-center justify-center gap-3">
       {revealedData.slice(0, revealedCount).map((answer, index) => (
@@ -330,7 +403,10 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-[#b91c1c] rounded-lg shadow-sm">{isReverse ? <Ear className="w-4 h-4 text-white" /> : <Layers className="w-4 h-4 text-white" />}</div>
-            <h2 className="text-lg font-bold tracking-widest uppercase font-serif text-stone-900">{isReverse ? "Auditory Drill" : "Visual Drill"}</h2>
+            <div>
+              <h2 className="text-lg font-bold tracking-widest uppercase font-serif text-stone-900">{isReverse ? "Auditory Drill" : "Visual Drill"}</h2>
+              {part6Section ? <p data-part6-section={isWordElementItem ? 'word-elements' : 'sounds'} className="text-[9px] font-black uppercase tracking-[0.18em] text-stone-400">{part6Section}</p> : null}
+            </div>
           </div>
           {!readOnly && <button onClick={() => setIsHandwritingMode(!isHandwritingMode)} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest ${isHandwritingMode ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-400 hover:text-stone-900'}`}><Pen className={`w-3.5 h-3.5 ${isHandwritingMode ? 'animate-pulse' : ''}`} /> Handwriting</button>}
         </div>
@@ -341,7 +417,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
             <button onClick={() => setTool('pen-red')} className={`p-2 rounded-lg ${tool === 'pen-red' ? 'bg-red-600 text-white shadow-md' : 'text-stone-400'}`}><PenTool className="w-4 h-4" /></button>
             <button onClick={clearDrawing} className="p-2 rounded-lg text-stone-300 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
           </div>}
-          {!readOnly && <button onClick={() => { setShuffledItems([...drillItems].sort(() => Math.random() - 0.5)); setCurrentIndex(0); setRevealedCount(0); }} className="flex items-center gap-2 px-4 py-2 bg-white text-stone-400 rounded-xl font-bold text-[10px] uppercase border border-stone-100 shadow-sm"><Shuffle className="w-3.5 h-3.5" />Shuffle</button>}
+          {!readOnly && <button onClick={shuffleDrill} className="flex items-center gap-2 px-4 py-2 bg-white text-stone-400 rounded-xl font-bold text-[10px] uppercase border border-stone-100 shadow-sm"><Shuffle className="w-3.5 h-3.5" />Shuffle</button>}
         </div>
       </div>
 
@@ -350,26 +426,33 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
           <div className="relative w-full h-full flex flex-col p-6 gap-6 items-center">
             {isReverse && !readOnly && <div data-testid="teacher-dictation-cue" className="w-full max-w-4xl flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 shadow-sm">
               <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{isWordElementItem ? 'Dictate Word Element' : 'Dictate'}</span>
-              <span className="text-2xl font-black font-serif text-stone-900">{teacherPrompt}</span>
+              <div className="min-w-0">
+                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{isWordElementItem ? 'Dictate Word Element' : 'Dictate Sound'}</span>
+                <span className="text-2xl font-black font-serif text-stone-900">{teacherPrompt}</span>
+                {isWordElementItem ? (
+                  <p data-part6-word-element-procedure className="mt-1 max-w-2xl text-xs font-semibold leading-relaxed text-amber-900">
+                    After the student repeats it, have the student select the matching word-element manipulative and finger-write it while orally spelling it, including the required dash or dashes.
+                  </p>
+                ) : null}
+              </div>
             </div>}
 
             <div onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined} className={`flex-[3] w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}>
-              {!isHandwritingMode ? <>
+              {isReverse && !isHandwritingMode ? renderPart6StudentSurface() : !isHandwritingMode ? <>
                 {!readOnly && <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity"><Sparkles className="w-64 h-64 text-red-900" /></div>}
                 <div className="flex flex-col items-center justify-center w-full">
-                  {isReverse ? (readOnly ? (revealedCount > 0 ? renderReverseAnswer() : <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm"><div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-12 h-12" /></div><span className="text-5xl font-black font-serif text-stone-300">Listen</span></div>) : <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm"><div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Volume2 className="w-12 h-12" /></div><span className={`${isWordElementItem ? 'text-7xl' : 'text-[144px]'} font-black font-serif text-stone-900 leading-none`}>{teacherPrompt}</span></div>) : <div className="flex items-center justify-center">{parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}</div>}
+                  <div className="flex items-center justify-center">{parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}</div>
                 </div>
               </> : <div ref={containerRef} className="w-full h-full bg-white rounded-3xl border border-stone-200 shadow-sm relative overflow-hidden">
                 <div className="absolute left-6 top-0 bottom-0 z-10 flex flex-col justify-around pointer-events-none opacity-20"><CloudSun className="w-8 h-8 text-blue-500" /><Plane className="w-8 h-8 text-stone-400" /><Flower className="w-8 h-8 text-green-500" /><Bug className="w-8 h-8 text-stone-600" /></div>
                 <canvas ref={gridRef} className="absolute inset-0 pointer-events-none" />
                 <canvas ref={syncedDrawing.canvasRef} onPointerDown={syncedDrawing.onPointerDown} onPointerMove={syncedDrawing.onPointerMove} onPointerUp={syncedDrawing.onPointerUp} onPointerCancel={syncedDrawing.onPointerCancel} className={`absolute inset-0 z-20 touch-none ${readOnly || tool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`} />
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 px-6 py-2 rounded-full border border-stone-100 z-30"><span className="text-stone-900 font-black text-2xl font-serif">{isReverse && readOnly ? 'Listen' : teacherPrompt}</span></div>
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 px-6 py-2 rounded-full border border-stone-100 z-30"><span className="text-stone-900 font-black text-2xl font-serif">{isReverse && revealedCount === 0 ? 'LISTEN' : teacherPrompt}</span></div>
               </div>}
             </div>
 
             {!readOnly && <div className="w-full max-w-4xl flex-[1] flex flex-col">
-              <div className="flex items-center justify-between mb-2 px-2"><div className="flex items-center gap-2"><div className={`h-2.5 w-2.5 rounded-full ${revealedCount > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`}></div><span className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Answer Check</span></div><span className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{currentIndex + 1} / {activeItems.length}</span></div>
+              <div className="flex items-center justify-between mb-2 px-2"><div className="flex items-center gap-2"><div className={`h-2.5 w-2.5 rounded-full ${revealedCount > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`}></div><span className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Answer Check</span></div><span data-part6-section-progress className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{part6Section ? `${part6Section} ${currentSectionIndex} / ${sectionItems.length}` : `${safeCurrentIndex + 1} / ${activeItems.length}`}</span></div>
               <div className="flex-1 bg-white rounded-2xl border border-stone-100 p-4 flex flex-col shadow-sm overflow-hidden"><div className="w-full h-full overflow-y-auto flex flex-wrap gap-3 items-center justify-center">
                 {revealedCount === 0 ? <div className="flex flex-col items-center justify-center h-full gap-2 opacity-5"><BookOpen className="w-8 h-8 text-stone-900" /><p className="text-[8px] font-black uppercase tracking-[0.4em] text-stone-900">Answer hidden</p></div> : (isReverse ? renderReverseAnswer() : renderVisualAnswerLog())}
               </div></div>

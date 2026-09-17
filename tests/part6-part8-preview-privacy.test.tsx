@@ -1,0 +1,176 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import QuickDrill from '../legacy/components/modules/QuickDrill';
+import Spelling from '../legacy/components/modules/Spelling';
+import { LessonRuntimeProvider } from '../legacy/components/lessonRuntimeContext';
+import { createPresenterSnapshot } from '../legacy/presenterMode';
+import { createInitialLessonSession } from '../legacy/useLessonSession';
+import { LessonPart } from '../legacy/types';
+import type { Lesson } from '../legacy/types';
+
+const dictation = {
+  sounds: ['/voip/ → qux'],
+  wordElements: ['-morphx-'],
+  realWords: ['brindlex'],
+  nonsenseWords: ['splontx'],
+  phrases: ['carry zx lantern'],
+  sentences: ['The zx lantern blinked twice.']
+};
+const lesson = {
+  schemaVersion: 2, id: 'preview-privacy-2.5', title: '3A 2.5 Accuracy privacy fixture', step: '2', substep: '5', conceptNotes: '', slides: [],
+  quickDrill: ['/old/ → old'], quickDrillReverse: ['/old/ → old'], wordCards: [], sentences: [], dictation, hfwList: [], affixPractice: [],
+  runtimePlan: { schemaVersion: 'wrs-runtime-v1', id: 'preview-privacy-2.5', title: '3A 2.5 Accuracy privacy fixture', step: '2', substep: '5', focus: 'accuracy', lessonPath: 'full', plannedParts: [1,2,3,4,5,6,7,8,9,10], sources: [], parts: Array.from({ length: 10 }, (_, i) => ({ part: i + 1, title: '', teacherDirections: [], sourceIds: [], data: i + 1 === 6 ? { wordElements: ['-struct-'] } : {} })) }
+} as unknown as Lesson;
+const part6Items = ['/old/ → old', 'word-element::-struct-'];
+
+const renderPart6 = (overrides: Partial<ReturnType<typeof createInitialLessonSession>>) => {
+  const session = { ...createInitialLessonSession(), ...overrides };
+  const snapshot = createPresenterSnapshot('teacher-task8', 'run', lesson, LessonPart.Part6, null, session, [], true, 10);
+  assert.ok(snapshot.lesson);
+  const markup = renderToStaticMarkup(<LessonRuntimeProvider lesson={snapshot.lesson}><QuickDrill sounds={snapshot.lesson.quickDrillReverse?.length ? snapshot.lesson.quickDrillReverse : snapshot.lesson.quickDrill} isReverse step={snapshot.lesson.step} substep={snapshot.lesson.substep} currentIndex={snapshot.session.quickDrillIndex} revealedCount={snapshot.session.quickDrillRevealed} isHandwritingMode={snapshot.session.quickDrillHandwriting} shuffledItems={snapshot.session.quickDrillItems} readOnly /></LessonRuntimeProvider>);
+  return { snapshot, markup };
+};
+
+test('actual presenter path keeps Part 6 answer-bearing data out until Reveal', () => {
+  for (const index of [0, 1]) {
+    const hidden = renderPart6({ quickDrillIndex: index, quickDrillRevealed: 0, quickDrillItems: part6Items });
+    const payload = JSON.stringify(hidden.snapshot);
+    assert.match(hidden.markup, />LISTEN<\/span>/);
+    assert.equal(payload.includes('/old/'), false);
+    assert.equal(payload.includes('word-element::-struct-'), false);
+    assert.equal(payload.includes('-struct-'), false);
+    assert.equal(hidden.markup.includes('/old/'), false);
+    assert.equal(hidden.markup.includes('-struct-'), false);
+  }
+  assert.match(renderPart6({ quickDrillIndex: 0, quickDrillRevealed: 1, quickDrillItems: part6Items }).markup, />old<\/span>/);
+  assert.equal(renderPart6({ quickDrillIndex: 1, quickDrillRevealed: 1, quickDrillItems: part6Items }).markup.includes('-struct-'), true);
+});
+
+const primaryPart6Surface = (markup: string): string => {
+  const match = markup.match(/<section[^>]*data-testid="part6-primary-surface"[\s\S]*?<\/section>/);
+  assert.ok(match, 'Part 6 primary instructional surface was not rendered');
+  return match[0];
+};
+
+const renderTeacherPart6 = (currentIndex: number, revealedCount: number) => {
+  const teacherLesson = {
+    ...lesson,
+    quickDrillReverse: ['/ă/ → a', '/old/ → old']
+  } as Lesson;
+  const teacherItems = ['/ă/ → a', '/old/ → old', 'word-element::-struct-'];
+  return renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={teacherLesson}>
+      <QuickDrill
+        sounds={teacherLesson.quickDrillReverse || []}
+        isReverse
+        currentIndex={currentIndex}
+        revealedCount={revealedCount}
+        shuffledItems={teacherItems}
+      />
+    </LessonRuntimeProvider>
+  );
+};
+
+test('teacher Part 6 primary card hides the sound target until Reveal and resets on Next', () => {
+  const hiddenFirst = primaryPart6Surface(renderTeacherPart6(0, 0));
+  assert.match(hiddenFirst, /data-part6-student-state="listen"/);
+  assert.match(hiddenFirst, />LISTEN<\/span>/);
+  assert.doesNotMatch(hiddenFirst, /\/ă\/|>a<\/span>|text-\[144px\]/);
+
+  const revealedFirst = primaryPart6Surface(renderTeacherPart6(0, 1));
+  assert.match(revealedFirst, /data-part6-student-state="revealed"/);
+  assert.match(revealedFirst, />a<\/span>/);
+
+  const hiddenNext = primaryPart6Surface(renderTeacherPart6(1, 0));
+  assert.match(hiddenNext, /data-part6-student-state="listen"/);
+  assert.match(hiddenNext, />LISTEN<\/span>/);
+  assert.doesNotMatch(hiddenNext, /\/old\/|>old<\/span>|text-\[144px\]/);
+
+  const hiddenWordElement = primaryPart6Surface(renderTeacherPart6(2, 0));
+  assert.match(hiddenWordElement, />LISTEN<\/span>/);
+  assert.doesNotMatch(hiddenWordElement, /-struct-/);
+});
+
+const cases = [
+  { tab: 0, key: 'sounds', answer: 'qux' }, { tab: 1, key: 'word-elements', answer: '-morphx-' },
+  { tab: 2, key: 'real-words', answer: 'brindlex' }, { tab: 3, key: 'nonsense-words', answer: 'splontx' },
+  { tab: 4, key: 'phrases', answer: 'carry zx lantern' }, { tab: 5, key: 'sentences', answer: 'The zx lantern blinked twice.' }
+];
+const renderPart8 = (tab: number, revealedItems: Record<string, boolean>, source: Lesson = lesson) => {
+  const session = { ...createInitialLessonSession(), spellingViewMode: 'list' as const, spellingSectionOrderVersion: 2, spellingActiveTab: tab, spellingRevealedItems: revealedItems };
+  const snapshot = createPresenterSnapshot('teacher-task8', 'run', source, LessonPart.Part8, null, session, [], true, 20 + tab);
+  assert.ok(snapshot.lesson);
+  const markup = renderToStaticMarkup(<Spelling data={snapshot.lesson.dictation} lessonStep={snapshot.lesson.step} lessonSubstep={snapshot.lesson.substep} viewMode={snapshot.session.spellingViewMode} activeTab={snapshot.session.spellingActiveTab} sectionOrderVersion={snapshot.session.spellingSectionOrderVersion} revealedItems={snapshot.session.spellingRevealedItems} gridPage={snapshot.session.spellingGridPage} isSyllabicated={snapshot.session.spellingIsSyllabicated} readOnly />);
+  return { snapshot, markup };
+};
+
+test('actual presenter path hides all six Part 8 section answers until Reveal', () => {
+  for (const item of cases) {
+    const marker = `__part8-current__:${item.key}-0`;
+    const hidden = renderPart8(item.tab, { [marker]: true });
+    assert.match(hidden.markup, /Listen and write/i);
+    assert.equal(JSON.stringify(hidden.snapshot).includes(item.answer), false, `${item.key} leaked in payload`);
+    assert.equal(hidden.markup.includes(item.answer), false, `${item.key} leaked in render`);
+    const shown = renderPart8(item.tab, { [marker]: true, [`${item.key}-0`]: true });
+    assert.equal(JSON.stringify(shown.snapshot).includes(item.answer), true, `${item.key} missing from revealed payload`);
+    if (item.key === 'sounds') assert.match(shown.markup, /data-part8-reveal-kind=\"sound\"/);
+    else assert.equal(shown.markup.includes(item.answer), true, `${item.key} missing after reveal`);
+  }
+});
+
+test('Part 8 Next removes the prior answer and starts the next item unrevealed', () => {
+  const two = { ...lesson, dictation: { ...dictation, realWords: ['brindlex', 'cavernx'] } } as Lesson;
+  const hidden = renderPart8(2, { '__part8-current__:real-words-1': true, 'real-words-0': true }, two);
+  assert.match(hidden.markup, /Listen and write/i);
+  assert.equal(JSON.stringify(hidden.snapshot).includes('brindlex'), false);
+  assert.equal(JSON.stringify(hidden.snapshot).includes('cavernx'), false);
+  const shown = renderPart8(2, { '__part8-current__:real-words-1': true, 'real-words-0': true, 'real-words-1': true }, two);
+  assert.equal(shown.markup.includes('brindlex'), false);
+  assert.equal(shown.markup.includes('cavernx'), true);
+});
+
+
+const countVisibleSourceOccurrences = (markup: string, sourceText: string) => markup.split(sourceText).length - 1;
+const renderTeacherPart8List = (tab: number, revealedItems: Record<string, boolean>) => renderToStaticMarkup(
+  <Spelling
+    data={dictation}
+    lessonStep="2"
+    lessonSubstep="5"
+    viewMode="list"
+    activeTab={tab}
+    sectionOrderVersion={2}
+    revealedItems={revealedItems}
+  />
+);
+
+const teacherPart8Cases = [
+  { tab: 0, key: 'sounds', sourceText: '/voip/' },
+  { tab: 1, key: 'word-elements', sourceText: '-morphx-' },
+  { tab: 2, key: 'real-words', sourceText: 'brindlex' },
+  { tab: 3, key: 'nonsense-words', sourceText: 'splontx' },
+  { tab: 4, key: 'phrases', sourceText: 'carry zx lantern' },
+  { tab: 5, key: 'sentences', sourceText: 'The zx lantern blinked twice.' }
+];
+
+test('teacher Part 8 primary list hides dictated source until Reveal', () => {
+  for (const item of teacherPart8Cases) {
+    const currentMarker = `__part8-current__:${item.key}-0`;
+    const hidden = renderTeacherPart8List(item.tab, { [currentMarker]: true });
+    assert.match(hidden, /data-part8-primary-state="listen-write"/);
+    assert.match(hidden, /Listen and write\. Waiting for teacher reveal\./);
+    assert.equal(
+      countVisibleSourceOccurrences(hidden, item.sourceText),
+      1,
+      `${item.key} source should appear only in the small teacher-only cue before Reveal, never in the primary dictation row`
+    );
+
+    const revealed = renderTeacherPart8List(item.tab, { [currentMarker]: true, [`${item.key}-0`]: true });
+    assert.equal(revealed.includes('data-part8-primary-state="listen-write"'), false);
+    assert.ok(
+      countVisibleSourceOccurrences(revealed, item.sourceText) >= 2,
+      `${item.key} source should appear in the revealed primary row after Reveal`
+    );
+  }
+});

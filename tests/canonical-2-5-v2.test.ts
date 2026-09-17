@@ -30,6 +30,9 @@ test('canonical 2.5 v2 carries an explicit Part 7 dictate/reveal representation 
 test('canonical 2.5 v2 survives current projection, canonical export, and re-import', () => {
   const firstLesson = normalizeLesson(fixture);
   assert.ok(firstLesson);
+  assert.deepEqual(firstLesson.quickDrill, [
+    'a', 'e', 'i', 'o', 'u', 's', 'c', 'r', 't', 'p', 'l', 'ang', 'ank', 'ind', 'old'
+  ]);
   assert.equal(firstLesson.sentences.length, 10);
   assert.equal(firstLesson.wordListReading?.length, 6);
   assert.match(firstLesson.passage || '', /Spring is coming!/);

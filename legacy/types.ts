@@ -485,7 +485,10 @@ export interface DojoMasterData {
     passageIndex?: number;
     passageRulerEnabled?: boolean;
     passageRulerY?: number;
+    passagePhase?: 'reading' | 'comprehension';
+    passageQuestionIndex?: number;
     spellingViewMode?: string;
+    spellingSectionOrderVersion?: number;
     spellingActiveTab?: number;
     spellingRevealedItems?: Record<string, boolean>;
     spellingCipherWord?: string | null;
