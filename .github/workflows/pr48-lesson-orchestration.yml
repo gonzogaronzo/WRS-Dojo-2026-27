@@ -12,6 +12,7 @@ on:
       - 'tests/lesson-orchestrator.test.mjs'
       - 'schemas/wrs-*.schema.json'
       - 'curriculum/source-packets/**'
+      - 'curriculum/pilots/**'
       - 'docs/WRS_LESSON_PLANNING_ORCHESTRATION_V1.md'
       - 'package.json'
       - '.github/workflows/pr48-lesson-orchestration.yml'
@@ -28,7 +29,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Check out exact commit
+      - name: Check out exact PR48 commit
         uses: actions/checkout@v4
 
       - name: Use Node 22
@@ -43,6 +44,37 @@ jobs:
       - name: Run orchestration unit tests
         run: node --test tests/lesson-orchestrator.test.mjs
 
-      - name: Parse orchestration schemas and source packets
+      - name: Parse orchestration schemas, source packets, and pilot runtime
         run: |
-          node -e "const fs=require('fs'); for (const f of ['schemas/wrs-group-planning-snapshot-v1.schema.json','schemas/wrs-substep-source-packet-v1.schema.json','schemas/wrs-lesson-build-request-v1.schema.json','curriculum/source-packets/5.5.v1.json']) JSON.parse(fs.readFileSync(f,'utf8')); console.log('JSON parse PASS')"
+          node -e "const fs=require('fs'); for (const f of ['schemas/wrs-group-planning-snapshot-v1.schema.json','schemas/wrs-substep-source-packet-v1.schema.json','schemas/wrs-lesson-build-request-v1.schema.json','curriculum/source-packets/5.5.v1.json','curriculum/pilots/5b-5.5-introduction-conditional.json']) JSON.parse(fs.readFileSync(f,'utf8')); console.log('JSON parse PASS')"
+
+  pr40-canonical-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    needs: orchestration-contracts
+
+    steps:
+      - name: Check out exact PR48 commit
+        uses: actions/checkout@v4
+
+      - name: Check out pinned PR40 gate
+        uses: actions/checkout@v4
+        with:
+          ref: f5816d321da91d568ef7fbde5e2f1d7591e7d786
+          path: pr40-gate
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Install pinned PR40 dependencies
+        working-directory: pr40-gate
+        run: npm ci
+
+      - name: Run 5B 5.5 pilot through pinned PR40 canonical gate
+        working-directory: pr40-gate
+        run: |
+          npx tsx -e "import fs from 'node:fs'; import { validateCanonicalLessonGate } from './legacy/canonicalLessonGate.ts'; const runtime=JSON.parse(fs.readFileSync('../curriculum/pilots/5b-5.5-introduction-conditional.json','utf8')); const result=validateCanonicalLessonGate(runtime); console.log(JSON.stringify(result,null,2)); if(!result.ok) process.exit(1);"
