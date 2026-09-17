@@ -51,13 +51,13 @@ Previous lesson plans may establish what was already used. They never establish 
 
 A packet is versioned against a curriculum release. It contains source IDs, locators, verification status, current-concept references, cumulative eligibility, and Part 1-10 input references.
 
-Persistent packets should reference the private curriculum database / source registry instead of copying long Wilson passages, scripts, or source pages into the application repository.
+Persistent packets should reference stable source identifiers and exact source locators instead of copying long Wilson passages, scripts, or source pages into the application repository. Ephemeral conversation/file IDs are not durable source identifiers and must not be stored as canonical locators.
 
 If a source is searchable but lacks the visual/verbatim authority required by the release safety policy, the affected packet fields remain `partial` or `blocked`. The packet does not upgrade its own evidence.
 
 ### First verified packet
 
-`curriculum/source-packets/5.5.v1.json` is the first reusable verified packet. It resolves against the original Fourth Edition Steps 1-6 Instructor Manual/Step Instruction, Dictation Book, Student Reader Five, and Student Notebook 1-6 Answer Key. It stores source IDs and exact page/range locators rather than duplicating long source text.
+`curriculum/source-packets/5.5.v1.json` is the first reusable verified packet. It resolves against the original Fourth Edition Steps 1-6 Instructor Manual/Step Instruction, Dictation Book, Student Reader Five, and Student Notebook 1-6 Answer Key. It stores stable source IDs and exact page/range locators rather than duplicating long source text.
 
 For Substep 5.5, the verified source locations include:
 
