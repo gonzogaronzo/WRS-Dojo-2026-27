@@ -8,8 +8,8 @@ on:
     branches:
       - independent-hosting
     paths:
-      - 'scripts/wrs-lesson-orchestrator.mjs'
-      - 'tests/lesson-orchestrator.test.mjs'
+      - 'scripts/wrs-lesson-*.mjs'
+      - 'tests/lesson-*.test.mjs'
       - 'schemas/wrs-*.schema.json'
       - 'curriculum/source-packets/**'
       - 'curriculum/pilots/**'
@@ -41,8 +41,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run orchestration unit tests
-        run: node --test tests/lesson-orchestrator.test.mjs
+      - name: Run orchestration and fingerprint unit tests
+        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs
 
       - name: Parse orchestration schemas, source packets, and pilot runtime
         run: |
