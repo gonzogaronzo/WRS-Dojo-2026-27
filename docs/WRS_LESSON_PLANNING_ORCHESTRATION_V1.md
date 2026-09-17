@@ -66,6 +66,8 @@ For Substep 5.5, the verified source locations include:
 - Student Reader Five: printed pp. 108-117 word lists, 118-127 sentences, and 128-141 controlled passages.
 - Student Notebook 1-6 Answer Key: relevant sound, syllable-exception, prefix, spelling-option, and HFW entries are registered by PDF page in the packet.
 
+The packet was manually reconciled against the original PDFs before being marked `verified`. Searchable companions remain retrieval aids only.
+
 ## Build flow
 
 1. **Compile state** from Current Snapshot plus newer Daily Notes / teacher reports.
