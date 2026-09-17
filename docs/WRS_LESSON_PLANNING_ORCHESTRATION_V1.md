@@ -55,6 +55,17 @@ Persistent packets should reference the private curriculum database / source reg
 
 If a source is searchable but lacks the visual/verbatim authority required by the release safety policy, the affected packet fields remain `partial` or `blocked`. The packet does not upgrade its own evidence.
 
+### First verified packet
+
+`curriculum/source-packets/5.5.v1.json` is the first reusable verified packet. It resolves against the original Fourth Edition Steps 1-6 Instructor Manual/Step Instruction, Dictation Book, Student Reader Five, and Student Notebook 1-6 Answer Key. It stores source IDs and exact page/range locators rather than duplicating long source text.
+
+For Substep 5.5, the verified source locations include:
+
+- Step Instruction: Instructor Manual PDF pp. 338-348 / printed pp. 346-356.
+- Dictation Book: 5.5 words on PDF pp. 123-126, phrases on PDF p. 128, and sentences on PDF pp. 137-138.
+- Student Reader Five: printed pp. 108-117 word lists, 118-127 sentences, and 128-141 controlled passages.
+- Student Notebook 1-6 Answer Key: relevant sound, syllable-exception, prefix, spelling-option, and HFW entries are registered by PDF page in the packet.
+
 ## Build flow
 
 1. **Compile state** from Current Snapshot plus newer Daily Notes / teacher reports.
