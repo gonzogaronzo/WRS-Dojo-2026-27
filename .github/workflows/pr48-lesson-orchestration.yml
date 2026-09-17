@@ -46,7 +46,7 @@ jobs:
 
       - name: Parse orchestration schemas, source packets, and pilot runtime
         run: |
-          node -e "const fs=require('fs'); for (const f of ['schemas/wrs-group-planning-snapshot-v1.schema.json','schemas/wrs-substep-source-packet-v1.schema.json','schemas/wrs-lesson-build-request-v1.schema.json','curriculum/source-packets/5.5.v1.json','curriculum/pilots/5b-5.5-introduction-conditional.json']) JSON.parse(fs.readFileSync(f,'utf8')); console.log('JSON parse PASS')"
+          node -e "const fs=require('fs'); for (const f of ['schemas/wrs-group-planning-snapshot-v1.schema.json','schemas/wrs-substep-source-packet-v1.schema.json','schemas/wrs-lesson-build-request-v1.schema.json','schemas/wrs-weekly-build-queue-v1.schema.json','curriculum/source-packets/5.5.v1.json','curriculum/pilots/5b-5.5-introduction-conditional.json']) JSON.parse(fs.readFileSync(f,'utf8')); console.log('JSON parse PASS')"
 
   pr40-canonical-gate:
     runs-on: ubuntu-latest
