@@ -130,3 +130,47 @@ test('Part 8 Next removes the prior answer and starts the next item unrevealed',
   assert.equal(shown.markup.includes('brindlex'), false);
   assert.equal(shown.markup.includes('cavernx'), true);
 });
+
+
+const countVisibleSourceOccurrences = (markup: string, sourceText: string) => markup.split(sourceText).length - 1;
+const renderTeacherPart8List = (tab: number, revealedItems: Record<string, boolean>) => renderToStaticMarkup(
+  <Spelling
+    data={dictation}
+    lessonStep="2"
+    lessonSubstep="5"
+    viewMode="list"
+    activeTab={tab}
+    sectionOrderVersion={2}
+    revealedItems={revealedItems}
+  />
+);
+
+const teacherPart8Cases = [
+  { tab: 0, key: 'sounds', sourceText: '/voip/' },
+  { tab: 1, key: 'word-elements', sourceText: '-morphx-' },
+  { tab: 2, key: 'real-words', sourceText: 'brindlex' },
+  { tab: 3, key: 'nonsense-words', sourceText: 'splontx' },
+  { tab: 4, key: 'phrases', sourceText: 'carry zx lantern' },
+  { tab: 5, key: 'sentences', sourceText: 'The zx lantern blinked twice.' }
+];
+
+test('teacher Part 8 primary list hides dictated source until Reveal', () => {
+  for (const item of teacherPart8Cases) {
+    const currentMarker = `__part8-current__:${item.key}-0`;
+    const hidden = renderTeacherPart8List(item.tab, { [currentMarker]: true });
+    assert.match(hidden, /data-part8-primary-state="listen-write"/);
+    assert.match(hidden, /Listen and write\. Waiting for teacher reveal\./);
+    assert.equal(
+      countVisibleSourceOccurrences(hidden, item.sourceText),
+      1,
+      `${item.key} source should appear only in the small teacher-only cue before Reveal, never in the primary dictation row`
+    );
+
+    const revealed = renderTeacherPart8List(item.tab, { [currentMarker]: true, [`${item.key}-0`]: true });
+    assert.equal(revealed.includes('data-part8-primary-state="listen-write"'), false);
+    assert.ok(
+      countVisibleSourceOccurrences(revealed, item.sourceText) >= 2,
+      `${item.key} source should appear in the revealed primary row after Reveal`
+    );
+  }
+});

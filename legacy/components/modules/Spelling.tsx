@@ -632,15 +632,15 @@ const Spelling: React.FC<SpellingProps> = ({
                     <div className="flex-1 animate-in fade-in slide-in-from-left-4 duration-300">
                       {renderRevealedItem(text)}
                     </div>
-                  ) : !readOnly ? (
-                    <div className="flex flex-1 items-center gap-4">
-                      <div className="rounded-lg bg-amber-100 px-2 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-amber-800">Teacher cue</div>
-                      <span className="text-xl md:text-2xl font-black font-serif text-stone-700">{teacherPromptForItem(text)}</span>
-                    </div>
                   ) : (
-                    <div className="flex items-center gap-4 text-stone-200">
+                    <div
+                      data-part8-primary-state={idx === currentItemIndex ? 'listen-write' : 'waiting'}
+                      className="flex items-center gap-4 text-stone-300"
+                    >
                       <HelpCircle className="w-8 h-8 opacity-40" />
-                      <span className="text-xl font-serif italic opacity-40">{idx === currentItemIndex ? 'Listen and write. Waiting for teacher reveal.' : 'Waiting for teacher...'}</span>
+                      <span className="text-xl font-serif italic opacity-60">
+                        {idx === currentItemIndex ? 'Listen and write. Waiting for teacher reveal.' : 'Waiting for teacher...'}
+                      </span>
                     </div>
                   )}
 
