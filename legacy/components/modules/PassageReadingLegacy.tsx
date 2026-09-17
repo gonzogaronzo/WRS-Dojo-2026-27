@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, PenTool, MousePointer2, Trash2, FileText, ToggleLeft, ToggleRight, Layout } from 'lucide-react';
+import { ChevronLeft, ChevronRight, PenTool, MousePointer2, Trash2, FileText, Layout } from 'lucide-react';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
 import { useSyncState } from '../../hooks/useSyncState';
 
@@ -93,7 +93,7 @@ const PassageReading: React.FC<PassageReadingProps> = ({
     }
   };
 
-  const handlePassageWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+  const handlePassageWheel = (e: React.WheelEvent<HTMLElement>) => {
     const scrollRegion = passageScrollRef.current;
     if (!scrollRegion || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
 
@@ -211,7 +211,7 @@ const PassageReading: React.FC<PassageReadingProps> = ({
   const showTeacherQuestions = !readOnly && (questions.length > 0 || Boolean(historyNote));
 
   return (
-    <div className="min-h-full flex flex-col bg-[#fcfbf9] text-stone-900">
+    <div className="h-full min-h-0 overflow-hidden flex flex-col bg-[#fcfbf9] text-stone-900">
       <div className="h-20 bg-white border-b border-stone-100 flex items-center justify-between px-8 shadow-sm z-30 flex-shrink-0">
         <div className="flex items-center gap-6 min-w-0">
           <div className="min-w-0">
@@ -264,9 +264,10 @@ const PassageReading: React.FC<PassageReadingProps> = ({
       </div>
 
       <div
-        className="flex-1 relative flex flex-col bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')] overflow-hidden"
+        className="min-h-0 flex-1 relative flex flex-col bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')] overflow-hidden"
         ref={containerRef}
         onMouseMove={handleMouseMove}
+        onWheelCapture={handlePassageWheel}
       >
         {useRuler && (
           <div
@@ -313,7 +314,7 @@ const PassageReading: React.FC<PassageReadingProps> = ({
         <div
           ref={passageScrollRef}
           data-part9-passage-scroll
-          className={`absolute inset-0 flex p-4 md:p-12 lg:p-24 z-0 overflow-y-auto ${showTeacherQuestions ? 'pr-[390px]' : ''}`}
+          className={`absolute inset-0 flex p-4 md:p-12 lg:p-24 z-0 overflow-y-auto overscroll-contain ${showTeacherQuestions ? 'pr-[390px]' : ''}`}
         >
           <div className="max-w-6xl w-full mx-auto my-auto py-12">
              <p className="text-[38px] font-medium text-stone-900 leading-[3] font-serif tracking-wide select-none text-left break-words">
@@ -328,7 +329,6 @@ const PassageReading: React.FC<PassageReadingProps> = ({
           onPointerMove={syncedDrawing.onPointerMove}
           onPointerUp={syncedDrawing.onPointerUp}
           onPointerCancel={syncedDrawing.onPointerCancel}
-          onWheel={handlePassageWheel}
           className={`absolute inset-0 z-20 touch-none ${readOnly || tool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`}
         />
 
