@@ -85,10 +85,10 @@ export function resolveQueueTarget(snapshot) {
 
 const defaultRouteFor = (snapshot, target) => {
   if (target.isAdvancePath) return 'full';
-  const unfinished = objects(snapshot?.lessonContinuity?.unfinishedWork).length
-    ? snapshot.lessonContinuity.unfinishedWork
+  const unfinished = Array.isArray(snapshot?.lessonContinuity?.unfinishedWork)
+    ? snapshot.lessonContinuity.unfinishedWork.map(text).filter(Boolean)
     : [];
-  return Array.isArray(unfinished) && unfinished.length ? 'continuation' : 'full';
+  return unfinished.length ? 'continuation' : 'full';
 };
 
 const validatedFor = (validatedArtifacts, groupId, plannedDate) => {
