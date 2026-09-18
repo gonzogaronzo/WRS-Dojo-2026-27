@@ -10,6 +10,7 @@ const currentRow = ({
   lessonFocus = '5.4 Accuracy',
   updated = '2026-09-16',
   realWords = '14/15',
+  spelling = '',
   trouble = 'Needs careful decoding.',
   next = 'Continue current instruction.'
 }) => ({
@@ -20,7 +21,7 @@ const currentRow = ({
   'Lesson Focus': lessonFocus,
   'Most Recent Real-Word Charting': realWords,
   'Most Recent Nonsense-Word Charting': '',
-  'Most Recent Spelling / Dictation': '',
+  'Most Recent Spelling / Dictation': spelling,
   'HFW Status': '',
   'Fluency / Assessment': '',
   'Current Trouble Spots': trouble,
@@ -172,6 +173,75 @@ test('newer explicit daily target outranks an older Current Snapshot target whil
 
 
 
+
+
+test('carries forward unresolved dictation when the newer daily note does not address it', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({
+        student: 'Student A',
+        group: 'Carry',
+        currentSubstep: '2.5',
+        lessonFocus: '2.5 Accuracy',
+        spelling: 'Two phrases completed; sentence dictation remains.'
+      }),
+      currentRow({
+        student: 'Student B',
+        group: 'Carry',
+        currentSubstep: '2.5',
+        lessonFocus: '2.5 Accuracy',
+        spelling: 'Two phrases completed; sentence dictation remains.'
+      })
+    ],
+    dailyRows: [
+      dailyRow({
+        group: 'Carry',
+        substep: '2.5 Accuracy',
+        note: 'The group completed Block 1 and began controlled text reading.',
+        followUp: 'Resume the passage at the stopping point.'
+      })
+    ],
+    groupId: 'Carry',
+    asOf: '2026-09-17',
+    generatedAt: '2026-09-17T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.lessonContinuity.unfinishedWork.some(item => /sentence dictation remains/i.test(item)), true);
+});
+
+test('newer dictation reporting prevents stale snapshot dictation from carrying forward', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({
+        student: 'Student A',
+        group: 'Resolved',
+        currentSubstep: '5.1',
+        lessonFocus: '5.1 Accuracy',
+        spelling: 'Dictation nearly complete; finish next session.'
+      }),
+      currentRow({
+        student: 'Student B',
+        group: 'Resolved',
+        currentSubstep: '5.1',
+        lessonFocus: '5.1 Accuracy',
+        spelling: 'Dictation nearly complete; finish next session.'
+      })
+    ],
+    dailyRows: [
+      dailyRow({
+        group: 'Resolved',
+        substep: '5.1 Accuracy',
+        note: 'The group finished Part 8 dictation.',
+        followUp: 'Continue targeted concept review before advancing.'
+      })
+    ],
+    groupId: 'Resolved',
+    asOf: '2026-09-17',
+    generatedAt: '2026-09-17T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.lessonContinuity.unfinishedWork.some(item => /dictation nearly complete/i.test(item)), false);
+});
 
 test('recognizes conditional wording that says advance to Substep', () => {
   const snapshot = compileGroupPlanningSnapshot({
