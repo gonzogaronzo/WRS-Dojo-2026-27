@@ -97,10 +97,10 @@ const currentRowsForGroup = (rows, groupId, asOf) => rows
 
 const latestHigherAuthorityDailyRows = dailyRows => {
   if (!dailyRows.length) return [];
-  const highestAuthority = Math.min(...dailyRows.map(row => sourceKind(row).authorityRank));
-  const highest = dailyRows.filter(row => sourceKind(row).authorityRank === highestAuthority);
-  const date = maxDate(highest.map(row => field(row, 'Date', 'date')));
-  return highest.filter(row => dateOnly(field(row, 'Date', 'date')) === date);
+  const latestDate = maxDate(dailyRows.map(row => field(row, 'Date', 'date')));
+  const latestRows = dailyRows.filter(row => dateOnly(field(row, 'Date', 'date')) === latestDate);
+  const highestAuthority = Math.min(...latestRows.map(row => sourceKind(row).authorityRank));
+  return latestRows.filter(row => sourceKind(row).authorityRank === highestAuthority);
 };
 
 const deriveAdvancement = ({ currentSubstep, latestDailyRows, fallbackAuthorityRef }) => {
@@ -190,8 +190,10 @@ export function compileGroupPlanningSnapshot({
   if (!current.length) throw new Error(`No Current Snapshot rows found for group ${groupId} on or before ${effectiveAsOf}.`);
 
   const daily = relevantDailyRows(dailyRows, groupId, effectiveAsOf);
-  const latestDaily = latestHigherAuthorityDailyRows(daily);
+  const latestDailyCandidate = latestHigherAuthorityDailyRows(daily);
   const snapshotDate = maxDate(current.map(row => field(row, 'Last Updated', 'lastUpdated'))) || effectiveAsOf;
+  const latestDailyDate = maxDate(latestDailyCandidate.map(row => field(row, 'Date', 'date')));
+  const latestDaily = latestDailyDate && latestDailyDate >= snapshotDate ? latestDailyCandidate : [];
 
   const rawTargets = current.map(row => (
     substepFrom(field(row, 'Lesson Focus', 'lessonFocus'))
