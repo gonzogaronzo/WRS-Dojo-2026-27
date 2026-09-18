@@ -198,6 +198,39 @@ const latestInstructionDate = dailyRows => {
   return maxDate(candidates.map(row => field(row, 'Date', 'date'))) || null;
 };
 
+const completionIsQualified = (value, index) => {
+  const prefix = value.slice(Math.max(0, index - 24), index);
+  return /\b(?:nearly|almost|partly|partially|not)\s*$/i.test(prefix);
+};
+
+const derivePartsCompleted = latestDailyRows => {
+  const completed = new Set();
+  const blockParts = {
+    1: [1, 2, 3, 4, 5],
+    2: [6, 7, 8],
+    3: [9, 10]
+  };
+
+  for (const row of latestDailyRows) {
+    const value = [
+      field(row, 'Note / Data', 'note'),
+      field(row, 'Follow-up / Instructional Response', 'followUp')
+    ].map(text).filter(Boolean).join(' ');
+
+    for (const match of value.matchAll(/\b(?:completed|finished)\s+Block\s+([123])\b/gi)) {
+      if (completionIsQualified(value, match.index ?? 0)) continue;
+      for (const part of blockParts[Number(match[1])] ?? []) completed.add(part);
+    }
+
+    for (const match of value.matchAll(/\b(?:completed|finished)\s+Part\s+(10|[1-9])\b/gi)) {
+      if (completionIsQualified(value, match.index ?? 0)) continue;
+      completed.add(Number(match[1]));
+    }
+  }
+
+  return [...completed].sort((a, b) => a - b);
+};
+
 const deriveDailySubstep = latestDailyRows => {
   const values = unique(latestDailyRows.map(row => substepFrom(field(row, 'Substep / Lesson', 'substepLesson'))));
   return values.length === 1 ? values[0] : '';
@@ -394,7 +427,7 @@ export function compileGroupPlanningSnapshot({
     lessonContinuity: {
       lastInstructionDate: latestInstructionDate(daily),
       lastSubstep: currentSubstep || students[0]?.instructionalTarget?.substep || students[0]?.officialPlacement?.substep || '',
-      partsCompleted: [],
+      partsCompleted: derivePartsCompleted(latestDaily),
       unfinishedWork: unique([
         ...deriveCarryForwardUnfinishedWork(current, latestDaily),
         ...deriveUnfinishedWork(latestDaily)
