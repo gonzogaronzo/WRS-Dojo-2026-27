@@ -162,9 +162,11 @@ test('newer explicit daily target outranks an older Current Snapshot target whil
   });
 
   assert.equal(snapshot.planningReady, true);
-  assert.equal(snapshot.students[0].officialPlacement.substep, '5.4');
+  assert.equal(snapshot.students[0].officialPlacement.substep, '5.5');
+  assert.equal(snapshot.students[0].officialPlacement.status, 'teacher-confirmed-current');
   assert.equal(snapshot.students[0].instructionalTarget.substep, '5.5');
-  assert.equal(snapshot.students[0].instructionalTarget.relationshipToPlacement, 'review-backfill');
+  assert.equal(snapshot.students[0].instructionalTarget.relationshipToPlacement, 'current');
+  assert.equal(snapshot.students[0].lessonFocus, 'introduction');
   assert.equal(snapshot.unresolvedConflicts.some(conflict => conflict.severity === 'nonblocking'), true);
 });
 
