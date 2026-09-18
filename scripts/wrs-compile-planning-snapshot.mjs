@@ -175,13 +175,13 @@ const deriveCarryForwardUnfinishedWork = (currentRows, latestDailyRows) => {
   for (const row of currentRows) {
     const spelling = text(field(row, 'Most Recent Spelling / Dictation', 'spellingDictation'));
     if (!dailyAddressesDictation
-      && /\b(?:remain|unfinished|nearly complete|not complete|finish|resume)\b/i.test(spelling)) {
+      && /\b(?:remain|remains|unfinished|nearly complete|not complete|finish|resume)\b/i.test(spelling)) {
       candidates.push(spelling);
     }
 
     const hfw = text(field(row, 'HFW Status', 'hfwStatus'));
     if (!dailyAddressesHfw
-      && /\b(?:remain|unfinished|not complete|planned|needs?|review)\b/i.test(hfw)) {
+      && /\b(?:remain|remains|unfinished|not complete|planned|needs?|review)\b/i.test(hfw)) {
       candidates.push(hfw);
     }
   }
