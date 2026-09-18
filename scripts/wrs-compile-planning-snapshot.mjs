@@ -86,7 +86,7 @@ const relevantDailyRows = (dailyRows, groupId, asOf) => dailyRows
     const date = dateOnly(field(row, 'Date', 'date'));
     return date && (!asOf || date <= asOf);
   })
-  .sort((a, b) => dateOnly(field(a, 'Date', 'date')).localeCompare(dateOnly(field(b, 'Date', 'date')));
+  .sort((a, b) => dateOnly(field(a, 'Date', 'date')).localeCompare(dateOnly(field(b, 'Date', 'date'))));
 
 const currentRowsForGroup = (rows, groupId, asOf) => rows
   .filter(row => text(field(row, 'Group', 'group')) === groupId)
