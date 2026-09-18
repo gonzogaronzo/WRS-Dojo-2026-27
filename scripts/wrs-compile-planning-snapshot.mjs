@@ -105,10 +105,9 @@ const latestHigherAuthorityDailyRows = dailyRows => {
 
 const deriveAdvancement = ({ currentSubstep, latestDailyRows, fallbackAuthorityRef }) => {
   for (const row of [...latestDailyRows].reverse()) {
-    const combined = [
-      field(row, 'Follow-up / Instructional Response', 'followUp'),
-      field(row, 'Note / Data', 'note')
-    ].map(text).filter(Boolean).join(' ');
+    const followUp = text(field(row, 'Follow-up / Instructional Response', 'followUp'));
+    const note = text(field(row, 'Note / Data', 'note'));
+    const combined = [followUp, note].filter(Boolean).join(' ');
     const match = combined.match(/\b(?:advance|move)\s+(?:on\s+)?to\s+(\d+\.\d+)\b/i);
     if (!match) continue;
     const meta = sourceKind(row);
@@ -125,7 +124,8 @@ const deriveAdvancement = ({ currentSubstep, latestDailyRows, fallbackAuthorityR
       };
     }
 
-    const hasCompletionCondition = /\b(?:finish|complete|after|once|then)\b/i.test(combined);
+    const conditionText = followUp || combined;
+    const hasCompletionCondition = /\b(?:finish|after|once|then|before|when)\b/i.test(conditionText);
     const explicitlyTeacherConfirmed = meta.authorityRank === 1;
     return {
       status: hasCompletionCondition
