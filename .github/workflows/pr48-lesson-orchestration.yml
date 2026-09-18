@@ -11,9 +11,11 @@ on:
       - 'scripts/wrs-lesson-*.mjs'
       - 'scripts/wrs-compile-planning-snapshot.mjs'
       - 'scripts/wrs-build-weekly-queue.mjs'
+      - 'scripts/wrs-refresh-planning-state.mjs'
       - 'tests/lesson-*.test.mjs'
       - 'tests/planning-snapshot-compiler.test.mjs'
       - 'tests/weekly-build-queue.test.mjs'
+      - 'tests/planning-state-refresh.test.mjs'
       - 'schemas/wrs-*.schema.json'
       - 'curriculum/source-packets/**'
       - 'curriculum/pilots/**'
@@ -46,7 +48,7 @@ jobs:
         run: npm ci
 
       - name: Run orchestration, fingerprint, and snapshot-compiler unit tests
-        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/planning-snapshot-compiler.test.mjs tests/weekly-build-queue.test.mjs
+        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/planning-snapshot-compiler.test.mjs tests/weekly-build-queue.test.mjs tests/planning-state-refresh.test.mjs
 
       - name: Parse orchestration schemas, source packets, and pilot runtime
         run: |
