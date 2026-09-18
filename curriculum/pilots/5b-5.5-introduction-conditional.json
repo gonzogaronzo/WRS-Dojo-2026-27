@@ -242,7 +242,7 @@
               "actionType": "TEACH_CARD",
               "displayType": "WRITTEN_WORD",
               "layout": "review-row",
-              "teacherCue": "Read the four 5.4 review words accurately before new instruction.",
+              "teacherCue": "Read volcano, educate, regulate, and deposit accurately before new instruction.",
               "teacherDirections": [
                 "Present volcano, educate, regulate, and deposit; use scooping only as needed."
               ],
