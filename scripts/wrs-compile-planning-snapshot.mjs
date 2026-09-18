@@ -161,6 +161,35 @@ const deriveUnfinishedWork = latestDailyRows => {
   return unique(candidates);
 };
 
+const deriveCarryForwardUnfinishedWork = (currentRows, latestDailyRows) => {
+  const dailyText = latestDailyRows.map(row => [
+    field(row, 'Category', 'category'),
+    field(row, 'Substep / Lesson', 'substepLesson'),
+    field(row, 'Note / Data', 'note'),
+    field(row, 'Follow-up / Instructional Response', 'followUp')
+  ].map(text).filter(Boolean).join(' ')).join(' ');
+
+  const dailyAddressesDictation = /\b(?:dictation|spelling)\b/i.test(dailyText);
+  const dailyAddressesHfw = /\b(?:high[- ]?frequency|hfw|sight words?)\b/i.test(dailyText);
+  const candidates = [];
+
+  for (const row of currentRows) {
+    const spelling = text(field(row, 'Most Recent Spelling / Dictation', 'spellingDictation'));
+    if (!dailyAddressesDictation
+      && /\b(?:remain|unfinished|nearly complete|not complete|finish|resume)\b/i.test(spelling)) {
+      candidates.push(spelling);
+    }
+
+    const hfw = text(field(row, 'HFW Status', 'hfwStatus'));
+    if (!dailyAddressesHfw
+      && /\b(?:remain|unfinished|not complete|planned|needs?|review)\b/i.test(hfw)) {
+      candidates.push(hfw);
+    }
+  }
+
+  return unique(candidates);
+};
+
 const latestInstructionDate = dailyRows => {
   const candidates = dailyRows.filter(row => {
     const type = text(field(row, 'Record Type', 'recordType')).toLowerCase();
@@ -366,7 +395,10 @@ export function compileGroupPlanningSnapshot({
       lastInstructionDate: latestInstructionDate(daily),
       lastSubstep: currentSubstep || students[0]?.instructionalTarget?.substep || students[0]?.officialPlacement?.substep || '',
       partsCompleted: [],
-      unfinishedWork: deriveUnfinishedWork(latestDaily),
+      unfinishedWork: unique([
+        ...deriveCarryForwardUnfinishedWork(current, latestDaily),
+        ...deriveUnfinishedWork(latestDaily)
+      ]),
       passageHistory: [],
       selectionHistoryRef: null
     },
