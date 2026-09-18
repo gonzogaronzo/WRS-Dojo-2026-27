@@ -155,7 +155,7 @@ export function buildWeeklyQueue({
       : 'The next lesson depends on the next dated snapshot plus selection/passage history.';
 
     const validated = validatedFor(validatedArtifacts, groupId, plannedDate);
-    const inputFingerprint = text(validated?.inputFingerprint) || null;
+    const inputFingerprint = text(validated?.currentFingerprint) || null;
     const validatedFingerprint = text(validated?.validatedFingerprint) || null;
 
     let status;
