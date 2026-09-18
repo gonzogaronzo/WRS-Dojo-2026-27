@@ -170,6 +170,47 @@ test('newer explicit daily target outranks an older Current Snapshot target whil
   assert.equal(snapshot.unresolvedConflicts.some(conflict => conflict.severity === 'nonblocking'), true);
 });
 
+
+test('an older teacher note does not override a newer Current Snapshot state', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({
+        student: 'Student A',
+        group: 'Fresh',
+        currentSubstep: '5.5',
+        lessonFocus: '5.5 Accuracy',
+        updated: '2026-09-18'
+      }),
+      currentRow({
+        student: 'Student B',
+        group: 'Fresh',
+        currentSubstep: '5.5',
+        lessonFocus: '5.5 Accuracy',
+        updated: '2026-09-18'
+      })
+    ],
+    dailyRows: [
+      dailyRow({
+        date: '2026-09-17',
+        group: 'Fresh',
+        substep: '5.4 Accuracy',
+        note: 'Earlier work remained in 5.4.',
+        followUp: 'Finish the sentence dictation, then advance to 5.5.'
+      })
+    ],
+    groupId: 'Fresh',
+    asOf: '2026-09-18',
+    generatedAt: '2026-09-18T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.planningReady, true);
+  assert.equal(snapshot.students[0].officialPlacement.substep, '5.5');
+  assert.equal(snapshot.students[0].instructionalTarget.substep, '5.5');
+  assert.equal(snapshot.students[0].lessonFocus, 'accuracy');
+  assert.equal(snapshot.advancement.currentSubstep, '5.5');
+  assert.equal(snapshot.advancement.nextSubstep, null);
+});
+
 test('synthetic compiler tests do not embed current real-student names', () => {
   const source = [
     currentRow.toString(),
