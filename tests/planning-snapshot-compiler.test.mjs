@@ -172,6 +172,34 @@ test('newer explicit daily target outranks an older Current Snapshot target whil
 
 
 
+
+test('recognizes conditional wording that says advance to Substep', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({ student: 'Student A', group: 'Conditional', currentSubstep: '2.5', lessonFocus: '2.5 Accuracy' }),
+      currentRow({ student: 'Student B', group: 'Conditional', currentSubstep: '2.5', lessonFocus: '2.5 Accuracy' })
+    ],
+    dailyRows: [
+      dailyRow({
+        group: 'Conditional',
+        substep: '2.5 Accuracy',
+        note: 'The group will complete charting next.',
+        followUp: 'Advance to Substep 3.1 only if the charting data supports mastery.',
+        source: 'Teacher live note, 2026-09-17'
+      })
+    ],
+    groupId: 'Conditional',
+    asOf: '2026-09-17',
+    generatedAt: '2026-09-17T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.planningReady, true);
+  assert.equal(snapshot.advancement.status, 'ready-pending-completion');
+  assert.equal(snapshot.advancement.currentSubstep, '2.5');
+  assert.equal(snapshot.advancement.nextSubstep, '3.1');
+  assert.match(snapshot.advancement.condition, /only if the charting data supports mastery/i);
+});
+
 test('an unconditional explicit teacher advance is represented as teacher-confirmed-advance', () => {
   const snapshot = compileGroupPlanningSnapshot({
     currentSnapshotRows: [
