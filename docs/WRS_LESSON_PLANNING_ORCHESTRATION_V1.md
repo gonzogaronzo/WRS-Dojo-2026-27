@@ -31,6 +31,14 @@ A lower-authority record must never silently overwrite a higher-authority record
 
 The snapshot is a derived build artifact. It is generated from the live records and should not become another manually maintained student-data store. Real student snapshots are not committed as repository fixtures.
 
+### Live-record snapshot compiler
+
+`scripts/wrs-compile-planning-snapshot.mjs` now compiles a group snapshot from current row exports of `WRS 2026–27 Student Data Log` → `Current Snapshot` plus the matching group tab from `WRS 2026–27 Daily Notes Log`.
+
+The compiler applies the project authority order conservatively: a newer explicit teacher report can supersede an older Current Snapshot value, while review/backfill remains separate from official placement. A future advancement condition such as “finish sentence dictation, then advance to 5.5” becomes `ready-pending-completion`; it is not recorded as completed advancement.
+
+The repository script intentionally does **not** pretend to have Google Drive credentials. A live connector/exporter must supply the two row sets at build time. This keeps Google authentication outside the lesson-planning contracts and prevents a second manually maintained student-data store.
+
 ## Curriculum authority
 
 For source-packet construction, use this precedence:
@@ -139,6 +147,8 @@ The runtime is therefore a prepared 5.5 Introduction path, not a claim that 5B h
 
 The PR48 CI checks the pilot against the PR48 orchestration contracts and against a pinned exact PR40 canonical-gate commit. This keeps the pilot reproducible while the two draft workstreams remain separate and unmerged.
 
+The real pilot now passes that pinned canonical gate. The first failing runs correctly stopped on placeholder-like teacher-selection language; after those strings were replaced with the already selected lesson content, the canonical gate and repository verification both passed without changing the instructional selections.
+
 ## Build fingerprints and targeted regeneration
 
 `lesson:fingerprint` computes a SHA-256 fingerprint from substantive build inputs. It deliberately ignores volatile snapshot/request generation IDs and timestamps while retaining state, packet version/content, planned date, teacher decisions, and selection history.
@@ -192,13 +202,15 @@ Completed in this draft workstream:
 6. Rolling weekly queue contract.
 7. Conditional real-group 5B 5.5 runtime pilot.
 8. Dedicated CI plus a pinned cross-branch check against the active PR40 canonical lesson gate.
+9. Real 5B conditional 5.5 pilot passing the pinned canonical teacher-plan/runtime gate.
+10. Deterministic live-record snapshot compiler for Current Snapshot + Daily Notes row exports, with synthetic authority/conflict tests.
 
 Still required before this becomes the routine weekly planner:
 
-1. Get the real 5B pilot fully green through the pinned canonical gate and record its validated fingerprint.
-2. Connect live snapshot compilation to the Student Data / Daily Notes source so the snapshot is derived at build time rather than manually assembled.
-3. Persist selection/passage history and build fingerprints in the appropriate operational store.
-4. Expand reusable source packets across current instructional paths.
-5. Generate the rolling weekly queue from live group state and regenerate only entries whose fingerprints or entry conditions changed.
+1. Wire the live Sheets/connector export step to feed the snapshot compiler automatically at build time.
+2. Persist selection/passage history and validated build fingerprints in the appropriate operational store.
+3. Expand reusable source packets across current instructional paths.
+4. Generate the rolling weekly queue from live group state and regenerate only entries whose fingerprints or entry conditions changed.
+5. Record a validated fingerprint for the real 5B pilot once its exact live snapshot/build-request inputs are produced by the new feed path.
 
 PR #48 remains draft. No merge or production deployment belongs to this workstream until those gates are proven.
