@@ -175,6 +175,66 @@ test('newer explicit daily target outranks an older Current Snapshot target whil
 
 
 
+
+test('derives explicitly completed Block and Part numbers without treating nearly-complete work as done', () => {
+  const blockSnapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({ student: 'Student A', group: 'Parts', currentSubstep: '2.5', lessonFocus: '2.5 Accuracy' }),
+      currentRow({ student: 'Student B', group: 'Parts', currentSubstep: '2.5', lessonFocus: '2.5 Accuracy' })
+    ],
+    dailyRows: [
+      dailyRow({
+        group: 'Parts',
+        substep: '2.5 Accuracy',
+        note: 'The group completed Block 1 and then began Part 9.',
+        followUp: 'Resume Part 9 at the stopping point.'
+      })
+    ],
+    groupId: 'Parts',
+    asOf: '2026-09-17',
+    generatedAt: '2026-09-17T18:00:00.000Z'
+  });
+  assert.deepEqual(blockSnapshot.lessonContinuity.partsCompleted, [1, 2, 3, 4, 5]);
+
+  const partSnapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({ student: 'Student A', group: 'Part8', currentSubstep: '5.1', lessonFocus: '5.1 Accuracy' }),
+      currentRow({ student: 'Student B', group: 'Part8', currentSubstep: '5.1', lessonFocus: '5.1 Accuracy' })
+    ],
+    dailyRows: [
+      dailyRow({
+        group: 'Part8',
+        substep: '5.1 Accuracy',
+        note: 'The group finished Part 8 dictation.',
+        followUp: 'Continue concept review.'
+      })
+    ],
+    groupId: 'Part8',
+    asOf: '2026-09-17',
+    generatedAt: '2026-09-17T18:00:00.000Z'
+  });
+  assert.deepEqual(partSnapshot.lessonContinuity.partsCompleted, [8]);
+
+  const nearlySnapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({ student: 'Student A', group: 'Nearly', currentSubstep: '5.4', lessonFocus: '5.4 Accuracy' }),
+      currentRow({ student: 'Student B', group: 'Nearly', currentSubstep: '5.4', lessonFocus: '5.4 Accuracy' })
+    ],
+    dailyRows: [
+      dailyRow({
+        group: 'Nearly',
+        substep: '5.4 Accuracy',
+        note: 'The group nearly completed Part 8 dictation; only the sentences remain.',
+        followUp: 'Finish the sentence dictation, then advance to 5.5.'
+      })
+    ],
+    groupId: 'Nearly',
+    asOf: '2026-09-17',
+    generatedAt: '2026-09-17T18:00:00.000Z'
+  });
+  assert.deepEqual(nearlySnapshot.lessonContinuity.partsCompleted, []);
+});
+
 test('carries forward unresolved dictation when the newer daily note does not address it', () => {
   const snapshot = compileGroupPlanningSnapshot({
     currentSnapshotRows: [
