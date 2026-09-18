@@ -160,6 +160,20 @@ const deriveDailySubstep = latestDailyRows => {
   return values.length === 1 ? values[0] : '';
 };
 
+const deriveDailyFocus = latestDailyRows => {
+  const values = unique(latestDailyRows.map(row => normalizeFocus(field(row, 'Substep / Lesson', 'substepLesson'))));
+  return values.length === 1 ? values[0] : '';
+};
+
+const rowSignalsReviewBackfill = row => {
+  const combined = [
+    field(row, 'Substep / Lesson', 'substepLesson'),
+    field(row, 'Note / Data', 'note'),
+    field(row, 'Follow-up / Instructional Response', 'followUp')
+  ].map(text).filter(Boolean).join(' ');
+  return /\b(?:review|backfill)\b/i.test(combined);
+};
+
 export function compileGroupPlanningSnapshot({
   currentSnapshotRows,
   dailyRows,
@@ -187,7 +201,9 @@ export function compileGroupPlanningSnapshot({
   const dailyTarget = deriveDailySubstep(latestDaily);
   const currentSubstep = dailyTarget || (currentTargets.length === 1 ? currentTargets[0] : '');
 
-  const focuses = unique(current.map(row => normalizeFocus(field(row, 'Lesson Focus', 'lessonFocus'))));
+  const currentFocuses = unique(current.map(row => normalizeFocus(field(row, 'Lesson Focus', 'lessonFocus'))));
+  const dailyFocus = deriveDailyFocus(latestDaily);
+  const resolvedFocus = dailyFocus || (currentFocuses.length === 1 ? currentFocuses[0] : '');
   const conflicts = [];
 
   if (currentTargets.length > 1 && !dailyTarget) {
@@ -200,12 +216,12 @@ export function compileGroupPlanningSnapshot({
     });
   }
 
-  if (focuses.length > 1) {
+  if (currentFocuses.length > 1 && !dailyFocus) {
     conflicts.push({
       conflictId: `${groupId}-focus-conflict-${effectiveAsOf}`,
       severity: 'blocking',
-      description: `Current Snapshot rows resolve to multiple lesson focuses: ${focuses.join(', ')}.`,
-      sources: focuses.map(value => `current-snapshot:focus:${value}`),
+      description: `Current Snapshot rows resolve to multiple lesson focuses: ${currentFocuses.join(', ')}.`,
+      sources: currentFocuses.map(value => `current-snapshot:focus:${value}`),
       blocksPlanning: true
     });
   }
@@ -228,17 +244,30 @@ export function compileGroupPlanningSnapshot({
 
   const students = current.map(row => {
     const name = text(field(row, 'Student', 'student'));
-    const officialSubstep = substepFrom(field(row, 'Current Substep', 'currentSubstep'));
-    const target = currentSubstep || substepFrom(field(row, 'Lesson Focus', 'lessonFocus')) || officialSubstep;
-    const focus = normalizeFocus(field(row, 'Lesson Focus', 'lessonFocus')) || focuses[0] || 'accuracy';
+    const snapshotOfficialSubstep = substepFrom(field(row, 'Current Substep', 'currentSubstep'));
+    const target = currentSubstep || substepFrom(field(row, 'Lesson Focus', 'lessonFocus')) || snapshotOfficialSubstep;
+    const currentRowSignalsReview = /\b(?:review|backfill)\b/i.test(text(field(row, 'Lesson Focus', 'lessonFocus')));
+    const dailySignalsReview = latestDaily.some(rowSignalsReviewBackfill);
+    const newerTeacherCurrent = Boolean(
+      dailyTarget
+      && dailyTarget !== snapshotOfficialSubstep
+      && !currentRowSignalsReview
+      && !dailySignalsReview
+      && latestDaily.some(row => sourceKind(row).authorityRank === 1)
+    );
+    const officialSubstep = newerTeacherCurrent ? dailyTarget : snapshotOfficialSubstep;
+    const officialSourceRef = newerTeacherCurrent
+      ? `daily:${dateOnly(field(latestDaily[0], 'Date', 'date'))}:explicit-teacher-report`
+      : fallbackAuthorityRef;
+    const focus = resolvedFocus || normalizeFocus(field(row, 'Lesson Focus', 'lessonFocus')) || 'accuracy';
 
     return {
       studentId: `${groupId.toLowerCase()}-${slug(name)}`,
       name,
       officialPlacement: {
         substep: officialSubstep,
-        status: 'official',
-        sourceRef: fallbackAuthorityRef
+        status: newerTeacherCurrent ? 'teacher-confirmed-current' : 'official',
+        sourceRef: officialSourceRef
       },
       instructionalTarget: {
         substep: target,
@@ -297,7 +326,7 @@ export function compileGroupPlanningSnapshot({
   const blockingConflicts = conflicts.filter(item => item.blocksPlanning);
   const blockers = [];
   if (!currentSubstep) blockers.push('Group instructional target could not be resolved.');
-  if (!focuses.length) blockers.push('Lesson focus could not be resolved.');
+  if (!resolvedFocus) blockers.push('Lesson focus could not be resolved.');
   if (students.some(student => !student.officialPlacement.substep)) blockers.push('One or more official placements are missing.');
   if (blockingConflicts.length) blockers.push(...blockingConflicts.map(item => item.description));
 
