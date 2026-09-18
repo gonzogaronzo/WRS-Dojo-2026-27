@@ -172,7 +172,7 @@ test('matching validated fingerprints let an unchanged entry be reused', () => {
     packetRegistry: { '5.5': verifiedPacket('5.5', '1.0.4') },
     validatedArtifacts: {
       'Validated:2026-09-21': {
-        inputFingerprint: fingerprint,
+        currentFingerprint: fingerprint,
         validatedFingerprint: fingerprint,
         runtimeRef: 'runtime:test',
         teacherPlanRef: 'teacher-plan:test',
