@@ -163,7 +163,6 @@ const deriveUnfinishedWork = latestDailyRows => {
 
 const deriveCarryForwardUnfinishedWork = (currentRows, latestDailyRows) => {
   const dailyText = latestDailyRows.map(row => [
-    field(row, 'Category', 'category'),
     field(row, 'Substep / Lesson', 'substepLesson'),
     field(row, 'Note / Data', 'note'),
     field(row, 'Follow-up / Instructional Response', 'followUp')
