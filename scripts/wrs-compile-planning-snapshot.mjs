@@ -114,11 +114,25 @@ const deriveAdvancement = ({ currentSubstep, latestDailyRows, fallbackAuthorityR
     const meta = sourceKind(row);
     const date = dateOnly(field(row, 'Date', 'date'));
     const sourceRef = `daily:${date}:${meta.kind}`;
+    const nextSubstep = match[1];
+    if (nextSubstep === currentSubstep) {
+      return {
+        status: 'continue',
+        currentSubstep,
+        nextSubstep: null,
+        condition: null,
+        authorityRef: sourceRef
+      };
+    }
+
     const hasCompletionCondition = /\b(?:finish|complete|after|once|then)\b/i.test(combined);
+    const explicitlyTeacherConfirmed = meta.authorityRank === 1;
     return {
-      status: hasCompletionCondition ? 'ready-pending-completion' : 'continue',
+      status: hasCompletionCondition
+        ? 'ready-pending-completion'
+        : (explicitlyTeacherConfirmed ? 'teacher-confirmed-advance' : 'continue'),
       currentSubstep,
-      nextSubstep: match[1],
+      nextSubstep: nextSubstep,
       condition: hasCompletionCondition ? combined : null,
       authorityRef: sourceRef
     };
@@ -262,6 +276,9 @@ export function compileGroupPlanningSnapshot({
       ? `daily:${dateOnly(field(latestDaily[0], 'Date', 'date'))}:explicit-teacher-report`
       : fallbackAuthorityRef;
     const focus = resolvedFocus || normalizeFocus(field(row, 'Lesson Focus', 'lessonFocus')) || 'accuracy';
+    const dailyAuthorityRef = latestDaily.length
+      ? `daily:${dateOnly(field(latestDaily[0], 'Date', 'date'))}:${sourceKind(latestDaily[0]).kind}`
+      : fallbackAuthorityRef;
 
     return {
       studentId: `${groupId.toLowerCase()}-${slug(name)}`,
@@ -274,7 +291,7 @@ export function compileGroupPlanningSnapshot({
       instructionalTarget: {
         substep: target,
         relationshipToPlacement: target === officialSubstep ? 'current' : 'review-backfill',
-        sourceRef: dailyTarget ? `daily:${dateOnly(field(latestDaily[0], 'Date', 'date'))}` : fallbackAuthorityRef
+        sourceRef: dailyTarget ? dailyAuthorityRef : fallbackAuthorityRef
       },
       lessonFocus: focus,
       latestData: {
