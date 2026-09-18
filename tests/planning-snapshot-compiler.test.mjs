@@ -171,6 +171,33 @@ test('newer explicit daily target outranks an older Current Snapshot target whil
 });
 
 
+
+test('an unconditional explicit teacher advance is represented as teacher-confirmed-advance', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({ student: 'Student A', group: 'Go', currentSubstep: '5.4', lessonFocus: '5.4 Accuracy' }),
+      currentRow({ student: 'Student B', group: 'Go', currentSubstep: '5.4', lessonFocus: '5.4 Accuracy' })
+    ],
+    dailyRows: [
+      dailyRow({
+        group: 'Go',
+        substep: '5.4 Accuracy',
+        note: 'Current work is complete.',
+        followUp: 'Advance to 5.5.',
+        source: 'Teacher live note, 2026-09-17'
+      })
+    ],
+    groupId: 'Go',
+    asOf: '2026-09-17',
+    generatedAt: '2026-09-17T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.planningReady, true);
+  assert.equal(snapshot.advancement.status, 'teacher-confirmed-advance');
+  assert.equal(snapshot.advancement.currentSubstep, '5.4');
+  assert.equal(snapshot.advancement.nextSubstep, '5.5');
+});
+
 test('an older teacher note does not override a newer Current Snapshot state', () => {
   const snapshot = compileGroupPlanningSnapshot({
     currentSnapshotRows: [
