@@ -444,6 +444,98 @@ test('same-day teacher completion plus explicit begin-next-substep resolves to t
   assert.equal(snapshot.advancement.status, 'continue');
   assert.equal(snapshot.advancement.currentSubstep, '7.5');
   assert.equal(snapshot.advancement.nextSubstep, null);
+  assert.equal(snapshot.lessonContinuity.lastSubstep, '7.4');
+});
+
+test('explicit current-Substep teaching owed blocks a conflicting Accuracy focus', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({
+        student: 'Student A',
+        group: 'IntroConflict',
+        currentSubstep: '5.2',
+        lessonFocus: '5.2 Accuracy',
+        updated: '2026-09-18',
+        next: 'Begin next week with explicit 5.2 instruction.'
+      }),
+      currentRow({
+        student: 'Student B',
+        group: 'IntroConflict',
+        currentSubstep: '5.2',
+        lessonFocus: '5.2 Accuracy',
+        updated: '2026-09-18',
+        next: 'Begin next week with explicit 5.2 instruction.'
+      })
+    ],
+    dailyRows: [
+      dailyRow({
+        date: '2026-09-18',
+        group: 'IntroConflict',
+        students: 'Student A; Student B',
+        substep: '5.2 Accuracy',
+        note: 'The group has not yet received a full, proper 5.2 lesson and important 5.2 content still needs to be explicitly taught.',
+        followUp: 'Next week, begin with explicit 5.2 instruction before moving forward.',
+        source: 'Teacher live note, 2026-09-18'
+      })
+    ],
+    groupId: 'IntroConflict',
+    asOf: '2026-09-18',
+    generatedAt: '2026-09-18T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.students[0].instructionalTarget.substep, '5.2');
+  assert.equal(snapshot.students[0].lessonFocus, 'accuracy');
+  assert.equal(snapshot.planningReady, false);
+  assert.equal(
+    snapshot.unresolvedConflicts.some(conflict => conflict.conflictId.includes('explicit-instruction-focus-conflict')),
+    true
+  );
+  assert.match(snapshot.planningBlockers.join(' '), /Teacher must confirm Introduction versus the recorded focus/i);
+});
+
+test('same-day advance preserves prior taught Substep while keeping prior follow-up visible', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({
+        student: 'Student A',
+        group: 'PriorFollowUp',
+        currentSubstep: '5.5',
+        lessonFocus: '5.5 Introduction',
+        updated: '2026-09-18',
+        spelling: '5.4 marked complete by teacher on 2026-09-18.'
+      }),
+      currentRow({
+        student: 'Student B',
+        group: 'PriorFollowUp',
+        currentSubstep: '5.5',
+        lessonFocus: '5.5 Introduction',
+        updated: '2026-09-18',
+        spelling: '5.4 marked complete by teacher on 2026-09-18.'
+      })
+    ],
+    dailyRows: [
+      dailyRow({
+        date: '2026-09-18',
+        group: 'PriorFollowUp',
+        students: 'Student A; Student B',
+        substep: '5.4 Accuracy',
+        note: 'Substep 5.4 is complete. Student B still needs final charting.',
+        followUp: 'Begin 5.5 next week. Complete Student B final charting.',
+        source: 'Teacher live note, 2026-09-18'
+      })
+    ],
+    groupId: 'PriorFollowUp',
+    asOf: '2026-09-18',
+    generatedAt: '2026-09-18T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.planningReady, true);
+  assert.equal(snapshot.students[0].instructionalTarget.substep, '5.5');
+  assert.equal(snapshot.students[0].lessonFocus, 'introduction');
+  assert.equal(snapshot.lessonContinuity.lastSubstep, '5.4');
+  assert.equal(snapshot.lessonContinuity.unfinishedWork.some(item => /final charting/i.test(item)), true);
+  assert.equal(snapshot.advancement.status, 'continue');
+  assert.equal(snapshot.advancement.currentSubstep, '5.5');
 });
 
 test('an older teacher note does not override a newer Current Snapshot state', () => {
