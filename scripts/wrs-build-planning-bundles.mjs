@@ -73,7 +73,8 @@ export function buildPlanningBundles({
       targetSubstep: target.substep,
       route: text(entry.lessonRoute),
       snapshot,
-      packet
+      packet,
+      createdAt: generatedAt
     });
     const fingerprint = computeLessonBuildFingerprint({
       snapshot,
