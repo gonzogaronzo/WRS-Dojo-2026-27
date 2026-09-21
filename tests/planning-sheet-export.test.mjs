@@ -8,6 +8,7 @@ import {
   DAILY_NOTE_TABS,
   assertPlanningExportAuthorized,
   parseAllowedTeacherUids,
+  parseTeacherFocusOverrides,
   readPlanningSheetValues
 } from '../functions/planningSheetRead.js';
 
@@ -62,6 +63,29 @@ test('planning export allowlist is explicit and fail-closed', () => {
   );
   assert.doesNotThrow(
     () => assertPlanningExportAuthorized({ authUid: 'teacher-a', allowedTeacherUids: ['teacher-a'] })
+  );
+});
+
+test('teacher focus overrides are normalized and restricted to supported groups', () => {
+  assert.deepEqual(
+    parseTeacherFocusOverrides({
+      '4A': 'Introduction',
+      '5A': 'fluency',
+      '5B': ''
+    }),
+    {
+      '4A': 'Introduction',
+      '5A': 'Automaticity/Fluency'
+    }
+  );
+
+  assert.throws(
+    () => parseTeacherFocusOverrides({ Unknown: 'Accuracy' }),
+    /Unsupported planning group/i
+  );
+  assert.throws(
+    () => parseTeacherFocusOverrides({ '4A': 'Something else' }),
+    /must be Introduction, Accuracy, or Automaticity\/Fluency/i
   );
 });
 
@@ -130,6 +154,8 @@ test('callable planning export is auth-gated and does not accept spreadsheet IDs
   assert.match(source, /WRS_PLANNING_ALLOWED_TEACHER_UIDS/);
   assert.match(source, /dataSpreadsheetId:\s*DATA_LOG_SPREADSHEET_ID/);
   assert.match(source, /dailySpreadsheetId:\s*DAILY_LOG_SPREADSHEET_ID/);
+  assert.match(source, /parseTeacherFocusOverrides\(request\.data\?\.focusOverrides\)/);
+  assert.match(source, /teacherFocusOverride:\s*focusOverrides\[group\.groupId\]/);
   assert.doesNotMatch(source, /request\.data\?\.(?:spreadsheetId|dataSpreadsheetId|dailySpreadsheetId|sheetName|tabName)/);
 });
 
