@@ -74,12 +74,22 @@ const snapshot = ({
   planningBlockers: blockers
 });
 
-const verifiedPacket = (substep, packetVersion = '1.0.0') => ({
-  packetId: `wrs-${substep}-source-packet-v1`,
-  packetVersion,
-  verified: true,
-  path: `curriculum/source-packets/${substep}.v1.json`
-});
+const verifiedPacket = (substep, packetVersion = '1.0.0') => {
+  const packet = {
+    schemaVersion: 'wrs-substep-source-packet-v1',
+    packetId: `wrs-${substep}-source-packet-v1`,
+    substep,
+    packetVersion,
+    verification: { status: 'verified', blockingIssues: [] }
+  };
+  return {
+    packetId: packet.packetId,
+    packetVersion,
+    verified: true,
+    path: `curriculum/source-packets/${substep}.v1.json`,
+    packet
+  };
+};
 
 test('conditional advancement prepares the next Substep but waits on the entry condition', () => {
   const snap = snapshot({
@@ -164,12 +174,22 @@ test('planning blockers fail closed before packet availability can matter', () =
   assert.deepEqual(queue.entries[0].blockers, ['Roster conflict must be resolved.']);
 });
 
-test('matching validated fingerprints let an unchanged entry be reused', () => {
-  const fingerprint = 'sha256:' + 'a'.repeat(64);
-  const queue = buildWeeklyQueue({
-    snapshots: [snapshot({ groupId: 'Validated', substep: '5.5' })],
+test('matching fresh and validated fingerprints let an unchanged entry be reused', () => {
+  const snap = snapshot({ groupId: 'Validated', substep: '5.5' });
+  const registry = { '5.5': verifiedPacket('5.5', '1.0.4') };
+  const first = buildWeeklyQueue({
+    snapshots: [snap],
     weekOf: '2026-09-21',
-    packetRegistry: { '5.5': verifiedPacket('5.5', '1.0.4') },
+    packetRegistry: registry,
+    generatedAt: '2026-09-18T12:00:00.000Z'
+  });
+  const fingerprint = first.entries[0].inputFingerprint;
+  assert.match(fingerprint, /^sha256:[a-f0-9]{64}$/);
+
+  const queue = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: registry,
     validatedArtifacts: {
       'Validated:2026-09-21': {
         currentFingerprint: fingerprint,
@@ -179,13 +199,109 @@ test('matching validated fingerprints let an unchanged entry be reused', () => {
         lastValidatedAt: '2026-09-18T12:00:00.000Z'
       }
     },
-    generatedAt: '2026-09-18T12:00:00.000Z'
+    generatedAt: '2026-09-18T14:00:00.000Z'
   });
 
   const entry = queue.entries[0];
   assert.equal(entry.status, 'validated');
   assert.equal(entry.runtimeRef, 'runtime:test');
   assert.equal(entry.validatedFingerprint, fingerprint);
+});
+
+test('changed live instructional state forces regeneration instead of stale reuse', () => {
+  const original = snapshot({ groupId: 'ChangedState', substep: '5.5' });
+  const registry = { '5.5': verifiedPacket('5.5', '1.0.4') };
+  const initial = buildWeeklyQueue({
+    snapshots: [original],
+    weekOf: '2026-09-21',
+    packetRegistry: registry
+  });
+  const oldFingerprint = initial.entries[0].inputFingerprint;
+
+  const changed = structuredClone(original);
+  changed.groupTroubleSpots = ['Newly observed decoding trouble.'];
+
+  const queue = buildWeeklyQueue({
+    snapshots: [changed],
+    weekOf: '2026-09-21',
+    packetRegistry: registry,
+    validatedArtifacts: {
+      'ChangedState:2026-09-21': {
+        currentFingerprint: oldFingerprint,
+        validatedFingerprint: oldFingerprint,
+        runtimeRef: 'runtime:old',
+        teacherPlanRef: 'teacher-plan:old',
+        lastValidatedAt: '2026-09-18T12:00:00.000Z'
+      }
+    }
+  });
+
+  assert.equal(queue.entries[0].status, 'needs-regeneration');
+  assert.notEqual(queue.entries[0].inputFingerprint, oldFingerprint);
+});
+
+test('packet changes force regeneration instead of stale reuse', () => {
+  const snap = snapshot({ groupId: 'ChangedPacket', substep: '5.5' });
+  const oldRegistry = { '5.5': verifiedPacket('5.5', '1.0.4') };
+  const initial = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: oldRegistry
+  });
+  const oldFingerprint = initial.entries[0].inputFingerprint;
+  const newRegistry = { '5.5': verifiedPacket('5.5', '1.0.5') };
+
+  const queue = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: newRegistry,
+    validatedArtifacts: {
+      'ChangedPacket:2026-09-21': {
+        currentFingerprint: oldFingerprint,
+        validatedFingerprint: oldFingerprint,
+        runtimeRef: 'runtime:old',
+        teacherPlanRef: 'teacher-plan:old',
+        lastValidatedAt: '2026-09-18T12:00:00.000Z'
+      }
+    }
+  });
+
+  assert.equal(queue.entries[0].status, 'needs-regeneration');
+  assert.notEqual(queue.entries[0].inputFingerprint, oldFingerprint);
+});
+
+test('selection-history changes force regeneration instead of stale reuse', () => {
+  const snap = snapshot({ groupId: 'ChangedHistory', substep: '5.5' });
+  const registry = { '5.5': verifiedPacket('5.5', '1.0.4') };
+  const originalHistory = { schemaVersion: 'synthetic-history-v1', passages: ['one'] };
+  const initial = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: registry,
+    selectionHistories: { ChangedHistory: originalHistory }
+  });
+  const oldFingerprint = initial.entries[0].inputFingerprint;
+
+  const queue = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: registry,
+    selectionHistories: {
+      ChangedHistory: { schemaVersion: 'synthetic-history-v1', passages: ['one', 'two'] }
+    },
+    validatedArtifacts: {
+      'ChangedHistory:2026-09-21': {
+        currentFingerprint: oldFingerprint,
+        validatedFingerprint: oldFingerprint,
+        runtimeRef: 'runtime:old',
+        teacherPlanRef: 'teacher-plan:old',
+        lastValidatedAt: '2026-09-18T12:00:00.000Z'
+      }
+    }
+  });
+
+  assert.equal(queue.entries[0].status, 'needs-regeneration');
+  assert.notEqual(queue.entries[0].inputFingerprint, oldFingerprint);
 });
 
 test('queue tests use synthetic students only', () => {
