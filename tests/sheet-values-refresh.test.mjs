@@ -24,6 +24,8 @@ const currentHeaders = [
   'Notes / Follow-up'
 ];
 
+const HASH = `sha256:${'a'.repeat(64)}`;
+
 const dailyHeaders = [
   'Date',
   'Group',
@@ -82,6 +84,39 @@ test('raw connector/Sheets values become the canonical live planning feed shape'
   assert.equal(feed.groups[0].groupId, 'Synthetic');
   assert.equal(feed.groups[0].dailyRows.length, 1);
   assert.equal(feed.groups[0].dailyRows[0]['Substep / Lesson'], '5.5 Introduction');
+});
+
+test('raw sheet-values refresh reuses a durable validated artifact when fingerprints match', () => {
+  const withValidatedArtifact = {
+    ...sheetExport,
+    validatedArtifacts: {
+      'Synthetic:2026-09-21': {
+        currentFingerprint: HASH,
+        validatedFingerprint: HASH,
+        runtimeRef: 'runtime:synthetic',
+        teacherPlanRef: 'teacher-plan:synthetic',
+        lastValidatedAt: '2026-09-21T18:00:00.000Z'
+      }
+    }
+  };
+
+  const report = refreshFromSheetValues({
+    exportData: withValidatedArtifact,
+    packetRegistry: {
+      '5.5': {
+        packetId: 'wrs-5.5-source-packet-v1',
+        packetVersion: 'synthetic',
+        verified: true,
+        path: 'synthetic'
+      }
+    },
+    generatedAt: '2026-09-21T18:05:00.000Z'
+  });
+
+  assert.equal(report.status, 'PASS');
+  assert.equal(report.queue.entries[0].status, 'validated');
+  assert.equal(report.queue.entries[0].runtimeRef, 'runtime:synthetic');
+  assert.equal(report.queue.entries[0].teacherPlanRef, 'teacher-plan:synthetic');
 });
 
 test('raw sheet-values refresh compiles a planning-ready snapshot and unblocked queue entry', () => {
