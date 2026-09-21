@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wrs-dojo.local/schemas/wrs-group-selection-history-v1.schema.json",
+  "title": "WRS Group Selection History v1",
+  "description": "Persistent group-level lesson selection and passage history. This is continuity state, not curriculum authority and not student assessment data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "schoolYear",
+    "groupId",
+    "updatedAt",
+    "lessons"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wrs-group-selection-history-v1"
+    },
+    "schoolYear": {
+      "const": "2026-27"
+    },
+    "groupId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lessons": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/lessonEvent"
+      }
+    }
+  },
+  "$defs": {
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "lessonEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "lessonId",
+        "date",
+        "substep",
+        "focus",
+        "completionStatus",
+        "completedParts",
+        "sourceRef",
+        "selections"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lessonId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "substep": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        },
+        "focus": {
+          "enum": [
+            "introduction",
+            "accuracy",
+            "automaticity-fluency"
+          ]
+        },
+        "completionStatus": {
+          "enum": [
+            "completed",
+            "partial"
+          ]
+        },
+        "completedParts": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "uniqueItems": true
+        },
+        "sourceRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selections": {
+          "$ref": "#/$defs/selections"
+        }
+      }
+    },
+    "selections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "part3",
+        "part4",
+        "part5",
+        "part8",
+        "part9"
+      ],
+      "properties": {
+        "part3": {
+          "$ref": "#/$defs/part3"
+        },
+        "part4": {
+          "$ref": "#/$defs/part4"
+        },
+        "part5": {
+          "$ref": "#/$defs/part5"
+        },
+        "part8": {
+          "$ref": "#/$defs/part8"
+        },
+        "part9": {
+          "$ref": "#/$defs/part9"
+        }
+      }
+    },
+    "part3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currentCards",
+        "hfw",
+        "wordElements"
+      ],
+      "properties": {
+        "currentCards": {
+          "$ref": "#/$defs/stringList"
+        },
+        "hfw": {
+          "$ref": "#/$defs/stringList"
+        },
+        "wordElements": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "part4": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "practiceWords",
+        "chartingWords"
+      ],
+      "properties": {
+        "practiceWords": {
+          "$ref": "#/$defs/stringList"
+        },
+        "chartingWords": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "part5": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "page",
+        "sentences"
+      ],
+      "properties": {
+        "page": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sentences": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "part8": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sounds",
+        "wordElements",
+        "realWords",
+        "nonsenseWords",
+        "phrases",
+        "sentences"
+      ],
+      "properties": {
+        "sounds": {
+          "$ref": "#/$defs/stringList"
+        },
+        "wordElements": {
+          "$ref": "#/$defs/stringList"
+        },
+        "realWords": {
+          "$ref": "#/$defs/stringList"
+        },
+        "nonsenseWords": {
+          "$ref": "#/$defs/stringList"
+        },
+        "phrases": {
+          "$ref": "#/$defs/stringList"
+        },
+        "sentences": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "part9": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passageId",
+        "title",
+        "page",
+        "status"
+      ],
+      "properties": {
+        "passageId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "page": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "started",
+            "not-used"
+          ]
+        }
+      }
+    }
+  }
+}
