@@ -165,6 +165,61 @@ test('group compilation failures are reported instead of silently dropping into 
   );
 });
 
+
+test('refresh carries persisted passage history into the derived group snapshot', () => {
+  const selectionHistory = {
+    schemaVersion: 'wrs-group-selection-history-v1',
+    schoolYear: '2026-27',
+    groupId: 'A',
+    updatedAt: '2026-09-18T10:00:00.000Z',
+    lessons: [{
+      eventId: 'A:2026-09-18:lesson-a',
+      lessonId: 'lesson-a',
+      date: '2026-09-18',
+      substep: '5.5',
+      focus: 'introduction',
+      completionStatus: 'partial',
+      completedParts: [1,2,3,4,5],
+      sourceRef: 'daily:2026-09-18:teacher',
+      selections: {
+        part3: { currentCards: [], hfw: [], wordElements: [] },
+        part4: { practiceWords: [], chartingWords: [] },
+        part5: { page: null, sentences: [] },
+        part8: { sounds: [], wordElements: [], realWords: [], nonsenseWords: [], phrases: [], sentences: [] },
+        part9: {
+          passageId: 'synthetic-passage::128',
+          title: 'Synthetic Passage',
+          page: '128',
+          status: 'started'
+        }
+      }
+    }]
+  };
+
+  const feed = {
+    schemaVersion: 'wrs-live-planning-feed-v1',
+    schoolYear: '2026-27',
+    asOf: '2026-09-18',
+    weekOf: '2026-09-21',
+    currentSnapshotRows: [
+      currentRow({ student: 'Student A', group: 'A', currentSubstep: '5.5', lessonFocus: '5.5 Introduction' })
+    ],
+    groups: [
+      { groupId: 'A', dailyRows: [], selectionHistory }
+    ]
+  };
+
+  const report = refreshPlanningState({
+    feed,
+    packetRegistry: { '5.5': packet('5.5') },
+    generatedAt: '2026-09-18T12:00:00.000Z'
+  });
+
+  assert.equal(report.status, 'PASS');
+  assert.equal(report.snapshots[0].lessonContinuity.selectionHistoryRef, 'selection-history:A');
+  assert.equal(report.snapshots[0].lessonContinuity.passageHistory[0].title, 'Synthetic Passage');
+});
+
 test('refresh tests do not embed current real-student names', () => {
   const source = [currentRow.toString(), dailyRow.toString()].join('\n');
   for (const name of ['Oliver', 'Ethan', 'Alex', 'Finn', 'Maya', 'Enrique']) {
