@@ -238,6 +238,18 @@ If reality differs from the queue, regenerate only the affected group. Do not sh
 
 The executable queue builder is `scripts/wrs-build-weekly-queue.mjs`. The one-command refresh wrapper is `scripts/wrs-refresh-planning-state.mjs`; it accepts the live/exported Current Snapshot and Daily Notes rows, compiles each group snapshot, and then builds the rolling queue. Missing or unverified source packets block only the affected group entry. The repository code does not pretend to hold Google Drive credentials; the live connector/export step supplies the rows at execution time.
 
+### Validated artifact recording
+
+After a runtime has passed the **final** orchestration gate, `scripts/wrs-record-validated-artifact.mjs` creates the persistence-ready validation record. It refuses to record validation when:
+
+- the planning bundle is blocked;
+- the orchestration report is only a preflight rather than a final gate;
+- snapshot, packet, request, or contract identity differs between the bundle and final report;
+- the bundle fingerprint no longer matches its substantive inputs;
+- runtime or teacher-plan artifact references are missing.
+
+A successful record stores the exact fresh fingerprint as both current and validated fingerprint together with runtime/teacher-plan references and the validation timestamp. The resulting object is shaped for the existing callable-only operational-state persistence path.
+
 ## Routine weekly execution
 
 The intended normal weekly path is now explicit:
@@ -249,7 +261,8 @@ The intended normal weekly path is now explicit:
 5. For queue entries marked `validated`, reuse the referenced validated artifacts.
 6. For `needs-build` or `needs-regeneration`, give only that group's planning bundle to lesson generation. Do not re-search old lesson files to reconstruct state or source authority.
 7. Run orchestration preflight, the active teacher-plan instructional contract, and runtime compatibility gates before rendering/exporting the lesson.
-8. After instruction, record explicit completed/started Parts and selection/passage evidence, then persist the updated history and validated artifact metadata for the next refresh.
+8. After a generated lesson passes the final orchestration gate, run `lesson:record-validation` and persist its validated-artifact metadata through operational state.
+9. After instruction, record explicit completed/started Parts and selection/passage evidence, then persist the updated history for the next refresh.
 
 `awaiting-condition` remains a prepared conditional path, not proof that advancement occurred. `blocked` remains fail-closed.
 
