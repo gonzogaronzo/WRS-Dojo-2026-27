@@ -273,6 +273,39 @@ const deriveDailyFocus = latestDailyRows => {
   return values.length === 1 ? values[0] : '';
 };
 
+const deriveExplicitIntroNeed = (latestDailyRows, currentSubstep) => {
+  if (!currentSubstep) return null;
+
+  for (const row of latestDailyRows) {
+    const meta = sourceKind(row);
+    if (meta.authorityRank !== 1) continue;
+
+    const combined = [
+      field(row, 'Substep / Lesson', 'substepLesson'),
+      field(row, 'Note / Data', 'note'),
+      field(row, 'Follow-up / Instructional Response', 'followUp')
+    ].map(text).filter(Boolean).join(' ');
+
+    if (!combined.includes(currentSubstep)) continue;
+
+    const explicitlyOwed = (
+      /\b(?:not\s+yet|still)\b.{0,80}\b(?:full|proper|explicit)\b.{0,80}\b(?:lesson|instruction|teach|taught)\b/i.test(combined)
+      || /\b(?:begin|start)\b.{0,50}\bexplicit\b.{0,40}\b(?:instruction|lesson|teach)\b/i.test(combined)
+      || /\b(?:content|information)\b.{0,50}\b(?:still\s+)?needs?\b.{0,40}\bexplicitly\b.{0,20}\b(?:taught|teach)\b/i.test(combined)
+    );
+
+    if (explicitlyOwed) {
+      return {
+        date: dateOnly(field(row, 'Date', 'date')),
+        sourceRef: `daily:${dateOnly(field(row, 'Date', 'date'))}:${meta.kind}`,
+        evidence: combined
+      };
+    }
+  }
+
+  return null;
+};
+
 const rowSignalsReviewBackfill = row => {
   const combined = [
     field(row, 'Substep / Lesson', 'substepLesson'),
@@ -358,6 +391,20 @@ export function compileGroupPlanningSnapshot({
       severity: 'blocking',
       description: `Current Snapshot rows resolve to multiple lesson focuses: ${currentFocuses.join(', ')}.`,
       sources: currentFocuses.map(value => `current-snapshot:focus:${value}`),
+      blocksPlanning: true
+    });
+  }
+
+  const explicitIntroNeed = deriveExplicitIntroNeed(latestDaily, currentSubstep);
+  if (explicitIntroNeed && resolvedFocus && resolvedFocus !== 'introduction') {
+    conflicts.push({
+      conflictId: `${groupId}-explicit-instruction-focus-conflict-${explicitIntroNeed.date || effectiveAsOf}`,
+      severity: 'blocking',
+      description: `Newest teacher report says explicit ${currentSubstep} instruction is still owed, while the recorded lesson focus resolves to ${resolvedFocus}. Teacher must confirm Introduction versus the recorded focus before lesson generation.`,
+      sources: [
+        explicitIntroNeed.sourceRef,
+        `current-snapshot:focus:${resolvedFocus}`
+      ],
       blocksPlanning: true
     });
   }
@@ -484,7 +531,7 @@ export function compileGroupPlanningSnapshot({
     students,
     lessonContinuity: {
       lastInstructionDate: latestInstructionDate(daily),
-      lastSubstep: currentSubstep || students[0]?.instructionalTarget?.substep || students[0]?.officialPlacement?.substep || '',
+      lastSubstep: dailyInstructionSubstep || currentSubstep || students[0]?.instructionalTarget?.substep || students[0]?.officialPlacement?.substep || '',
       partsCompleted: derivePartsCompleted(latestDaily),
       unfinishedWork: unique([
         ...deriveCarryForwardUnfinishedWork(current, latestDaily),
