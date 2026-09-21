@@ -1,0 +1,402 @@
+{
+  "schemaVersion": "wrs-substep-source-packet-v1",
+  "packetId": "wrs-5.2-source-packet-v1",
+  "substep": "5.2",
+  "curriculumRelease": "WRS-CURRICULUM-1.0.1-2026-09-02",
+  "packetVersion": "1.0.0",
+  "verifiedAt": "2026-09-21T11:30:00-05:00",
+  "authority": [
+    {
+      "sourceId": "step-instruction-5.2-visual",
+      "kind": "step-instruction",
+      "label": "Wilson Reading System Instructor Manual, Fourth Edition — Substep 5.2 Step Instruction",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Wilson Instructors Manual (4th Ed.) EDITABLE.pdf#printed-pp-314-325",
+      "priority": 1,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "dictation-steps1-6-visual",
+      "kind": "dictation-book",
+      "label": "Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf#step5-word-elements-pdf-p-108#printed-p-104#hfw-pdf-p-109#printed-p-105#5.2-words-pdf-pp-111-112#printed-pp-107-108#phrases-pdf-p-127#printed-p-123#sentences-pdf-pp-131-132#printed-pp-127-128",
+      "priority": 3,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "student-reader-5-visual",
+      "kind": "student-reader",
+      "label": "Student Reader Five (4th Ed.).pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Student Reader Five (4th Ed.).pdf#5.1-review-pdf-pp-4-20#printed-pp-2-18#5.2-wordlists-pdf-pp-21-33#printed-pp-19-31#sentences-pdf-pp-34-43#printed-pp-32-41#passages-pdf-pp-44-57#printed-pp-42-55",
+      "priority": 4,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "student-reader-5-searchable",
+      "kind": "derived-index",
+      "label": "WRS Curriculum Release 1.0.1 — student-reader-05.md",
+      "edition": "Fourth Edition searchable companion",
+      "locator": "project-source:WRS_Curriculum_Release_1.0.1_2026-09-02 (1).zip::searchable_sources/student-reader-05.md#substeps-5.1-5.2",
+      "priority": 9,
+      "verificationStatus": "searchable-companion"
+    },
+    {
+      "sourceId": "student-notebook-1-6-visual",
+      "kind": "student-notebook-answer-key",
+      "label": "Wilson Student Notebook 1-6 Answer Key.pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:WRS Student Notebooks Answer Keys.zip::Wilson Student Notebook 1-6 Answer Key.pdf#open-syllable-pdf-p-22#printed-p-18#rules-of-syllable-division-pdf-p-25#printed-p-21#open-syllable-prefixes-pdf-p-40#printed-p-36",
+      "priority": 5,
+      "verificationStatus": "visual-verified"
+    }
+  ],
+  "currentConcept": [
+    {
+      "contentId": "5.2-open-prefix-base-word",
+      "sourceId": "step-instruction-5.2-visual",
+      "locator": "printed-pp-314-315",
+      "verificationStatus": "verified",
+      "role": "current concept: add previously introduced open-syllable prefixes to stand-alone base words",
+      "notes": "Introductory and ongoing. Source examples include remix, rehire, pretest, cohost, and defrost; prefixes and suffixes are identified as affixes."
+    },
+    {
+      "contentId": "5.2-open-closed-vce-two-syllable",
+      "sourceId": "step-instruction-5.2-visual",
+      "locator": "printed-pp-315-317",
+      "verificationStatus": "verified",
+      "role": "current concept: combine open syllables with closed or vowel-consonant-e syllables in two-syllable words",
+      "notes": "Introductory and ongoing. Source examples include silent and locate."
+    },
+    {
+      "contentId": "5.2-one-consonant-division-flexibility",
+      "sourceId": "step-instruction-5.2-visual",
+      "locator": "printed-pp-315-317",
+      "verificationStatus": "verified",
+      "role": "current concept: apply flexible syllable division when one consonant occurs between two vowels",
+      "notes": "The student compares closed-first-syllable division such as cabin with open-first-syllable division such as moment, and is taught to try another division when pronunciation is not a known word."
+    },
+    {
+      "contentId": "5.2-more-consonants-schwa-complex-base",
+      "sourceId": "step-instruction-5.2-visual",
+      "locator": "printed-pp-317-319",
+      "verificationStatus": "verified",
+      "role": "subsequent concepts: open-syllable division with more than one consonant, schwa, and open-syllable prefixes as part of complex base words",
+      "notes": "Source explicitly labels this sequence Subsequent Lessons. Examples include secret/migrate, final/human/negate, and complex bases such as describe, pretend, prevent, event, progress/project, and result."
+    }
+  ],
+  "sourceOrderedTeachingSequence": [
+    {
+      "contentId": "5.2-step-sequence-reading",
+      "sourceId": "step-instruction-5.2-visual",
+      "locator": "printed-pp-314-321",
+      "verificationStatus": "verified",
+      "role": "Parts 1-5 source-ordered reading instruction",
+      "notes": "No new letter-sounds. Begin with open-syllable prefixes added to stand-alone base words and one-consonant open-syllable division. Then move in subsequent lessons to more-than-one-consonant division, schwa, and open-syllable prefixes within complex base words."
+    },
+    {
+      "contentId": "5.2-step-sequence-spelling",
+      "sourceId": "step-instruction-5.2-visual",
+      "locator": "printed-pp-322-325",
+      "verificationStatus": "verified",
+      "role": "Parts 6-8 source-ordered spelling instruction",
+      "notes": "No new sounds. Begin spelling open-prefix + stand-alone-base words and one-consonant open-syllable divisions using the multisyllabic spelling procedure. Subsequent lessons add more-than-one-consonant division, schwa, and complex-base spelling."
+    }
+  ],
+  "cumulativeEligibility": {
+    "throughSubstep": "5.2",
+    "soundInventoryRefs": [
+      {
+        "contentId": "5.2-cumulative-sounds",
+        "sourceId": "step-instruction-5.2-visual",
+        "locator": "printed-pp-314,322",
+        "verificationStatus": "verified",
+        "role": "all previously taught vowel Letter-Sound Card responses plus selected consonant and welded responses",
+        "notes": "The Step Instruction explicitly states that there are no new letter-sounds/sounds in 5.2."
+      }
+    ],
+    "wordElementRefs": [
+      {
+        "contentId": "5.2-open-prefix-elements",
+        "sourceId": "dictation-steps1-6-visual",
+        "locator": "PDF-p-108 / printed-p-104: co-, de-, e-, pre-, pro-, re- plus previously taught prefixes, bases, and suffixes",
+        "verificationStatus": "verified",
+        "role": "current taught open-syllable prefixes and cumulative word elements"
+      }
+    ],
+    "hfwRefs": [
+      {
+        "contentId": "5.2-hfw",
+        "sourceId": "dictation-steps1-6-visual",
+        "locator": "PDF-p-109 / printed-p-105: own, owner, owned, house, houses, toward, heart, learn, learned",
+        "verificationStatus": "verified",
+        "role": "current 5.2 High Frequency Word set"
+      }
+    ],
+    "reviewPoolRefs": [
+      {
+        "contentId": "5.1-reader-review-pool",
+        "sourceId": "student-reader-5-visual",
+        "locator": "5.1 wordlists: PDF-pp-4-7 / printed-pp-2-5",
+        "verificationStatus": "verified",
+        "role": "actual previous-Substep controlled review pool for 3-4 prior words"
+      },
+      {
+        "contentId": "5.2-reader-current-pool",
+        "sourceId": "student-reader-5-visual",
+        "locator": "5.2 wordlists: PDF-pp-21-33 / printed-pp-19-31",
+        "verificationStatus": "verified",
+        "role": "source-valid current open-prefix, syllable-division, complex-base, suffix, schwa, and nonsense-word reading pools"
+      },
+      {
+        "contentId": "5.2-current-nonsense-pool",
+        "sourceId": "student-reader-5-visual",
+        "locator": "5.2 nonsense list: PDF-p-33 / printed-p-31",
+        "verificationStatus": "verified",
+        "role": "current 5.2 Wilson nonsense-word reading pool"
+      }
+    ]
+  },
+  "partInputs": {
+    "1": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part1-sounds",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-p-314",
+          "verificationStatus": "verified",
+          "role": "Part 1 Sounds Quick Drill"
+        }
+      ],
+      "selectionRules": [
+        "Drill all previously taught vowel Letter-Sound Card responses.",
+        "Be selective with previously taught consonant and welded cards.",
+        "There are no new letter-sounds in 5.2."
+      ]
+    },
+    "2": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part2-intro",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-pp-314-317",
+          "verificationStatus": "verified",
+          "role": "Introductory/ongoing reading instruction for open-syllable prefixes plus stand-alone base words and one-consonant open-syllable division"
+        },
+        {
+          "contentId": "5.2-part2-subsequent",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-pp-317-319",
+          "verificationStatus": "verified",
+          "role": "Subsequent reading instruction for multiple-consonant division, schwa, and complex bases"
+        }
+      ],
+      "selectionRules": [
+        "Begin with 3-4 actual 5.1 review words.",
+        "For the explicit 5.2 introduction, review the six 5.1 open-syllable Prefix Cards and combine them with stand-alone base words.",
+        "Teach one-consonant syllable-division flexibility with closed-first versus open-first possibilities before later 5.2 concepts.",
+        "Do not pull multiple-consonant division, schwa, or complex-base analysis forward from the source's Subsequent Lessons sequence unless the introductory material is already established."
+      ]
+    },
+    "3": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part3-word-cards",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-p-320",
+          "verificationStatus": "verified",
+          "role": "current Word Card routine and taught Word Element Card review"
+        },
+        {
+          "contentId": "5.2-part3-hfw",
+          "sourceId": "dictation-steps1-6-visual",
+          "locator": "PDF-p-109 / printed-p-105",
+          "verificationStatus": "verified",
+          "role": "current 5.2 HFW set"
+        }
+      ],
+      "selectionRules": [
+        "Begin with the existing previous-Substep fat stack; do not fabricate it.",
+        "Use current 5.2 Word Cards only for concepts already taught in the source sequence.",
+        "Read taught Word Element Cards separately as needed, including the six open-syllable prefixes.",
+        "Review the complete current 5.2 HFW set plus prior unmastered HFWs."
+      ]
+    },
+    "4": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part4-reader-lists",
+          "sourceId": "student-reader-5-visual",
+          "locator": "PDF-pp-21-33 / printed-pp-19-31",
+          "verificationStatus": "verified",
+          "role": "5.2 open-prefix, syllable-division, complex-base, suffix, schwa, and nonsense-word wordlists"
+        },
+        {
+          "contentId": "5.2-part4-step-direction",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-p-321",
+          "verificationStatus": "verified",
+          "role": "Part 4 practice/charting procedure and list types"
+        }
+      ],
+      "selectionRules": [
+        "Practice with 5-6 words from one current-substep list that reflects the instruction for that day.",
+        "For charting, use another current-substep list reflecting the instruction and select 15 words.",
+        "List types include open-syllable prefix + base word, one-consonant division, one-or-more-consonant division, complex-base open-prefix words, mixed syllable division + suffix, and nonsense words.",
+        "If a real word is initially divided/pronounced incorrectly, use the source flexibility prompt before counting an error when appropriate."
+      ]
+    },
+    "5": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part5-sentences",
+          "sourceId": "student-reader-5-visual",
+          "locator": "PDF-pp-34-43 / printed-pp-32-41",
+          "verificationStatus": "verified",
+          "role": "current 5.2 sentence-reading pages"
+        },
+        {
+          "contentId": "5.2-part5-step-direction",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-p-321",
+          "verificationStatus": "verified",
+          "role": "Part 5 sentence-reading direction"
+        }
+      ],
+      "selectionRules": [
+        "Select the exact current sentence page that reflects what has been taught and embed all 10 sentences.",
+        "Review HFWs and untaught words at the top of the page as needed.",
+        "Weave questions about current/previous concepts, word elements, syllable division, vocabulary, phrasing, and meaning."
+      ]
+    },
+    "6": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part6-reverse-drill",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-p-322",
+          "verificationStatus": "verified",
+          "role": "Quick Drill in Reverse requirements"
+        }
+      ],
+      "selectionRules": [
+        "Use previously taught vowel, consonant, and welded phonemes only; there are no new sounds in 5.2.",
+        "Include selected taught word elements, including open-syllable prefixes, only as needed."
+      ]
+    },
+    "7": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part7-intro",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-pp-322-323",
+          "verificationStatus": "verified",
+          "role": "Introductory/ongoing spelling of open-prefix + stand-alone-base words and one-consonant open-syllable division"
+        },
+        {
+          "contentId": "5.2-part7-subsequent",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-pp-324-325",
+          "verificationStatus": "verified",
+          "role": "Subsequent spelling instruction for multiple-consonant division, schwa, and complex bases"
+        }
+      ],
+      "selectionRules": [
+        "Begin with 3-4 actual 5.1 words.",
+        "Use the multisyllabic spelling procedure one syllable at a time.",
+        "For words with a prefix added to a stand-alone base word, represent the prefix separately from the base word; add suffixes only after spelling the unsuffixed word.",
+        "Do not pull later 5.2 spelling concepts forward before the introductory 5.2 sequence is established."
+      ]
+    },
+    "8": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part8-dictation",
+          "sourceId": "dictation-steps1-6-visual",
+          "locator": "word elements: PDF-p-108 / printed-p-104; words: PDF-pp-111-112 / printed-pp-107-108; phrases: PDF-p-127 / printed-p-123; sentences: PDF-pp-131-132 / printed-pp-127-128",
+          "verificationStatus": "verified",
+          "role": "current/cumulative 5.2 written-work dictation pools"
+        },
+        {
+          "contentId": "5.2-part8-step-direction",
+          "sourceId": "step-instruction-5.2-visual",
+          "locator": "printed-p-325",
+          "verificationStatus": "verified",
+          "role": "Written Work Dictation direction and marking boundaries"
+        }
+      ],
+      "selectionRules": [
+        "Use source-verified Dictation Book items for current 5.2 real words, phrases, and sentences.",
+        "Sounds and word elements may be cumulative/current.",
+        "Initially do not dictate complex base words until they have been explicitly taught in Parts 2 and 7.",
+        "Use multisyllabic spelling procedures and mark syllable types and/or word elements as appropriate."
+      ]
+    },
+    "9": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "5.2-part9-passages",
+          "sourceId": "student-reader-5-visual",
+          "locator": "PDF-pp-44-57 / printed-pp-42-55",
+          "verificationStatus": "verified",
+          "role": "ordered 5.2 controlled-passage pool"
+        }
+      ],
+      "selectionRules": [
+        "Select the next unread 5.2 controlled passage in Reader sequence using the group's passage history.",
+        "If passage history is uncertain, flag it rather than infer it."
+      ]
+    },
+    "10": {
+      "status": "tbd",
+      "contentRefs": [],
+      "selectionRules": [
+        "Project default: Part 10 remains TBD unless explicitly requested."
+      ]
+    }
+  },
+  "notebook": [
+    {
+      "contentId": "5.2-notebook-open-syllable",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "PDF-p-22 / printed-p-18: Syllables — Open Syllable",
+      "verificationStatus": "verified",
+      "role": "Syllables notebook reference for open-syllable marking and multisyllabic combinations"
+    },
+    {
+      "contentId": "5.2-notebook-division",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "PDF-p-25 / printed-p-21: Syllables — Rules of Syllable Division",
+      "verificationStatus": "verified",
+      "role": "Notebook entry/reference for one-consonant open-syllable division"
+    },
+    {
+      "contentId": "5.2-notebook-open-prefixes",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "PDF-p-40 / printed-p-36: Word Elements — Prefixes with Open Syllables",
+      "verificationStatus": "verified",
+      "role": "Word Elements notebook reference for co-, de-, e-, pre-, pro-, re- and marking"
+    }
+  ],
+  "knownGaps": [],
+  "ocrConcerns": [
+    "Searchable companions were used only for retrieval. Exact 5.2 instructional sequence, Dictation Book page locations, Reader page ranges, HFW list, and Notebook entries were reconciled against the supplied Fourth Edition visual/PDF sources.",
+    "5.2 contains multiple concepts separated into Introductory/Ongoing versus Subsequent Lessons. The packet preserves that distinction and must not be used to collapse the full Substep into one introductory lesson."
+  ],
+  "verification": {
+    "status": "verified",
+    "verifiedBy": "2026-09-21 source reconciliation with Steps 1-6 Instructor Manual visual pages, Student Reader Five PDF, corrected-order Dictation Book Steps 1-6, and Student Notebook 1-6 Answer Key",
+    "sourceReleaseId": "WRS-CURRICULUM-1.0.1-2026-09-02",
+    "blockingIssues": []
+  }
+}
