@@ -89,6 +89,33 @@ export function resolveQueueTarget(snapshot) {
   };
 }
 
+const assessmentContinuationFor = snapshot => {
+  const students = Array.isArray(snapshot?.students) ? snapshot.students : [];
+  if (!students.length) return null;
+
+  const evidenceFor = student => {
+    const values = [
+      student?.latestData?.fluencyAssessment,
+      ...(Array.isArray(student?.recommendedInstructionalResponse)
+        ? student.recommendedInstructionalResponse
+        : [])
+    ].map(text).filter(Boolean);
+
+    return values.find(value => (
+      /\b(?:post[- ]?test|assessment)\b.{0,100}\b(?:in progress|not complete|incomplete|started)\b/i.test(value)
+      || /\b(?:complete|continue)\b.{0,60}\b(?:post[- ]?test|assessment)\b/i.test(value)
+    )) || null;
+  };
+
+  const evidence = students.map(evidenceFor);
+  const singleStudent = students.length === 1;
+  const allStudentsInAssessment = evidence.every(Boolean);
+  if (!singleStudent && !allStudentsInAssessment) return null;
+
+  const selected = evidence.filter(Boolean);
+  return selected.length ? unique(selected).join(' ') : null;
+};
+
 const defaultRouteFor = (snapshot, target) => {
   if (target.isAdvancePath) return 'full';
   const unfinished = Array.isArray(snapshot?.lessonContinuity?.unfinishedWork)
@@ -205,6 +232,7 @@ export function buildWeeklyQueue({
     const packet = target.substep ? packetRegistry[target.substep] : null;
     const sourcePacketRef = text(packet?.packetId) || desiredPacketId;
 
+    const assessmentContinuation = assessmentContinuationFor(snapshot);
     const blockers = [];
     if (snapshot?.planningReady !== true) {
       blockers.push(...(Array.isArray(snapshot?.planningBlockers)
@@ -213,8 +241,8 @@ export function buildWeeklyQueue({
       if (!blockers.length) blockers.push('Planning snapshot is not planning-ready.');
     }
     if (!target.substep) blockers.push('Target Substep is unresolved.');
-    if (target.substep && !packet) blockers.push(`No registered source packet is available for Substep ${target.substep}.`);
-    if (packet && packet.verified !== true) blockers.push(`Source packet ${sourcePacketRef} is not verified.`);
+    if (!assessmentContinuation && target.substep && !packet) blockers.push(`No registered source packet is available for Substep ${target.substep}.`);
+    if (!assessmentContinuation && packet && packet.verified !== true) blockers.push(`Source packet ${sourcePacketRef} is not verified.`);
 
     const route = text(routes[groupId]) || defaultRouteFor(snapshot, target);
     const unfinished = Array.isArray(snapshot?.lessonContinuity?.unfinishedWork)
@@ -237,7 +265,7 @@ export function buildWeeklyQueue({
 
     const validated = validatedFor(validatedArtifacts, groupId, plannedDate);
     const selectionHistory = selectionHistoryFor(selectionHistories, groupId);
-    const inputFingerprint = freshFingerprintFor({
+    const inputFingerprint = assessmentContinuation ? null : freshFingerprintFor({
       snapshot,
       packetRegistryEntry: packet,
       groupId,
@@ -251,6 +279,7 @@ export function buildWeeklyQueue({
 
     let status;
     if (blockers.length) status = 'blocked';
+    else if (assessmentContinuation) status = 'assessment-only';
     else if (target.entryConditionStatus === 'pending') status = 'awaiting-condition';
     else if (inputFingerprint && validatedFingerprint && inputFingerprint === validatedFingerprint) status = 'validated';
     else if (validatedFingerprint) status = 'needs-regeneration';
@@ -266,10 +295,14 @@ export function buildWeeklyQueue({
       buildRequestRef: `build-request:${groupId}:${plannedDate}:${target.substep || 'unresolved'}`,
       runtimeRef: validated?.runtimeRef ?? null,
       teacherPlanRef: validated?.teacherPlanRef ?? null,
-      entryCondition: target.entryCondition,
-      entryConditionStatus: blockers.length && target.entryConditionStatus !== 'pending'
-        ? 'blocked'
-        : target.entryConditionStatus,
+      entryCondition: assessmentContinuation
+        ? 'Complete the recorded in-progress assessment before returning to 10-Part lesson generation.'
+        : target.entryCondition,
+      entryConditionStatus: assessmentContinuation
+        ? 'pending'
+        : (blockers.length && target.entryConditionStatus !== 'pending'
+          ? 'blocked'
+          : target.entryConditionStatus),
       lessonRoute: route,
       exitEvidence,
       continuationRule,
@@ -283,6 +316,7 @@ export function buildWeeklyQueue({
         target.isAdvancePath
           ? `Prepared target is Substep ${target.substep}; this does not itself change official placement.`
           : `Prepared target remains Substep ${target.substep || 'unresolved'}.`,
+        assessmentContinuation ? `Assessment continuation: ${assessmentContinuation}` : null,
         packet?.packetVersion ? `Registered packet version: ${packet.packetVersion}.` : null
       ])
     };
