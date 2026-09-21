@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  buildQueueFingerprintRequest,
   buildWeeklyQueue,
   resolveQueueTarget
 } from '../scripts/wrs-build-weekly-queue.mjs';
@@ -194,6 +195,40 @@ test('conditional next-Substep fingerprint request preserves explicit advance au
   assert.equal(entry.status, 'awaiting-condition');
   assert.equal(entry.sourcePacketRef, 'wrs-5.5-source-packet-v1');
   assert.match(entry.inputFingerprint, /^sha256:[a-f0-9]{64}$/);
+
+  const request = buildQueueFingerprintRequest({
+    groupId: 'Conditional',
+    plannedDate: '2026-09-21',
+    targetSubstep: '5.5',
+    route: entry.lessonRoute,
+    snapshot: snap,
+    packet: registry['5.5'].packet,
+    createdAt: '2026-09-18T12:00:00.000Z'
+  });
+  assert.equal(request.teacherDecisions.focus, 'introduction');
+  assert.equal(request.teacherDecisions.advancementOverride, 'advance');
+  assert.equal(request.teacherDecisions.notes, 'Finish the remaining sentence dictation, then advance to 5.5.');
+});
+
+test('current-Substep queue request keeps snapshot focus authority', () => {
+  const snap = snapshot({
+    groupId: 'CurrentFocus',
+    substep: '5.5',
+    advancementStatus: 'continue'
+  });
+  const registry = { '5.5': verifiedPacket('5.5', '1.0.4') };
+  const request = buildQueueFingerprintRequest({
+    groupId: 'CurrentFocus',
+    plannedDate: '2026-09-21',
+    targetSubstep: '5.5',
+    route: 'full',
+    snapshot: snap,
+    packet: registry['5.5'].packet,
+    createdAt: '2026-09-18T12:00:00.000Z'
+  });
+
+  assert.equal(request.teacherDecisions.focus, 'use-snapshot');
+  assert.equal(request.teacherDecisions.advancementOverride, 'none');
 });
 
 test('matching fresh and validated fingerprints let an unchanged entry be reused', () => {
