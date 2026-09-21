@@ -63,7 +63,7 @@ Persistent packets should reference stable source identifiers and exact source l
 
 If a source is searchable but lacks the visual/verbatim authority required by the release safety policy, the affected packet fields remain `partial` or `blocked`. The packet does not upgrade its own evidence.
 
-### First verified packet
+### Verified reusable packets
 
 `curriculum/source-packets/5.5.v1.json` is the first reusable verified packet. Packet v1.0.4 resolves against the original Fourth Edition Steps 1-6 Instructor Manual/Step Instruction, Dictation Book, Student Reader Five, and Student Notebook 1-6 Answer Key. It stores stable source IDs and exact page/range locators rather than duplicating long source text.
 
@@ -76,6 +76,21 @@ For Substep 5.5, the verified source locations include:
 - Student Notebook 1-6 Answer Key: relevant sound, syllable-exception, prefix, spelling-option, and HFW entries are registered by PDF page in the packet.
 
 The packet was manually reconciled against the original PDFs before being marked `verified`. Searchable companions remain retrieval aids only.
+
+
+`curriculum/source-packets/7.5.v1.json` is the second reusable verified packet. Packet v1.0.0 resolves against the Fourth Edition Step 7 Instruction, Dictation Book 7–12, Student Reader 7, and Student Notebook 7–12 Answer Key.
+
+For Substep 7.5, the verified source locations include:
+
+- Step Instruction: printed pp. 152–168.
+- Dictation Book 7–12: HFWs on PDF p. 11 / printed p. 5; words on PDF pp. 24–25 / printed pp. 18–19; phrases on PDF p. 28 / printed p. 22; sentences on PDF pp. 37–38 / printed pp. 31–32.
+- Student Reader 7: 7.5 wordlists on PDF pp. 136–141 / printed pp. 134–139; sentence pages on PDF pp. 142–147 / printed pp. 140–145; controlled passages on PDF pp. 148–159 / printed pp. 146–157.
+- Student Reader 7 Substep 7.1N, PDF p. 15 / printed p. 13: verified prior-Substep Wilson nonsense-word pool, eligible only as cumulative review when Part 8 requires nonsense words. It must never be labeled as current 7.5 nonsense material.
+- Student Notebook 7–12 Answer Key: possessive reference on PDF p. 62 / printed p. 58 and contractions reference on PDF p. 65 / printed p. 61.
+
+The packet preserves the Step Instruction sequence: contractions are taught first; singular possessives are subsequent instruction; plural possessives follow after singular possessives are mastered. Substep 7.5 introduces no new sounds and provides no nonsense-word charting.
+
+Source-library note: the older `WRS_Step_Instruction_Canonical_Set_2026-08-30` Step 7 Markdown stops after printed p. 130. The complete Step 7 searchable companion from `WRS_Curriculum_Release_1.0.1_2026-09-02` was used for retrieval and reconciled against the supplied visual/PDF authority for printed pp. 152–168. The truncated older Markdown must not be treated as complete 7.5 authority.
 
 ## Build flow
 
@@ -181,6 +196,9 @@ Each queued lesson stores:
 
 If reality differs from the queue, regenerate only the affected group. Do not shift the entire week forward automatically. A queue is orchestration state, not student-data authority and not curriculum authority.
 
+
+The executable queue builder is `scripts/wrs-build-weekly-queue.mjs`. The one-command refresh wrapper is `scripts/wrs-refresh-planning-state.mjs`; it accepts the live/exported Current Snapshot and Daily Notes rows, compiles each group snapshot, and then builds the rolling queue. Missing or unverified source packets block only the affected group entry. The repository code does not pretend to hold Google Drive credentials; the live connector/export step supplies the rows at execution time.
+
 ## Repository contracts added by this workstream
 
 - `schemas/wrs-group-planning-snapshot-v1.schema.json`
@@ -194,23 +212,24 @@ The build-request schema intentionally accepts a versioned `wrs-teacher-plan-con
 
 Completed in this draft workstream:
 
-1. Versioned state/source/build-request contracts and precedence rules.
-2. First verified reusable 5.5 source packet.
+1. Versioned state/source/build-request/weekly-queue contracts and precedence rules.
+2. Verified reusable source packets for 5.5 and 7.5.
 3. Executable fail-closed preflight/final orchestration gate.
 4. Synthetic regression tests with no real student fixtures.
 5. Deterministic input fingerprinting for targeted regeneration.
-6. Rolling weekly queue contract.
-7. Conditional real-group 5B 5.5 runtime pilot.
-8. Dedicated CI plus a pinned cross-branch check against the active PR40 canonical lesson gate.
-9. Real 5B conditional 5.5 pilot passing the pinned canonical teacher-plan/runtime gate.
-10. Deterministic live-record snapshot compiler for Current Snapshot + Daily Notes row exports, with synthetic authority/conflict tests.
+6. Executable rolling weekly queue generator.
+7. One-command planning-state refresh from live/exported Current Snapshot + Daily Notes rows.
+8. Conditional real-group 5B 5.5 runtime pilot.
+9. Dedicated CI plus a pinned cross-branch check against the active PR40 canonical lesson gate.
+10. Real 5B conditional 5.5 pilot passing the pinned canonical teacher-plan/runtime gate.
+11. Deterministic live-record snapshot compiler with authority, conflict, unfinished-work, completed-Part, and advancement tests.
 
 Still required before this becomes the routine weekly planner:
 
-1. Wire the live Sheets/connector export step to feed the snapshot compiler automatically at build time.
+1. Wire the live Sheets/connector retrieval/export step into the normal execution path so the refresh command receives current rows automatically.
 2. Persist selection/passage history and validated build fingerprints in the appropriate operational store.
-3. Expand reusable source packets across current instructional paths.
-4. Generate the rolling weekly queue from live group state and regenerate only entries whose fingerprints or entry conditions changed.
-5. Record a validated fingerprint for the real 5B pilot once its exact live snapshot/build-request inputs are produced by the new feed path.
+3. Expand reusable source packets across the remaining active instructional paths.
+4. Run the rolling weekly queue against refreshed live state and generate/reuse only the affected group artifacts.
+5. Record validated fingerprints from exact live snapshot/build-request inputs.
 
 PR #48 remains draft. No merge or production deployment belongs to this workstream until those gates are proven.
