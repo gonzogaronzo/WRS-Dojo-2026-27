@@ -237,7 +237,11 @@ export function planningStateForExport(statesByGroup) {
     const artifacts = plainObject(state?.validatedArtifacts) ? state.validatedArtifacts : {};
     for (const [plannedDate, artifact] of Object.entries(artifacts)) {
       if (!DATE.test(plannedDate) || !plainObject(artifact)) continue;
-      validatedArtifacts[`${groupId}:${plannedDate}`] = artifact;
+      try {
+        validatedArtifacts[`${groupId}:${plannedDate}`] = validateValidatedArtifact(artifact, plannedDate);
+      } catch {
+        // Corrupt/stale metadata never earns reuse. Omit it so the queue requires a rebuild.
+      }
     }
   }
 
