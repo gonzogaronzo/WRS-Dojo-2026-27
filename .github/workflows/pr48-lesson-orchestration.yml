@@ -11,6 +11,7 @@ on:
       - 'scripts/wrs-lesson-*.mjs'
       - 'scripts/wrs-compile-planning-snapshot.mjs'
       - 'scripts/wrs-build-weekly-queue.mjs'
+      - 'scripts/wrs-build-planning-bundles.mjs'
       - 'scripts/wrs-refresh-planning-state.mjs'
       - 'scripts/wrs-refresh-from-sheet-values.mjs'
       - 'scripts/wrs-record-lesson-history.mjs'
