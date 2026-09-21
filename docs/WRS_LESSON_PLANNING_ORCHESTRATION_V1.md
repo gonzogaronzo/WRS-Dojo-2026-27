@@ -238,6 +238,21 @@ If reality differs from the queue, regenerate only the affected group. Do not sh
 
 The executable queue builder is `scripts/wrs-build-weekly-queue.mjs`. The one-command refresh wrapper is `scripts/wrs-refresh-planning-state.mjs`; it accepts the live/exported Current Snapshot and Daily Notes rows, compiles each group snapshot, and then builds the rolling queue. Missing or unverified source packets block only the affected group entry. The repository code does not pretend to hold Google Drive credentials; the live connector/export step supplies the rows at execution time.
 
+## Routine weekly execution
+
+The intended normal weekly path is now explicit:
+
+1. Read the live 2026–27 Student Data `Current Snapshot` and the six allowed Daily Notes tabs through the authenticated fixed-scope planning export.
+2. Join the durable per-group Selection/Passage History and validated-artifact metadata from operational state.
+3. Run `lesson:refresh-sheet-values` against that ephemeral export.
+4. The refresh compiles current group snapshots, evaluates the rolling queue, recomputes fresh fingerprints, and writes one `<group>.planning-bundle.json` handoff per group.
+5. For queue entries marked `validated`, reuse the referenced validated artifacts.
+6. For `needs-build` or `needs-regeneration`, give only that group's planning bundle to lesson generation. Do not re-search old lesson files to reconstruct state or source authority.
+7. Run orchestration preflight, the active teacher-plan instructional contract, and runtime compatibility gates before rendering/exporting the lesson.
+8. After instruction, record explicit completed/started Parts and selection/passage evidence, then persist the updated history and validated artifact metadata for the next refresh.
+
+`awaiting-condition` remains a prepared conditional path, not proof that advancement occurred. `blocked` remains fail-closed.
+
 ## Repository contracts added by this workstream
 
 - `schemas/wrs-group-planning-snapshot-v1.schema.json`
