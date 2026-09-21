@@ -178,13 +178,9 @@ test('conditional next-Substep fingerprint request preserves explicit advance au
   const snap = snapshot({
     groupId: 'Conditional',
     substep: '5.4',
-    advancement: {
-      status: 'ready-pending-completion',
-      currentSubstep: '5.4',
-      nextSubstep: '5.5',
-      condition: 'Finish the remaining sentence dictation, then advance to 5.5.',
-      authorityRef: 'daily:2026-09-17:explicit-teacher-report'
-    }
+    nextSubstep: '5.5',
+    advancementStatus: 'ready-pending-completion',
+    condition: 'Finish the remaining sentence dictation, then advance to 5.5.'
   });
   const registry = { '5.5': verifiedPacket('5.5', '1.0.4') };
   const queue = buildWeeklyQueue({
