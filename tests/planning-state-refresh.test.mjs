@@ -179,6 +179,40 @@ test('group compilation failures are reported instead of silently dropping into 
 });
 
 
+test('refresh applies an explicit teacher focus override without changing the Substep', () => {
+  const feed = {
+    schemaVersion: 'wrs-live-planning-feed-v1',
+    schoolYear: '2026-27',
+    asOf: '2026-09-18',
+    weekOf: '2026-09-21',
+    currentSnapshotRows: [
+      currentRow({ student: 'Student A', group: 'Focus', currentSubstep: '5.2', lessonFocus: '5.2 Accuracy' }),
+      currentRow({ student: 'Student B', group: 'Focus', currentSubstep: '5.2', lessonFocus: '5.2 Accuracy' })
+    ],
+    groups: [{
+      groupId: 'Focus',
+      teacherFocusOverride: 'Introduction',
+      dailyRows: [dailyRow({
+        group: 'Focus',
+        substep: '5.2 Accuracy',
+        note: 'The group has not yet received a full, proper 5.2 lesson.',
+        followUp: 'Begin with explicit 5.2 instruction before moving forward.'
+      })]
+    }]
+  };
+
+  const report = refreshPlanningState({
+    feed,
+    packetRegistry: { '5.2': packet('5.2') },
+    generatedAt: '2026-09-18T12:00:00.000Z'
+  });
+
+  assert.equal(report.status, 'PASS');
+  assert.equal(report.snapshots[0].students[0].instructionalTarget.substep, '5.2');
+  assert.equal(report.snapshots[0].students[0].lessonFocus, 'introduction');
+  assert.equal(report.queue.entries[0].status, 'needs-build');
+});
+
 test('refresh carries persisted passage history into the derived group snapshot', () => {
   const selectionHistory = {
     schemaVersion: 'wrs-group-selection-history-v1',
