@@ -174,6 +174,32 @@ test('planning blockers fail closed before packet availability can matter', () =
   assert.deepEqual(queue.entries[0].blockers, ['Roster conflict must be resolved.']);
 });
 
+test('conditional next-Substep fingerprint request preserves explicit advance authority and condition', () => {
+  const snap = snapshot({
+    groupId: 'Conditional',
+    substep: '5.4',
+    advancement: {
+      status: 'ready-pending-completion',
+      currentSubstep: '5.4',
+      nextSubstep: '5.5',
+      condition: 'Finish the remaining sentence dictation, then advance to 5.5.',
+      authorityRef: 'daily:2026-09-17:explicit-teacher-report'
+    }
+  });
+  const registry = { '5.5': verifiedPacket('5.5', '1.0.4') };
+  const queue = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: registry,
+    generatedAt: '2026-09-18T12:00:00.000Z'
+  });
+
+  const entry = queue.entries[0];
+  assert.equal(entry.status, 'awaiting-condition');
+  assert.equal(entry.sourcePacketRef, 'wrs-5.5-source-packet-v1');
+  assert.match(entry.inputFingerprint, /^sha256:[a-f0-9]{64}$/);
+});
+
 test('matching fresh and validated fingerprints let an unchanged entry be reused', () => {
   const snap = snapshot({ groupId: 'Validated', substep: '5.5' });
   const registry = { '5.5': verifiedPacket('5.5', '1.0.4') };
