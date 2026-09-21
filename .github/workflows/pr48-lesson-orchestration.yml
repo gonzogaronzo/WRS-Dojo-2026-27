@@ -15,6 +15,7 @@ on:
       - 'scripts/wrs-refresh-planning-state.mjs'
       - 'scripts/wrs-refresh-from-sheet-values.mjs'
       - 'scripts/wrs-record-lesson-history.mjs'
+      - 'scripts/wrs-record-validated-artifact.mjs'
       - 'functions/planningSheetRead.js'
       - 'functions/planningOperationalState.js'
       - 'functions/index.js'
@@ -22,6 +23,7 @@ on:
       - 'tests/lesson-*.test.mjs'
       - 'tests/planning-snapshot-compiler.test.mjs'
       - 'tests/planning-bundle.test.mjs'
+      - 'tests/validated-artifact-recorder.test.mjs'
       - 'tests/weekly-build-queue.test.mjs'
       - 'tests/planning-state-refresh.test.mjs'
       - 'tests/current-path-packet-coverage.test.mjs'
@@ -60,7 +62,7 @@ jobs:
         run: npm ci
 
       - name: Run orchestration, fingerprint, and snapshot-compiler unit tests
-        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/lesson-selection-history.test.mjs tests/planning-snapshot-compiler.test.mjs tests/planning-bundle.test.mjs tests/weekly-build-queue.test.mjs tests/planning-state-refresh.test.mjs tests/current-path-packet-coverage.test.mjs tests/sheet-values-refresh.test.mjs tests/planning-sheet-export.test.mjs tests/planning-operational-state.test.mjs
+        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/lesson-selection-history.test.mjs tests/planning-snapshot-compiler.test.mjs tests/planning-bundle.test.mjs tests/validated-artifact-recorder.test.mjs tests/weekly-build-queue.test.mjs tests/planning-state-refresh.test.mjs tests/current-path-packet-coverage.test.mjs tests/sheet-values-refresh.test.mjs tests/planning-sheet-export.test.mjs tests/planning-operational-state.test.mjs
 
       - name: Parse orchestration schemas, source packets, and pilot runtime
         run: |
