@@ -328,6 +328,7 @@ export function compileGroupPlanningSnapshot({
   schedule = '',
   asOf,
   selectionHistory = null,
+  teacherFocusOverride = null,
   generatedAt = new Date().toISOString()
 }) {
   if (!groupId) throw new Error('groupId is required.');
@@ -344,6 +345,12 @@ export function compileGroupPlanningSnapshot({
   }
   const effectiveAsOf = dateOnly(asOf) || dateOnly(generatedAt);
   if (!effectiveAsOf) throw new Error('asOf must resolve to YYYY-MM-DD.');
+
+  const requestedFocusOverride = text(teacherFocusOverride);
+  const focusOverride = requestedFocusOverride ? normalizeFocus(requestedFocusOverride) : '';
+  if (requestedFocusOverride && !focusOverride) {
+    throw new Error('teacherFocusOverride must resolve to Introduction, Accuracy, or Automaticity/Fluency.');
+  }
 
   const current = currentRowsForGroup(currentSnapshotRows, groupId, effectiveAsOf);
   if (!current.length) throw new Error(`No Current Snapshot rows found for group ${groupId} on or before ${effectiveAsOf}.`);
@@ -376,9 +383,11 @@ export function compileGroupPlanningSnapshot({
     && currentTargets.includes(explicitTeacherCurrentTarget)
     && currentFocuses.length === 1
   );
-  const resolvedFocus = sameDayAdvanceUsesCurrentSnapshotFocus
-    ? currentFocuses[0]
-    : (dailyFocus || (currentFocuses.length === 1 ? currentFocuses[0] : ''));
+  const resolvedFocus = focusOverride || (
+    sameDayAdvanceUsesCurrentSnapshotFocus
+      ? currentFocuses[0]
+      : (dailyFocus || (currentFocuses.length === 1 ? currentFocuses[0] : ''))
+  );
   const conflicts = [];
 
   if (currentTargets.length > 1 && !dailyTarget) {
@@ -391,7 +400,7 @@ export function compileGroupPlanningSnapshot({
     });
   }
 
-  if (currentFocuses.length > 1 && !dailyFocus) {
+  if (currentFocuses.length > 1 && !dailyFocus && !focusOverride) {
     conflicts.push({
       conflictId: `${groupId}-focus-conflict-${effectiveAsOf}`,
       severity: 'blocking',
@@ -402,7 +411,7 @@ export function compileGroupPlanningSnapshot({
   }
 
   const explicitIntroNeed = deriveExplicitIntroNeed(latestDaily, currentSubstep);
-  if (explicitIntroNeed && resolvedFocus && resolvedFocus !== 'introduction') {
+  if (explicitIntroNeed && resolvedFocus && resolvedFocus !== 'introduction' && !focusOverride) {
     conflicts.push({
       conflictId: `${groupId}-explicit-instruction-focus-conflict-${explicitIntroNeed.date || effectiveAsOf}`,
       severity: 'blocking',
@@ -493,6 +502,17 @@ export function compileGroupPlanningSnapshot({
     notes: 'Official placement, per-student latest data, trouble spots, and recommended response.'
   }];
 
+  if (focusOverride) {
+    stateSources.push({
+      sourceRef: `teacher-decision:${groupId}:${effectiveAsOf}:focus:${focusOverride}`,
+      kind: 'explicit-teacher-report',
+      date: effectiveAsOf,
+      authorityRank: 1,
+      locator: `Planning refresh / teacher focus override / group ${groupId}`,
+      notes: `Teacher explicitly selected lesson focus: ${focusOverride}.`
+    });
+  }
+
   for (const row of latestDaily) {
     const meta = sourceKind(row);
     const date = dateOnly(field(row, 'Date', 'date'));
@@ -575,7 +595,7 @@ function parseArgs(argv) {
 function usage() {
   return [
     'Usage:',
-    '  node scripts/wrs-compile-planning-snapshot.mjs --current-snapshot current.json --daily-notes daily.json --group 5B --as-of YYYY-MM-DD [--history group-history.json] [--schedule "7:45-8:30"] [--out snapshot.json]',
+    '  node scripts/wrs-compile-planning-snapshot.mjs --current-snapshot current.json --daily-notes daily.json --group 5B --as-of YYYY-MM-DD [--history group-history.json] [--focus-override Introduction|Accuracy|Automaticity/Fluency] [--schedule "7:45-8:30"] [--out snapshot.json]',
     '',
     'Inputs are current row exports from WRS 2026–27 Student Data Log / Current Snapshot and the matching Daily Notes group tab.',
     'The compiler is deterministic and conservative: it does not connect to Google Drive itself, infer missing Wilson content, or record a conditional advancement as completed.'
@@ -594,7 +614,8 @@ export function main(argv = process.argv.slice(2)) {
     groupId: options.group,
     schedule: options.schedule || '',
     asOf: options['as-of'],
-    selectionHistory: options.history ? readJson(options.history) : null
+    selectionHistory: options.history ? readJson(options.history) : null,
+    teacherFocusOverride: options['focus-override'] || null
   });
 
   const rendered = `${JSON.stringify(snapshot, null, 2)}\n`;
