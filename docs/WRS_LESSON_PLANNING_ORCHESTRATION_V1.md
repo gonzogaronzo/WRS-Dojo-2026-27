@@ -39,6 +39,9 @@ The compiler applies the project authority order conservatively: a newer explici
 
 The repository script intentionally does **not** pretend to have Google Drive credentials. A live connector/exporter must supply the two row sets at build time. This keeps Google authentication outside the lesson-planning contracts and prevents a second manually maintained student-data store.
 
+
+A second adapter, `scripts/wrs-refresh-from-sheet-values.mjs`, accepts the raw two-dimensional `values` matrices returned by the Google Sheets API / Drive connector. It maps header rows to named records, validates duplicate/missing headers and tabs, builds the canonical live feed, compiles all group snapshots, and builds the queue in one command. This removes the old manual row-normalization step while still keeping authentication in the connector layer.
+
 ## Curriculum authority
 
 For source-packet construction, use this precedence:
@@ -240,7 +243,7 @@ Completed in this draft workstream:
 4. Synthetic regression tests with no real student fixtures.
 5. Deterministic input fingerprinting for targeted regeneration.
 6. Executable rolling weekly queue generator.
-7. One-command planning-state refresh from live/exported Current Snapshot + Daily Notes rows.
+7. One-command planning-state refresh from live/exported Current Snapshot + Daily Notes rows, plus a raw Google Sheets `values` adapter that performs the row normalization automatically.
 8. Persistent-history recorder/reader logic with duplicate protection and explicit completed/started Part evidence.
 9. Conditional real-group 5B 5.5 runtime pilot.
 10. Real-group 5A 7.5 Introduction runtime pilot.
@@ -250,7 +253,7 @@ Completed in this draft workstream:
 
 Still required before this becomes the routine weekly planner:
 
-1. Wire the live Sheets/connector retrieval/export step into the normal execution path so the refresh command receives current rows automatically.
+1. Wire the authenticated connector call itself into the normal execution path. The repository side now accepts raw Google Sheets `values` output directly, so no manual row normalization remains.
 2. Wire the group selection-history ledger and validated build fingerprints to the durable operational store used by the live system.
 3. Expand reusable source packets only when a new current/near-term instructional path is not already covered.
 4. Run the rolling weekly queue against refreshed live state and generate/reuse only the affected group artifacts.
