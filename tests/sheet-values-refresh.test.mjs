@@ -113,6 +113,18 @@ test('sheet-values adapter fails closed on malformed or missing tab data', () =>
     /duplicate column names/i
   );
 
+  const missingCurrentHeader = {
+    ...sheetExport,
+    currentSnapshotValues: [
+      currentHeaders.filter(header => header !== 'Lesson Focus'),
+      ['Synthetic Student', 'Synthetic', '5', '5.5']
+    ]
+  };
+  assert.throws(
+    () => buildFeedFromSheetValues(missingCurrentHeader),
+    /Current Snapshot is missing required columns: Lesson Focus/i
+  );
+
   const missingTab = {
     ...sheetExport,
     dailyTabValues: {}
