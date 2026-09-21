@@ -119,6 +119,7 @@ export function refreshFromSheetValues({
   return refreshPlanningState({
     feed: buildFeedFromSheetValues(exportData),
     packetRegistry,
+    validatedArtifacts: exportData?.validatedArtifacts ?? {},
     generatedAt
   });
 }
