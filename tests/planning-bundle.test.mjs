@@ -91,6 +91,7 @@ test('planning bundle joins the exact queue inputs and fingerprint into one hand
   assert.equal(bundle.snapshot, snap);
   assert.equal(bundle.sourcePacket, registry['5.5'].packet);
   assert.equal(bundle.buildRequest.plannedDate, '2026-09-21');
+  assert.equal(bundle.buildRequest.createdAt, '2026-09-21T12:05:00.000Z');
   assert.equal(bundle.inputFingerprint, queue.entries[0].inputFingerprint);
   assert.deepEqual(bundle.blockers, []);
 });
