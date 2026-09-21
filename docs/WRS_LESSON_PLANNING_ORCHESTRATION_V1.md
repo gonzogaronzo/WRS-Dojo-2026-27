@@ -264,6 +264,30 @@ After a runtime has passed the **final** orchestration gate, `scripts/wrs-record
 
 A successful record stores the exact fresh fingerprint as both current and validated fingerprint together with runtime/teacher-plan references and the validation timestamp. The resulting object is shaped for the existing callable-only operational-state persistence path.
 
+## Teacher decision handoff
+
+The planner should ask the teacher only when the live records genuinely leave a judgment unresolved.
+
+A current example of the intended behavior is a same-Substep focus conflict: the Current Snapshot may label a group as Accuracy while the newest explicit teacher note says the group still has not received the full explicit instruction for that Substep. The compiler does **not** silently reinterpret either record. It blocks that group with an explicit focus conflict.
+
+The refresh input supports an optional per-group `teacherFocusOverride` with one of:
+
+- `Introduction`
+- `Accuracy`
+- `Automaticity/Fluency`
+
+The authenticated planning export can accept these as a fixed-group `focusOverrides` map. Unknown groups or invalid focus values fail closed. The override applies only to that refresh handoff; it is not silently persisted as permanent placement or curriculum state.
+
+When an override is supplied, the derived Planning Snapshot records it as an explicit teacher-authority source and uses that focus for the build. The Substep itself does not change.
+
+## Prior-Substep follow-up after advancement
+
+The compiler distinguishes the **last Substep actually taught** from the **current planning target**. This matters when a teacher has already advanced a group but a small prior-Substep follow-up remains, such as one student's final charting.
+
+A prior-Substep cleanup item remains visible in `unfinishedWork` and the planning review, but it does not force the new current Substep into a continuation route. The new Substep can still receive its proper full/Introduction lesson while the prior follow-up is completed separately.
+
+Completed statements such as “Substep 5.4 is complete” are not classified as unfinished work merely because they contain the word “complete.”
+
 ## Routine weekly execution
 
 The intended normal weekly path is now explicit:
@@ -271,7 +295,7 @@ The intended normal weekly path is now explicit:
 1. Read the live 2026–27 Student Data `Current Snapshot` and the six allowed Daily Notes tabs through the authenticated fixed-scope planning export.
 2. Join the durable per-group Selection/Passage History and validated-artifact metadata from operational state.
 3. Run `lesson:refresh-sheet-values` against that ephemeral export.
-4. The refresh compiles current group snapshots, evaluates the rolling queue, recomputes fresh fingerprints, and writes one `<group>.planning-bundle.json` handoff per group.
+4. The refresh compiles current group snapshots, evaluates the rolling queue, recomputes fresh fingerprints, writes one `<group>.planning-bundle.json` handoff per group, and emits `planning-review.md` for the teacher.
 5. For queue entries marked `validated`, reuse the referenced validated artifacts.
 6. For `needs-build` or `needs-regeneration`, give only that group's planning bundle to lesson generation. Do not re-search old lesson files to reconstruct state or source authority. Run preflight directly against that bundle before generation.
 7. Run orchestration preflight, the active teacher-plan instructional contract, and runtime compatibility gates before rendering/exporting the lesson.
