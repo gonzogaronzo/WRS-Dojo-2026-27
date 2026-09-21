@@ -238,6 +238,20 @@ If reality differs from the queue, regenerate only the affected group. Do not sh
 
 The executable queue builder is `scripts/wrs-build-weekly-queue.mjs`. The one-command refresh wrapper is `scripts/wrs-refresh-planning-state.mjs`; it accepts the live/exported Current Snapshot and Daily Notes rows, compiles each group snapshot, and then builds the rolling queue. Missing or unverified source packets block only the affected group entry. The repository code does not pretend to hold Google Drive credentials; the live connector/export step supplies the rows at execution time.
 
+### One-file orchestration commands
+
+The orchestrator accepts the Planning Bundle directly, so downstream agents no longer need to split the handoff back into three files:
+
+```bash
+npm run lesson:preflight -- --bundle planning-output/5a.planning-bundle.json
+npm run lesson:gate -- --bundle planning-output/5a.planning-bundle.json \
+  --runtime 5a.runtime.json \
+  --contract-report 5a.contract-report.json \
+  --compatibility-report 5a.compatibility-report.json
+```
+
+Bundle mode verifies the bundle identity, school year, blocked state, group/date alignment, and fresh fingerprint before running the existing snapshot/source/build-request checks. The old split-input form remains supported for debugging and isolated contract tests.
+
 ### Validated artifact recording
 
 After a runtime has passed the **final** orchestration gate, `scripts/wrs-record-validated-artifact.mjs` creates the persistence-ready validation record. It refuses to record validation when:
@@ -259,7 +273,7 @@ The intended normal weekly path is now explicit:
 3. Run `lesson:refresh-sheet-values` against that ephemeral export.
 4. The refresh compiles current group snapshots, evaluates the rolling queue, recomputes fresh fingerprints, and writes one `<group>.planning-bundle.json` handoff per group.
 5. For queue entries marked `validated`, reuse the referenced validated artifacts.
-6. For `needs-build` or `needs-regeneration`, give only that group's planning bundle to lesson generation. Do not re-search old lesson files to reconstruct state or source authority.
+6. For `needs-build` or `needs-regeneration`, give only that group's planning bundle to lesson generation. Do not re-search old lesson files to reconstruct state or source authority. Run preflight directly against that bundle before generation.
 7. Run orchestration preflight, the active teacher-plan instructional contract, and runtime compatibility gates before rendering/exporting the lesson.
 8. After a generated lesson passes the final orchestration gate, run `lesson:record-validation` and persist its validated-artifact metadata through operational state.
 9. After instruction, record explicit completed/started Parts and selection/passage evidence, then persist the updated history for the next refresh.
