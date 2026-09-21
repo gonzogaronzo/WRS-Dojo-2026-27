@@ -25,6 +25,15 @@
       "verificationStatus": "visual-verified"
     },
     {
+      "sourceId": "student-reader-2-visual",
+      "kind": "student-reader",
+      "label": "Student Reader Two (4th Ed.).pdf",
+      "edition": "Fourth Edition",
+      "locator": "drive-id:1_248ZUgH8I0SnGFNrcFSpxKkCgVuqyhM#2.5-wordlists-pdf-pp-110-116#printed-pp-108-114",
+      "priority": 4,
+      "verificationStatus": "visual-verified"
+    },
+    {
       "sourceId": "student-reader-3-visual",
       "kind": "student-reader",
       "label": "Student Reader Three (4th Ed.).pdf",
