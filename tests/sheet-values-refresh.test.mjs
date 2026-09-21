@@ -70,7 +70,8 @@ const sheetExport = {
   groups: [{
     groupId: 'Synthetic',
     schedule: '8:00-8:45',
-    plannedDate: '2026-09-21'
+    plannedDate: '2026-09-21',
+    teacherFocusOverride: null
   }]
 };
 
@@ -132,6 +133,39 @@ test('raw sheet-values refresh reuses a durable validated artifact only when the
   assert.equal(report.queue.entries[0].status, 'validated');
   assert.equal(report.queue.entries[0].runtimeRef, 'runtime:synthetic');
   assert.equal(report.queue.entries[0].teacherPlanRef, 'teacher-plan:synthetic');
+});
+
+test('sheet-values group metadata preserves an explicit teacher focus override', () => {
+  const withFocusOverride = {
+    ...sheetExport,
+    currentSnapshotValues: [
+      currentHeaders,
+      ['Synthetic Student', 'Synthetic', '5', '5.5', '5.5 Accuracy', '15/15', '', 'Prior substep complete.', '', '', 'Needs cumulative review.', 'Give explicit current-Substep instruction.', '2026-09-21', '']
+    ],
+    dailyTabValues: {
+      Synthetic: [
+        dailyHeaders,
+        ['2026-09-21', 'Synthetic', 'Synthetic Student', 'Instructional / Student Data', 'Instruction', '5.5 Accuracy', 'The group has not yet received a full, proper 5.5 lesson.', 'Begin with explicit 5.5 instruction before moving forward.', 'Teacher live note, 2026-09-21']
+      ]
+    },
+    groups: [{
+      groupId: 'Synthetic',
+      schedule: '8:00-8:45',
+      plannedDate: '2026-09-21',
+      teacherFocusOverride: 'Introduction'
+    }]
+  };
+
+  const feed = buildFeedFromSheetValues(withFocusOverride);
+  assert.equal(feed.groups[0].teacherFocusOverride, 'Introduction');
+
+  const report = refreshFromSheetValues({
+    exportData: withFocusOverride,
+    packetRegistry,
+    generatedAt: '2026-09-21T18:00:00.000Z'
+  });
+  assert.equal(report.status, 'PASS');
+  assert.equal(report.snapshots[0].students[0].lessonFocus, 'introduction');
 });
 
 test('raw sheet-values refresh compiles a planning-ready snapshot and unblocked queue entry', () => {
