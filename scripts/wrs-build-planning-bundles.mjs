@@ -51,6 +51,20 @@ export function buildPlanningBundles({
     const selectionHistory = selectionHistories?.[groupId] ?? null;
     const blockers = Array.isArray(entry?.blockers) ? [...entry.blockers] : [];
 
+    if (entry?.status === 'assessment-only') {
+      return {
+        schemaVersion: BUNDLE_VERSION,
+        schoolYear: SCHOOL_YEAR,
+        generatedAt,
+        groupId,
+        plannedDate: text(entry?.plannedDate),
+        status: 'assessment-only',
+        blockers: [],
+        queueEntry: entry,
+        snapshot
+      };
+    }
+
     if (!packet) {
       blockers.push(`Full source packet content is unavailable for Substep ${target.substep || 'unresolved'}.`);
     }
