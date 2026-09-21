@@ -136,11 +136,15 @@ const normalizeStoredState = ({ data, teacherId, groupId }) => {
     return defaultState({ teacherId, groupId });
   }
 
-  const selectionHistory = plainObject(data.selectionHistory)
-    && data.selectionHistory.schemaVersion === HISTORY_VERSION
-    && text(data.selectionHistory.groupId) === groupId
-    ? data.selectionHistory
-    : null;
+  let selectionHistory = null;
+  if (plainObject(data.selectionHistory)) {
+    try {
+      selectionHistory = validateSelectionHistory(data.selectionHistory, groupId);
+    } catch {
+      // Corrupt/stale history must not influence passage or item selection.
+      selectionHistory = null;
+    }
+  }
   const validatedArtifacts = plainObject(data.validatedArtifacts)
     ? data.validatedArtifacts
     : {};
