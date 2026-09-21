@@ -37,6 +37,7 @@
       "enum": [
         "needs-build",
         "awaiting-condition",
+        "assessment-only",
         "blocked",
         "validated",
         "needs-regeneration",
@@ -78,7 +79,7 @@
       "if": {
         "properties": {
           "status": {
-            "const": "blocked"
+            "enum": ["blocked", "assessment-only"]
           }
         }
       },
