@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { passageHistoryFromLedger } from './wrs-record-lesson-history.mjs';
+
 const SCHOOL_YEAR = '2026-27';
 const SNAPSHOT_VERSION = 'wrs-group-planning-snapshot-v1';
 
@@ -255,9 +257,21 @@ export function compileGroupPlanningSnapshot({
   groupId,
   schedule = '',
   asOf,
+  selectionHistory = null,
   generatedAt = new Date().toISOString()
 }) {
   if (!groupId) throw new Error('groupId is required.');
+  if (selectionHistory) {
+    if (selectionHistory.schemaVersion !== 'wrs-group-selection-history-v1') {
+      throw new Error('selectionHistory must use wrs-group-selection-history-v1.');
+    }
+    if (selectionHistory.schoolYear !== SCHOOL_YEAR) {
+      throw new Error(`selectionHistory must be for ${SCHOOL_YEAR}.`);
+    }
+    if (text(selectionHistory.groupId) !== groupId) {
+      throw new Error('selectionHistory groupId does not match the requested group.');
+    }
+  }
   const effectiveAsOf = dateOnly(asOf) || dateOnly(generatedAt);
   if (!effectiveAsOf) throw new Error('asOf must resolve to YYYY-MM-DD.');
 
@@ -431,8 +445,8 @@ export function compileGroupPlanningSnapshot({
         ...deriveCarryForwardUnfinishedWork(current, latestDaily),
         ...deriveUnfinishedWork(latestDaily)
       ]),
-      passageHistory: [],
-      selectionHistoryRef: null
+      passageHistory: selectionHistory ? passageHistoryFromLedger(selectionHistory) : [],
+      selectionHistoryRef: selectionHistory ? `selection-history:${groupId}` : null
     },
     groupTroubleSpots: unique(students.flatMap(student => student.troubleSpots)),
     materialsAndFollowUps: unique(latestDaily
@@ -463,7 +477,7 @@ function parseArgs(argv) {
 function usage() {
   return [
     'Usage:',
-    '  node scripts/wrs-compile-planning-snapshot.mjs --current-snapshot current.json --daily-notes daily.json --group 5B --as-of YYYY-MM-DD [--schedule "7:45-8:30"] [--out snapshot.json]',
+    '  node scripts/wrs-compile-planning-snapshot.mjs --current-snapshot current.json --daily-notes daily.json --group 5B --as-of YYYY-MM-DD [--history group-history.json] [--schedule "7:45-8:30"] [--out snapshot.json]',
     '',
     'Inputs are current row exports from WRS 2026–27 Student Data Log / Current Snapshot and the matching Daily Notes group tab.',
     'The compiler is deterministic and conservative: it does not connect to Google Drive itself, infer missing Wilson content, or record a conditional advancement as completed.'
@@ -481,7 +495,8 @@ export function main(argv = process.argv.slice(2)) {
     dailyRows: readJson(options['daily-notes']),
     groupId: options.group,
     schedule: options.schedule || '',
-    asOf: options['as-of']
+    asOf: options['as-of'],
+    selectionHistory: options.history ? readJson(options.history) : null
   });
 
   const rendered = `${JSON.stringify(snapshot, null, 2)}\n`;
