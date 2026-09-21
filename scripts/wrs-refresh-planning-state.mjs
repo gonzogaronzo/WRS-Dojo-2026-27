@@ -22,6 +22,7 @@ const slug = value => text(value)
 export function refreshPlanningState({
   feed,
   packetRegistry = {},
+  validatedArtifacts = {},
   weekOf = null,
   generatedAt = new Date().toISOString()
 }) {
@@ -103,6 +104,7 @@ export function refreshPlanningState({
       plannedDates,
       routes,
       packetRegistry,
+      validatedArtifacts,
       generatedAt
     });
   }
