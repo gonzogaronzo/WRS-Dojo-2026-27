@@ -94,7 +94,11 @@ const defaultRouteFor = (snapshot, target) => {
   const unfinished = Array.isArray(snapshot?.lessonContinuity?.unfinishedWork)
     ? snapshot.lessonContinuity.unfinishedWork.map(text).filter(Boolean)
     : [];
-  return unfinished.length ? 'continuation' : 'full';
+  const lastTaughtSubstep = text(snapshot?.lessonContinuity?.lastSubstep);
+  const unfinishedBelongsToCurrentPath = unfinished.length
+    && lastTaughtSubstep
+    && lastTaughtSubstep === text(target?.substep);
+  return unfinishedBelongsToCurrentPath ? 'continuation' : 'full';
 };
 
 const validatedFor = (validatedArtifacts, groupId, plannedDate) => {
