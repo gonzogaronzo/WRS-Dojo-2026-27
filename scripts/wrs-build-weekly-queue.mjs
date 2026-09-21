@@ -129,7 +129,14 @@ export const buildQueueFingerprintRequest = ({
   lessonRoute: route,
   teacherDecisions: {
     focus: 'use-snapshot',
-    advancementOverride: 'none'
+    advancementOverride: snapshot?.advancement?.status === 'ready-pending-completion'
+      && text(snapshot?.advancement?.nextSubstep) === targetSubstep
+      ? 'advance'
+      : 'none',
+    notes: snapshot?.advancement?.status === 'ready-pending-completion'
+      && text(snapshot?.advancement?.nextSubstep) === targetSubstep
+      ? text(snapshot?.advancement?.condition)
+      : null
   }
 });
 
