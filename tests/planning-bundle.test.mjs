@@ -96,6 +96,32 @@ test('planning bundle joins the exact queue inputs and fingerprint into one hand
   assert.deepEqual(bundle.blockers, []);
 });
 
+test('assessment-only queue entry produces a non-generation bundle', () => {
+  const snap = snapshot();
+  snap.students[0].latestData.fluencyAssessment = 'Book 1 post-test started; post-test not complete.';
+  snap.students[0].recommendedInstructionalResponse = ['Complete the Book 1 post-test.'];
+
+  const queue = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: {},
+    generatedAt: '2026-09-21T12:05:00.000Z'
+  });
+  const [bundle] = buildPlanningBundles({
+    snapshots: [snap],
+    queue,
+    packetRegistry: {},
+    generatedAt: '2026-09-21T12:05:00.000Z'
+  });
+
+  assert.equal(bundle.status, 'assessment-only');
+  assert.deepEqual(bundle.blockers, []);
+  assert.equal(bundle.snapshot, snap);
+  assert.equal('sourcePacket' in bundle, false);
+  assert.equal('buildRequest' in bundle, false);
+  assert.equal('inputFingerprint' in bundle, false);
+});
+
 test('planning bundle fails closed when full packet content is unavailable', () => {
   const snap = snapshot();
   const registry = {
