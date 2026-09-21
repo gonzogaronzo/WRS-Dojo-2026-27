@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
+import { buildPlanningBundles } from '../scripts/wrs-build-planning-bundles.mjs';
+import { buildWeeklyQueue } from '../scripts/wrs-build-weekly-queue.mjs';
 import { computeLessonBuildFingerprint } from '../scripts/wrs-lesson-build-fingerprint.mjs';
 import { runBundlePreflight, runPreflight, validatePlanningBundle, validateSourcePacket } from '../scripts/wrs-lesson-orchestrator.mjs';
 
@@ -258,6 +260,43 @@ test('blocked planning bundle cannot pass orchestration', () => {
   const result = runBundlePreflight({ bundle });
   assert.equal(result.status, 'BLOCKED');
   assert.ok(result.issues.some(item => item.code === 'bundle_blocked'));
+});
+
+test('queue-generated conditional planning bundle passes orchestration for the next Substep Introduction', () => {
+  const snapshot = makeSnapshot();
+  const packet = makePacket();
+  const packetRegistry = {
+    '5.5': {
+      packetId: packet.packetId,
+      packetVersion: packet.packetVersion,
+      verified: true,
+      path: 'synthetic',
+      packet
+    }
+  };
+  const queue = buildWeeklyQueue({
+    snapshots: [snapshot],
+    weekOf: '2026-09-21',
+    plannedDates: { 'synthetic-group': '2026-09-21' },
+    packetRegistry,
+    generatedAt: '2026-09-18T12:00:00.000Z'
+  });
+  const [bundle] = buildPlanningBundles({
+    snapshots: [snapshot],
+    queue,
+    packetRegistry,
+    generatedAt: '2026-09-18T12:00:00.000Z'
+  });
+
+  assert.equal(queue.entries[0].status, 'awaiting-condition');
+  assert.equal(bundle.buildRequest.teacherDecisions.focus, 'introduction');
+  assert.equal(bundle.buildRequest.teacherDecisions.advancementOverride, 'advance');
+  assert.equal(bundle.buildRequest.teacherDecisions.notes, snapshot.advancement.condition);
+
+  const result = runBundlePreflight({ bundle });
+  assert.equal(result.status, 'PASS');
+  assert.equal(result.resolvedTargetSubstep, '5.5');
+  assert.equal(result.resolvedFocus, 'introduction');
 });
 
 test('conditional next-Substep preflight passes when teacher advance authority and verified packet agree', () => {
