@@ -314,7 +314,16 @@ export function compileGroupPlanningSnapshot({
 
   const currentFocuses = unique(current.map(row => normalizeFocus(field(row, 'Lesson Focus', 'lessonFocus'))));
   const dailyFocus = deriveDailyFocus(latestDaily);
-  const resolvedFocus = dailyFocus || (currentFocuses.length === 1 ? currentFocuses[0] : '');
+  const sameDayAdvanceUsesCurrentSnapshotFocus = Boolean(
+    explicitTeacherCurrentTarget
+    && dailyInstructionSubstep
+    && explicitTeacherCurrentTarget !== dailyInstructionSubstep
+    && currentTargets.includes(explicitTeacherCurrentTarget)
+    && currentFocuses.length === 1
+  );
+  const resolvedFocus = sameDayAdvanceUsesCurrentSnapshotFocus
+    ? currentFocuses[0]
+    : (dailyFocus || (currentFocuses.length === 1 ? currentFocuses[0] : ''));
   const conflicts = [];
 
   if (currentTargets.length > 1 && !dailyTarget) {
