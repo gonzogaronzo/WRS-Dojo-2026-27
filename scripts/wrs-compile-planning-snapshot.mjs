@@ -149,13 +149,19 @@ const deriveAdvancement = ({ currentSubstep, latestDailyRows, fallbackAuthorityR
   };
 };
 
+const signalsUnfinishedWork = value => (
+  /\b(?:remain|remains|unfinished|finish|resume|continue|not\s+complete)\b/i.test(value)
+  || /^\s*complete\b/i.test(value)
+  || /\b(?:must|needs?|need\s+to|should|then)\s+complete\b/i.test(value)
+);
+
 const deriveUnfinishedWork = latestDailyRows => {
   const candidates = [];
   for (const row of latestDailyRows) {
     const note = text(field(row, 'Note / Data', 'note'));
     const followUp = text(field(row, 'Follow-up / Instructional Response', 'followUp'));
     for (const value of [note, followUp]) {
-      if (/\b(?:remain|unfinished|finish|resume|continue|complete)\b/i.test(value)) {
+      if (signalsUnfinishedWork(value)) {
         candidates.push(value);
       }
     }
