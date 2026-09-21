@@ -63,6 +63,14 @@ const actionFor = entry => {
     }
     case 'awaiting-condition':
       return 'WAIT: ' + (text(entry?.entryCondition) || 'entry condition not yet met');
+    case 'assessment-only': {
+      const assessmentNote = Array.isArray(entry?.notes)
+        ? entry.notes.find(note => /^Assessment continuation:/i.test(text(note)))
+        : null;
+      return 'ASSESSMENT: ' + (assessmentNote
+        ? text(assessmentNote).replace(/^Assessment continuation:\s*/i, '')
+        : (text(entry?.entryCondition) || 'complete the recorded assessment'));
+    }
     case 'validated':
       return 'REUSE validated lesson';
     case 'needs-regeneration':
