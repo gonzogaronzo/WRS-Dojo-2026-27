@@ -110,7 +110,7 @@ const deriveAdvancement = ({ currentSubstep, latestDailyRows, fallbackAuthorityR
     const followUp = text(field(row, 'Follow-up / Instructional Response', 'followUp'));
     const note = text(field(row, 'Note / Data', 'note'));
     const combined = [followUp, note].filter(Boolean).join(' ');
-    const match = combined.match(/\b(?:advance|move)\s+(?:on\s+)?to\s+(?:substep\s+)?(\d+\.\d+)\b/i);
+    const match = combined.match(/\b(?:(?:advance|move)\s+(?:on\s+)?to|(?:begin|start))\s+(?:substep\s+)?(\d+\.\d+)\b/i);
     if (!match) continue;
     const meta = sourceKind(row);
     const date = dateOnly(field(row, 'Date', 'date'));
@@ -237,6 +237,24 @@ const deriveDailySubstep = latestDailyRows => {
   return values.length === 1 ? values[0] : '';
 };
 
+const deriveExplicitTeacherCurrentTarget = latestDailyRows => {
+  for (const row of [...latestDailyRows].reverse()) {
+    const meta = sourceKind(row);
+    if (meta.authorityRank !== 1) continue;
+
+    const followUp = text(field(row, 'Follow-up / Instructional Response', 'followUp'));
+    const note = text(field(row, 'Note / Data', 'note'));
+    const combined = [followUp, note].filter(Boolean).join(' ');
+    const match = combined.match(/\b(?:(?:advance|move)\s+(?:on\s+)?to|(?:begin|start))\s+(?:substep\s+)?(\d+\.\d+)\b/i);
+    if (!match) continue;
+
+    const conditionText = followUp || combined;
+    const hasCompletionCondition = /\b(?:finish|after|once|then|before|when|if|unless)\b/i.test(conditionText);
+    if (!hasCompletionCondition) return match[1];
+  }
+  return '';
+};
+
 const deriveDailyFocus = latestDailyRows => {
   const values = unique(latestDailyRows.map(row => normalizeFocus(field(row, 'Substep / Lesson', 'substepLesson'))));
   return values.length === 1 ? values[0] : '';
@@ -289,7 +307,9 @@ export function compileGroupPlanningSnapshot({
       || substepFrom(field(row, 'Current Substep', 'currentSubstep'))
   ));
   const currentTargets = unique(rawTargets);
-  const dailyTarget = deriveDailySubstep(latestDaily);
+  const dailyInstructionSubstep = deriveDailySubstep(latestDaily);
+  const explicitTeacherCurrentTarget = deriveExplicitTeacherCurrentTarget(latestDaily);
+  const dailyTarget = explicitTeacherCurrentTarget || dailyInstructionSubstep;
   const currentSubstep = dailyTarget || (currentTargets.length === 1 ? currentTargets[0] : '');
 
   const currentFocuses = unique(current.map(row => normalizeFocus(field(row, 'Lesson Focus', 'lessonFocus'))));
