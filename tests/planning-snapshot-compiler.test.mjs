@@ -356,6 +356,48 @@ test('an unconditional explicit teacher advance is represented as teacher-confir
   assert.equal(snapshot.advancement.nextSubstep, '5.5');
 });
 
+test('same-day teacher completion plus explicit begin-next-substep resolves to the new current state', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({
+        student: 'Student A',
+        group: 'SameDayAdvance',
+        currentSubstep: '7.5',
+        lessonFocus: '7.5 Introduction',
+        updated: '2026-09-18'
+      }),
+      currentRow({
+        student: 'Student B',
+        group: 'SameDayAdvance',
+        currentSubstep: '7.5',
+        lessonFocus: '7.5 Introduction',
+        updated: '2026-09-18'
+      })
+    ],
+    dailyRows: [
+      dailyRow({
+        date: '2026-09-18',
+        group: 'SameDayAdvance',
+        substep: '7.4 Accuracy',
+        note: 'The group charted at 100% and is ready to advance.',
+        followUp: 'Begin 7.5 next week.',
+        source: 'Teacher live note, 2026-09-18'
+      })
+    ],
+    groupId: 'SameDayAdvance',
+    asOf: '2026-09-18',
+    generatedAt: '2026-09-18T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.planningReady, true);
+  assert.equal(snapshot.students[0].officialPlacement.substep, '7.5');
+  assert.equal(snapshot.students[0].instructionalTarget.substep, '7.5');
+  assert.equal(snapshot.students[0].lessonFocus, 'introduction');
+  assert.equal(snapshot.advancement.status, 'continue');
+  assert.equal(snapshot.advancement.currentSubstep, '7.5');
+  assert.equal(snapshot.advancement.nextSubstep, null);
+});
+
 test('an older teacher note does not override a newer Current Snapshot state', () => {
   const snapshot = compileGroupPlanningSnapshot({
     currentSnapshotRows: [
