@@ -259,6 +259,12 @@ test('real 5.5 source packet is accepted by the orchestration source gate', () =
   assert.deepEqual(issues, []);
 });
 
+test('real 7.5 source packet is accepted by the orchestration source gate', () => {
+  const packet = JSON.parse(fs.readFileSync(new URL('../curriculum/source-packets/7.5.v1.json', import.meta.url), 'utf8'));
+  const issues = validateSourcePacket(packet);
+  assert.deepEqual(issues, []);
+});
+
 test('real student data are not embedded in orchestration regression fixtures', () => {
   const serialized = JSON.stringify({ makeSnapshot: makeSnapshot(), makePacket: makePacket(), makeRequest: makeRequest() });
   for (const forbidden of ['Oliver', 'Ethan', 'Alex', 'Finn', 'Maya', 'Enrique']) {
