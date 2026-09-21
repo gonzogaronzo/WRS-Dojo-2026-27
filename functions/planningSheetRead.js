@@ -20,6 +20,34 @@ const valuesFrom = response => (
   Array.isArray(response?.data?.values) ? response.data.values : []
 );
 
+const normalizeTeacherFocus = value => {
+  const raw = text(value).toLowerCase();
+  if (!raw) return null;
+  if (/^intro(?:duction)?$/.test(raw)) return 'Introduction';
+  if (raw === 'accuracy') return 'Accuracy';
+  if (/^(?:automaticity(?:\/|\s+)?fluency|automaticity-fluency|fluency)$/.test(raw)) {
+    return 'Automaticity/Fluency';
+  }
+  throw new Error('Teacher focus override must be Introduction, Accuracy, or Automaticity/Fluency.');
+};
+
+export function parseTeacherFocusOverrides(value) {
+  if (value == null) return {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('focusOverrides must be an object keyed by supported planning group.');
+  }
+
+  const result = {};
+  for (const [groupId, rawFocus] of Object.entries(value)) {
+    if (!DAILY_NOTE_TABS.includes(groupId)) {
+      throw new Error(`Unsupported planning group: ${groupId || '(blank)'}.`);
+    }
+    const focus = normalizeTeacherFocus(rawFocus);
+    if (focus) result[groupId] = focus;
+  }
+  return result;
+}
+
 export function parseAllowedTeacherUids(value) {
   return [...new Set(text(value)
     .split(',')
