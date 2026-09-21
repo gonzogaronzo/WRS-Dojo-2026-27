@@ -12,6 +12,7 @@ on:
       - 'scripts/wrs-compile-planning-snapshot.mjs'
       - 'scripts/wrs-build-weekly-queue.mjs'
       - 'scripts/wrs-refresh-planning-state.mjs'
+      - 'scripts/wrs-record-lesson-history.mjs'
       - 'tests/lesson-*.test.mjs'
       - 'tests/planning-snapshot-compiler.test.mjs'
       - 'tests/weekly-build-queue.test.mjs'
@@ -48,11 +49,11 @@ jobs:
         run: npm ci
 
       - name: Run orchestration, fingerprint, and snapshot-compiler unit tests
-        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/planning-snapshot-compiler.test.mjs tests/weekly-build-queue.test.mjs tests/planning-state-refresh.test.mjs
+        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/lesson-selection-history.test.mjs tests/planning-snapshot-compiler.test.mjs tests/weekly-build-queue.test.mjs tests/planning-state-refresh.test.mjs
 
       - name: Parse orchestration schemas, source packets, and pilot runtime
         run: |
-          node -e "const fs=require('fs'); const schemas=['schemas/wrs-group-planning-snapshot-v1.schema.json','schemas/wrs-substep-source-packet-v1.schema.json','schemas/wrs-lesson-build-request-v1.schema.json','schemas/wrs-weekly-build-queue-v1.schema.json']; const packets=fs.readdirSync('curriculum/source-packets').filter(f=>f.endsWith('.json')).map(f=>'curriculum/source-packets/'+f); const pilots=fs.readdirSync('curriculum/pilots').filter(f=>f.endsWith('.json')).map(f=>'curriculum/pilots/'+f); for (const f of [...schemas,...packets,...pilots]) JSON.parse(fs.readFileSync(f,'utf8')); console.log('JSON parse PASS:', packets.length, 'source packets,', pilots.length, 'pilots')"
+          node -e "const fs=require('fs'); const schemas=['schemas/wrs-group-planning-snapshot-v1.schema.json','schemas/wrs-substep-source-packet-v1.schema.json','schemas/wrs-lesson-build-request-v1.schema.json','schemas/wrs-weekly-build-queue-v1.schema.json','schemas/wrs-group-selection-history-v1.schema.json']; const packets=fs.readdirSync('curriculum/source-packets').filter(f=>f.endsWith('.json')).map(f=>'curriculum/source-packets/'+f); const pilots=fs.readdirSync('curriculum/pilots').filter(f=>f.endsWith('.json')).map(f=>'curriculum/pilots/'+f); for (const f of [...schemas,...packets,...pilots]) JSON.parse(fs.readFileSync(f,'utf8')); console.log('JSON parse PASS:', packets.length, 'source packets,', pilots.length, 'pilots')"
 
   pr40-canonical-gate:
     runs-on: ubuntu-latest
