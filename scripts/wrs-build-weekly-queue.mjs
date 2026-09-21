@@ -4,8 +4,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { computeLessonBuildFingerprint } from './wrs-lesson-build-fingerprint.mjs';
+
 const SCHOOL_YEAR = '2026-27';
 const QUEUE_VERSION = 'wrs-weekly-build-queue-v1';
+const PROTOCOL_VERSION = '2026-09-17';
+const TEACHER_PLAN_CONTRACT_VERSION = 'wrs-teacher-plan-contract-v2';
+const RUNTIME_SCHEMA_VERSION = 'wrs-runtime-v1';
 
 const text = value => value == null ? '' : String(value).trim();
 const objects = value => Array.isArray(value)
@@ -42,7 +47,8 @@ export function discoverPacketRegistry(packetDir) {
       verified: packet?.verification?.status === 'verified'
         && objects(packet?.verification?.blockingIssues).length === 0
         && (!Array.isArray(packet?.verification?.blockingIssues) || packet.verification.blockingIssues.length === 0),
-      path: filePath
+      path: filePath,
+      packet
     };
   }
 
@@ -96,6 +102,63 @@ const validatedFor = (validatedArtifacts, groupId, plannedDate) => {
   return validatedArtifacts[`${groupId}:${plannedDate}`] ?? validatedArtifacts[groupId] ?? null;
 };
 
+const selectionHistoryFor = (selectionHistories, groupId) => {
+  if (!selectionHistories || typeof selectionHistories !== 'object') return null;
+  return selectionHistories[groupId] ?? null;
+};
+
+export const buildQueueFingerprintRequest = ({
+  groupId,
+  plannedDate,
+  targetSubstep,
+  route,
+  snapshot,
+  packet
+}) => ({
+  schemaVersion: 'wrs-lesson-build-request-v1',
+  requestId: `queue-fingerprint:${groupId}:${plannedDate}:${targetSubstep || 'unresolved'}`,
+  createdAt: '2000-01-01T00:00:00.000Z',
+  groupSnapshotRef: text(snapshot?.snapshotId) || `snapshot:${groupId}`,
+  sourcePacketRef: text(packet?.packetId) || `wrs-${targetSubstep || 'unresolved'}-source-packet-v1`,
+  selectionHistoryRef: snapshot?.lessonContinuity?.selectionHistoryRef ?? null,
+  protocolVersion: PROTOCOL_VERSION,
+  teacherPlanContractVersion: TEACHER_PLAN_CONTRACT_VERSION,
+  runtimeSchemaVersion: RUNTIME_SCHEMA_VERSION,
+  plannedDate,
+  lessonRoute: route,
+  teacherDecisions: {
+    focus: 'use-snapshot',
+    advancementOverride: 'none'
+  }
+});
+
+const freshFingerprintFor = ({
+  snapshot,
+  packetRegistryEntry,
+  groupId,
+  plannedDate,
+  targetSubstep,
+  route,
+  selectionHistory
+}) => {
+  const packet = packetRegistryEntry?.packet;
+  if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return null;
+  const request = buildQueueFingerprintRequest({
+    groupId,
+    plannedDate,
+    targetSubstep,
+    route,
+    snapshot,
+    packet
+  });
+  return computeLessonBuildFingerprint({
+    snapshot,
+    packet,
+    request,
+    selectionHistory
+  });
+};
+
 export function buildWeeklyQueue({
   snapshots,
   weekOf,
@@ -103,6 +166,7 @@ export function buildWeeklyQueue({
   routes = {},
   packetRegistry = {},
   validatedArtifacts = {},
+  selectionHistories = {},
   generatedAt = new Date().toISOString()
 }) {
   const snapshotList = normalizeSnapshots(snapshots);
@@ -155,13 +219,23 @@ export function buildWeeklyQueue({
       : 'The next lesson depends on the next dated snapshot plus selection/passage history.';
 
     const validated = validatedFor(validatedArtifacts, groupId, plannedDate);
-    const inputFingerprint = text(validated?.currentFingerprint) || null;
+    const selectionHistory = selectionHistoryFor(selectionHistories, groupId);
+    const inputFingerprint = freshFingerprintFor({
+      snapshot,
+      packetRegistryEntry: packet,
+      groupId,
+      plannedDate,
+      targetSubstep: target.substep,
+      route,
+      selectionHistory
+    });
     const validatedFingerprint = text(validated?.validatedFingerprint) || null;
 
     let status;
     if (blockers.length) status = 'blocked';
     else if (target.entryConditionStatus === 'pending') status = 'awaiting-condition';
     else if (inputFingerprint && validatedFingerprint && inputFingerprint === validatedFingerprint) status = 'validated';
+    else if (validatedFingerprint) status = 'needs-regeneration';
     else status = 'needs-build';
 
     return {
@@ -231,7 +305,7 @@ function parseArgs(argv) {
 function usage() {
   return [
     'Usage:',
-    '  node scripts/wrs-build-weekly-queue.mjs --snapshots snapshots.json --week-of YYYY-MM-DD [--packets-dir curriculum/source-packets] [--planned-dates planned-dates.json] [--routes routes.json] [--validated-artifacts validated.json] [--out queue.json]',
+    '  node scripts/wrs-build-weekly-queue.mjs --snapshots snapshots.json --week-of YYYY-MM-DD [--packets-dir curriculum/source-packets] [--planned-dates planned-dates.json] [--routes routes.json] [--validated-artifacts validated.json] [--selection-histories histories.json] [--out queue.json]',
     '',
     'The queue is derived orchestration state. Missing or unverified source packets block only the affected group entry.'
   ].join('\n');
@@ -249,7 +323,8 @@ export function main(argv = process.argv.slice(2)) {
     plannedDates: parseMap(options['planned-dates'], 'planned-dates'),
     routes: parseMap(options.routes, 'routes'),
     packetRegistry: discoverPacketRegistry(options['packets-dir'] || 'curriculum/source-packets'),
-    validatedArtifacts: parseMap(options['validated-artifacts'], 'validated-artifacts')
+    validatedArtifacts: parseMap(options['validated-artifacts'], 'validated-artifacts'),
+    selectionHistories: parseMap(options['selection-histories'], 'selection-histories')
   });
 
   const rendered = `${JSON.stringify(queue, null, 2)}\n`;
