@@ -308,7 +308,10 @@ export function compileGroupPlanningSnapshot({
   ));
   const currentTargets = unique(rawTargets);
   const dailyInstructionSubstep = deriveDailySubstep(latestDaily);
-  const explicitTeacherCurrentTarget = deriveExplicitTeacherCurrentTarget(latestDaily);
+  const explicitTeacherTargetCandidate = deriveExplicitTeacherCurrentTarget(latestDaily);
+  const explicitTeacherCurrentTarget = currentTargets.includes(explicitTeacherTargetCandidate)
+    ? explicitTeacherTargetCandidate
+    : '';
   const dailyTarget = explicitTeacherCurrentTarget || dailyInstructionSubstep;
   const currentSubstep = dailyTarget || (currentTargets.length === 1 ? currentTargets[0] : '');
 
