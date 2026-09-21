@@ -51,6 +51,14 @@ export function validatePlanningBundle(bundle) {
   if (bundle?.schoolYear !== SCHOOL_YEAR) {
     issues.push(issue('bundle_school_year', `Planning bundle must be for ${SCHOOL_YEAR}.`, 'planning-bundle'));
   }
+  if (bundle?.status === 'assessment-only') {
+    issues.push(issue(
+      'bundle_assessment_only',
+      'Planning bundle is assessment-only; complete the recorded assessment before 10-Part lesson generation.',
+      'planning-bundle'
+    ));
+    return issues;
+  }
   if (bundle?.status === 'blocked' || strings(bundle?.blockers).length) {
     issues.push(issue(
       'bundle_blocked',
