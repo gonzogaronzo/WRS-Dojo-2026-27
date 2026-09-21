@@ -17,6 +17,14 @@ const SCHOOL_YEAR = '2026-27';
 const text = value => value == null ? '' : String(value).trim();
 const readJson = filePath => JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
+const assertRequiredHeaders = (values, required, label) => {
+  const headers = Array.isArray(values?.[0]) ? values[0].map(text) : [];
+  const missing = required.filter(header => !headers.includes(header));
+  if (missing.length) {
+    throw new Error(`${label} is missing required columns: ${missing.join(', ')}.`);
+  }
+};
+
 export function rowsFromValues(values, label = 'sheet') {
   if (!Array.isArray(values) || values.length < 1 || !Array.isArray(values[0])) {
     throw new Error(`${label} must be a two-dimensional values array with a header row.`);
@@ -48,6 +56,11 @@ export function buildFeedFromSheetValues(exportData) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf)) throw new Error('asOf must be YYYY-MM-DD.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(weekOf)) throw new Error('weekOf must be YYYY-MM-DD.');
 
+  assertRequiredHeaders(
+    exportData.currentSnapshotValues,
+    ['Student', 'Group', 'Current Substep', 'Lesson Focus', 'Last Updated'],
+    'Current Snapshot'
+  );
   const currentSnapshotRows = rowsFromValues(
     exportData.currentSnapshotValues,
     'Current Snapshot'
@@ -71,6 +84,11 @@ export function buildFeedFromSheetValues(exportData) {
     const dailyTab = text(group?.dailyTab) || groupId;
     const values = dailyTabValues[dailyTab];
     if (!values) throw new Error(`Missing Daily Notes values for tab ${dailyTab} (group ${groupId}).`);
+    assertRequiredHeaders(
+      values,
+      ['Date', 'Group', 'Substep / Lesson', 'Note / Data', 'Follow-up / Instructional Response', 'Source'],
+      `Daily Notes / ${dailyTab}`
+    );
 
     return {
       groupId,
