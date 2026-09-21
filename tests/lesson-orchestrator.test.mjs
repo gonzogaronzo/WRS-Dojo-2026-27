@@ -253,6 +253,28 @@ test('stale planning bundle fingerprint fails closed before generation', () => {
   assert.ok(result.issues.some(item => item.code === 'bundle_fingerprint_mismatch'));
 });
 
+test('assessment-only planning bundle cannot enter lesson orchestration', () => {
+  const bundle = {
+    schemaVersion: 'wrs-planning-bundle-v1',
+    schoolYear: '2026-27',
+    generatedAt: '2026-09-18T12:00:00.000Z',
+    groupId: 'synthetic-group',
+    plannedDate: '2026-09-21',
+    status: 'assessment-only',
+    blockers: [],
+    queueEntry: {
+      groupId: 'synthetic-group',
+      status: 'assessment-only'
+    },
+    snapshot: makeSnapshot()
+  };
+
+  const result = runBundlePreflight({ bundle });
+  assert.equal(result.status, 'BLOCKED');
+  assert.ok(result.issues.some(item => item.code === 'bundle_assessment_only'));
+  assert.equal(result.issues.some(item => item.code === 'bundle_inputs_missing'), false);
+});
+
 test('blocked planning bundle cannot pass orchestration', () => {
   const bundle = makeBundle();
   bundle.status = 'blocked';
