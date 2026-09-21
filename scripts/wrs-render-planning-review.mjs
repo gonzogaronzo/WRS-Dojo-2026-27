@@ -53,8 +53,14 @@ const nextNeedFor = snapshot => {
 
 const actionFor = entry => {
   switch (entry?.status) {
-    case 'blocked':
-      return 'BLOCKED: ' + (Array.isArray(entry?.blockers) && entry.blockers.length ? entry.blockers.join('; ') : 'planning blocker');
+    case 'blocked': {
+      const blockerText = Array.isArray(entry?.blockers) && entry.blockers.length
+        ? entry.blockers.join('; ')
+        : 'planning blocker';
+      return /teacher must confirm/i.test(blockerText)
+        ? 'TEACHER DECISION: ' + blockerText
+        : 'BLOCKED: ' + blockerText;
+    }
     case 'awaiting-condition':
       return 'WAIT: ' + (text(entry?.entryCondition) || 'entry condition not yet met');
     case 'validated':
