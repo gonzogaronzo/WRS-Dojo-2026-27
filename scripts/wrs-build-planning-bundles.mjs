@@ -93,6 +93,7 @@ export function buildPlanningBundles({
       groupId,
       plannedDate: text(entry.plannedDate),
       status: entry.status,
+      blockers: [],
       inputFingerprint: fingerprint,
       queueEntry: entry,
       snapshot,
