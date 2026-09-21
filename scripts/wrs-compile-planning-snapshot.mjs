@@ -181,7 +181,6 @@ const deriveCarryForwardUnfinishedWork = (currentRows, latestDailyRows) => {
     const addressedRows = rowsAddressingStudent(studentName);
     const dailyText = addressedRows.map(dailyRow => [
       field(dailyRow, 'Substep / Lesson', 'substepLesson'),
-      field(dailyRow, 'Category', 'category'),
       field(dailyRow, 'Note / Data', 'note'),
       field(dailyRow, 'Follow-up / Instructional Response', 'followUp')
     ].map(text).filter(Boolean).join(' ')).join(' ');
