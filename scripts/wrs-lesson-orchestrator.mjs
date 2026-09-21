@@ -4,10 +4,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { computeLessonBuildFingerprint } from './wrs-lesson-build-fingerprint.mjs';
+
 const SNAPSHOT_VERSION = 'wrs-group-planning-snapshot-v1';
 const PACKET_VERSION = 'wrs-substep-source-packet-v1';
 const REQUEST_VERSION = 'wrs-lesson-build-request-v1';
 const RUNTIME_VERSION = 'wrs-runtime-v1';
+const BUNDLE_VERSION = 'wrs-planning-bundle-v1';
+const FINGERPRINT_RE = /^sha256:[a-f0-9]{64}$/;
 const SCHOOL_YEAR = '2026-27';
 const CONTRACT_RE = /^wrs-teacher-plan-contract-v\d+$/;
 const FOCI = new Set(['introduction', 'accuracy', 'automaticity-fluency']);
@@ -37,6 +41,111 @@ const sameMembers = (left, right) => {
   const b = [...new Set(strings(right))].sort();
   return a.length === b.length && a.every((item, index) => item === b[index]);
 };
+
+export function validatePlanningBundle(bundle) {
+  const issues = [];
+  if (bundle?.schemaVersion !== BUNDLE_VERSION) {
+    issues.push(issue('bundle_schema_version', `Expected ${BUNDLE_VERSION}.`, 'planning-bundle'));
+    return issues;
+  }
+  if (bundle?.schoolYear !== SCHOOL_YEAR) {
+    issues.push(issue('bundle_school_year', `Planning bundle must be for ${SCHOOL_YEAR}.`, 'planning-bundle'));
+  }
+  if (bundle?.status === 'blocked' || strings(bundle?.blockers).length) {
+    issues.push(issue(
+      'bundle_blocked',
+      strings(bundle?.blockers).length
+        ? `Planning bundle is blocked: ${strings(bundle.blockers).join('; ')}`
+        : 'Planning bundle is blocked.',
+      'planning-bundle'
+    ));
+  }
+
+  const snapshot = bundle?.snapshot;
+  const packet = bundle?.sourcePacket;
+  const request = bundle?.buildRequest;
+  if (!snapshot || !packet || !request) {
+    issues.push(issue(
+      'bundle_inputs_missing',
+      'Planning bundle must contain snapshot, sourcePacket, and buildRequest.',
+      'planning-bundle'
+    ));
+    return issues;
+  }
+
+  if (text(bundle?.groupId) !== text(snapshot?.group?.groupId)) {
+    issues.push(issue('bundle_group_mismatch', 'Planning bundle groupId does not match snapshot.group.groupId.', 'planning-bundle'));
+  }
+  if (text(bundle?.plannedDate) !== text(request?.plannedDate)) {
+    issues.push(issue('bundle_date_mismatch', 'Planning bundle plannedDate does not match buildRequest.plannedDate.', 'planning-bundle'));
+  }
+
+  const fingerprint = text(bundle?.inputFingerprint);
+  if (!FINGERPRINT_RE.test(fingerprint)) {
+    issues.push(issue('bundle_fingerprint_invalid', 'Planning bundle inputFingerprint is missing or invalid.', 'planning-bundle'));
+  } else {
+    const fresh = computeLessonBuildFingerprint({
+      snapshot,
+      packet,
+      request,
+      selectionHistory: bundle?.selectionHistory ?? null
+    });
+    if (fingerprint !== fresh) {
+      issues.push(issue(
+        'bundle_fingerprint_mismatch',
+        'Planning bundle fingerprint no longer matches its substantive inputs.',
+        'planning-bundle'
+      ));
+    }
+  }
+
+  return issues;
+}
+
+export function runBundlePreflight({
+  bundle,
+  runtime = null,
+  contractReport = null,
+  compatibilityReport = null,
+  finalGate = false
+}) {
+  const bundleIssues = validatePlanningBundle(bundle);
+  const snapshot = bundle?.snapshot ?? null;
+  const packet = bundle?.sourcePacket ?? null;
+  const request = bundle?.buildRequest ?? null;
+
+  const report = snapshot && packet && request
+    ? runPreflight({
+      snapshot,
+      packet,
+      request,
+      runtime,
+      contractReport,
+      compatibilityReport,
+      finalGate
+    })
+    : {
+      schemaVersion: 'wrs-lesson-orchestration-report-v1',
+      status: 'BLOCKED',
+      resolvedTargetSubstep: null,
+      resolvedFocus: null,
+      snapshotId: null,
+      packetId: null,
+      requestId: null,
+      contractVersion: null,
+      finalGate,
+      issues: []
+    };
+
+  const issues = [...bundleIssues, ...report.issues];
+  return {
+    ...report,
+    status: issues.length ? 'BLOCKED' : 'PASS',
+    bundleStatus: text(bundle?.status) || null,
+    inputFingerprint: text(bundle?.inputFingerprint) || null,
+    issues
+  };
+}
 
 export function resolveTargetSubstep(snapshot, request) {
   const advancement = snapshot?.advancement ?? {};
@@ -397,6 +506,8 @@ function parseArgs(argv) {
 function usage() {
   return [
     'Usage:',
+    '  node scripts/wrs-lesson-orchestrator.mjs preflight --bundle GROUP.planning-bundle.json [--runtime RUNTIME.json] [--out REPORT.json]',
+    '  node scripts/wrs-lesson-orchestrator.mjs gate --bundle GROUP.planning-bundle.json --runtime RUNTIME.json --contract-report CONTRACT.json --compatibility-report COMPAT.json [--out REPORT.json]',
     '  node scripts/wrs-lesson-orchestrator.mjs preflight --snapshot SNAPSHOT.json --packet PACKET.json --request REQUEST.json [--runtime RUNTIME.json] [--out REPORT.json]',
     '  node scripts/wrs-lesson-orchestrator.mjs gate --snapshot SNAPSHOT.json --packet PACKET.json --request REQUEST.json --runtime RUNTIME.json --contract-report CONTRACT.json --compatibility-report COMPAT.json [--out REPORT.json]',
     '',
@@ -409,8 +520,16 @@ function usage() {
 export function main(argv = process.argv.slice(2)) {
   const { command, options } = parseArgs(argv);
   if (!['preflight', 'gate'].includes(command)) throw new Error(`${usage()}\n\nUnknown command: ${command}`);
-  for (const required of ['snapshot', 'packet', 'request']) {
-    if (!options[required]) throw new Error(`${usage()}\n\nMissing --${required}.`);
+
+  const usingBundle = Boolean(options.bundle);
+  const usingSplitInputs = ['snapshot', 'packet', 'request'].some(key => Boolean(options[key]));
+  if (usingBundle && usingSplitInputs) {
+    throw new Error(`${usage()}\n\nUse either --bundle or --snapshot/--packet/--request, not both.`);
+  }
+  if (!usingBundle) {
+    for (const required of ['snapshot', 'packet', 'request']) {
+      if (!options[required]) throw new Error(`${usage()}\n\nMissing --${required}; alternatively provide --bundle.`);
+    }
   }
   if (command === 'gate') {
     for (const required of ['runtime', 'contract-report', 'compatibility-report']) {
@@ -418,21 +537,27 @@ export function main(argv = process.argv.slice(2)) {
     }
   }
 
-  const snapshot = readJson(options.snapshot);
-  const packet = readJson(options.packet);
-  const request = readJson(options.request);
   const runtime = options.runtime ? readJson(options.runtime) : null;
   const contractReport = options['contract-report'] ? readJson(options['contract-report']) : null;
   const compatibilityReport = options['compatibility-report'] ? readJson(options['compatibility-report']) : null;
-  const report = runPreflight({
-    snapshot,
-    packet,
-    request,
-    runtime,
-    contractReport,
-    compatibilityReport,
-    finalGate: command === 'gate'
-  });
+
+  const report = usingBundle
+    ? runBundlePreflight({
+      bundle: readJson(options.bundle),
+      runtime,
+      contractReport,
+      compatibilityReport,
+      finalGate: command === 'gate'
+    })
+    : runPreflight({
+      snapshot: readJson(options.snapshot),
+      packet: readJson(options.packet),
+      request: readJson(options.request),
+      runtime,
+      contractReport,
+      compatibilityReport,
+      finalGate: command === 'gate'
+    });
 
   const rendered = `${JSON.stringify(report, null, 2)}\n`;
   if (options.out) {
