@@ -201,6 +201,21 @@ Use it to decide whether a previously validated lesson may be reused:
 - changed current state, unfinished work, focus, trouble spots, or advancement: regenerate;
 - merely regenerated snapshot/request IDs with identical substantive content: do not regenerate.
 
+## Planning bundle handoff
+
+The refresh layer now emits one ephemeral `wrs-planning-bundle-v1` object per group. This is the direct handoff to lesson generation. It joins:
+
+- the exact current Planning Snapshot;
+- the full verified Substep Source Packet;
+- the durable group Selection/Passage History, when present;
+- the deterministic Lesson Build Request;
+- the current Weekly Queue decision;
+- the fresh input fingerprint.
+
+The bundle exists to eliminate source/state reconstruction during lesson generation. A generator should consume the bundle it is given rather than searching old lesson plans or rebuilding current state from memory. Real student bundles are operational output and must not be committed as repository fixtures.
+
+A blocked queue entry produces a blocked bundle with explicit blockers instead of a partial lesson-generation input.
+
 ## Weekly queue
 
 The rolling queue contract is `wrs-weekly-build-queue-v1`.
@@ -256,7 +271,7 @@ Still required before this becomes the routine weekly planner:
 1. Wire the authenticated connector call itself into the normal execution path. The repository side now accepts raw Google Sheets `values` output directly, so no manual row normalization remains.
 2. Wire the group selection-history ledger and validated build fingerprints to the durable operational store used by the live system.
 3. Expand reusable source packets only when a new current/near-term instructional path is not already covered.
-4. Run the rolling weekly queue against refreshed live state and generate/reuse only the affected group artifacts.
+4. Run the rolling weekly queue against refreshed live state and feed each unblocked planning bundle directly into generation/reuse for only the affected group artifacts.
 5. Record validated fingerprints from exact live snapshot/build-request inputs.
 
 PR #48 remains draft. No merge or production deployment belongs to this workstream until those gates are proven.
