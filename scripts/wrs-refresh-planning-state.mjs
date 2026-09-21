@@ -64,6 +64,7 @@ export function refreshPlanningState({
   const snapshots = [];
   const plannedDates = {};
   const routes = {};
+  const selectionHistories = {};
 
   for (const group of groups) {
     const groupId = text(group?.groupId);
@@ -87,6 +88,7 @@ export function refreshPlanningState({
 
       if (text(group?.plannedDate)) plannedDates[groupId] = text(group.plannedDate);
       if (text(group?.lessonRoute)) routes[groupId] = text(group.lessonRoute);
+      if (group?.selectionHistory) selectionHistories[groupId] = group.selectionHistory;
     } catch (error) {
       errors.push({
         code: 'group_snapshot_compile_failed',
@@ -105,6 +107,7 @@ export function refreshPlanningState({
       routes,
       packetRegistry,
       validatedArtifacts,
+      selectionHistories,
       generatedAt
     });
   }
