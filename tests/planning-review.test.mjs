@@ -67,6 +67,29 @@ test('planning review produces one concise line per group', () => {
   assert.match(lines[2], /^Group C → 1\.6 Accuracy → BLOCKED:/);
 });
 
+test('teacher-only planning ambiguity is labeled as a teacher decision', () => {
+  const localSnapshots = [{
+    group: { groupId: 'Decision', displayName: 'Decision Group' },
+    students: [{ lessonFocus: 'accuracy', troubleSpots: [] }],
+    lessonContinuity: { unfinishedWork: [] },
+    groupTroubleSpots: [],
+    advancement: { currentSubstep: '5.2' }
+  }];
+  const localQueue = {
+    entries: [{
+      groupId: 'Decision',
+      displayName: 'Decision Group',
+      sourcePacketRef: 'wrs-5.2-source-packet-v1',
+      status: 'blocked',
+      blockers: ['Teacher must confirm Introduction versus the recorded focus before lesson generation.']
+    }]
+  };
+
+  const [line] = planningReviewLines({ snapshots: localSnapshots, queue: localQueue });
+  assert.match(line, /→ TEACHER DECISION:/);
+  assert.doesNotMatch(line, /→ BLOCKED:/);
+});
+
 test('planning review markdown carries week and state dates', () => {
   const rendered = renderPlanningReview({
     snapshots,
