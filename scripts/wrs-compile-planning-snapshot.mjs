@@ -151,7 +151,7 @@ const deriveAdvancement = ({ currentSubstep, latestDailyRows, fallbackAuthorityR
 
 const signalsUnfinishedWork = value => (
   /\b(?:remain|remains|unfinished|finish|resume|continue|not\s+complete)\b/i.test(value)
-  || /^\s*complete\b/i.test(value)
+  || /(?:^|[.!?]\s*)complete\b/i.test(value)
   || /\b(?:must|needs?|need\s+to|should|then)\s+complete\b/i.test(value)
 );
 
