@@ -164,17 +164,31 @@ const deriveUnfinishedWork = latestDailyRows => {
 };
 
 const deriveCarryForwardUnfinishedWork = (currentRows, latestDailyRows) => {
-  const dailyText = latestDailyRows.map(row => [
-    field(row, 'Substep / Lesson', 'substepLesson'),
-    field(row, 'Note / Data', 'note'),
-    field(row, 'Follow-up / Instructional Response', 'followUp')
-  ].map(text).filter(Boolean).join(' ')).join(' ');
-
-  const dailyAddressesDictation = /\b(?:dictation|spelling)\b/i.test(dailyText);
-  const dailyAddressesHfw = /\b(?:high[- ]?frequency|hfw|sight words?)\b/i.test(dailyText);
   const candidates = [];
 
+  const rowsAddressingStudent = studentName => latestDailyRows.filter(row => {
+    const studentField = text(field(row, 'Student(s)', 'students'));
+    if (!studentField) return true;
+    return studentField
+      .split(/[;,]/)
+      .map(item => item.trim())
+      .filter(Boolean)
+      .includes(studentName);
+  });
+
   for (const row of currentRows) {
+    const studentName = text(field(row, 'Student', 'student'));
+    const addressedRows = rowsAddressingStudent(studentName);
+    const dailyText = addressedRows.map(dailyRow => [
+      field(dailyRow, 'Substep / Lesson', 'substepLesson'),
+      field(dailyRow, 'Category', 'category'),
+      field(dailyRow, 'Note / Data', 'note'),
+      field(dailyRow, 'Follow-up / Instructional Response', 'followUp')
+    ].map(text).filter(Boolean).join(' ')).join(' ');
+
+    const dailyAddressesDictation = /\b(?:dictation|spelling)\b/i.test(dailyText);
+    const dailyAddressesHfw = /\b(?:high[- ]?frequency|hfw|sight words?)\b/i.test(dailyText);
+
     const spelling = text(field(row, 'Most Recent Spelling / Dictation', 'spellingDictation'));
     if (!dailyAddressesDictation
       && /\b(?:remain|remains|unfinished|nearly complete|not complete|finish|resume)\b/i.test(spelling)) {
