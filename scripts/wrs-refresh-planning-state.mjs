@@ -78,6 +78,7 @@ export function refreshPlanningState({
         groupId,
         schedule: text(group?.schedule),
         asOf,
+        selectionHistory: group?.selectionHistory ?? null,
         generatedAt
       });
       if (text(group?.displayName)) snapshot.group.displayName = text(group.displayName);
@@ -155,10 +156,10 @@ function usage() {
     '    "asOf": "YYYY-MM-DD",',
     '    "weekOf": "YYYY-MM-DD",',
     '    "currentSnapshotRows": [...],',
-    '    "groups": [{ "groupId": "5B", "schedule": "...", "dailyRows": [...], "plannedDate": "YYYY-MM-DD" }]',
+    '    "groups": [{ "groupId": "5B", "schedule": "...", "dailyRows": [...], "selectionHistory": {...}, "plannedDate": "YYYY-MM-DD" }]',
     '  }',
     '',
-    'This command consumes connector/exported live rows. It does not authenticate to Google Drive and never writes student data into repository fixtures.'
+    'This command consumes connector/exported live rows plus optional persisted group selection history. It does not authenticate to Google Drive and never writes student data into repository fixtures.'
   ].join('\n');
 }
 
