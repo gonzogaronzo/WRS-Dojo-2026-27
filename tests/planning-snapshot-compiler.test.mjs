@@ -269,6 +269,54 @@ test('carries forward unresolved dictation when the newer daily note does not ad
   assert.equal(snapshot.lessonContinuity.unfinishedWork.some(item => /sentence dictation remains/i.test(item)), true);
 });
 
+test('newer dictation reporting for present students does not erase an absent student\'s unfinished dictation', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({
+        student: 'Student A',
+        group: 'AbsentCarry',
+        currentSubstep: '3.1',
+        lessonFocus: '2.5 Accuracy review/backfill',
+        spelling: '2.5 dictation completed.'
+      }),
+      currentRow({
+        student: 'Student B',
+        group: 'AbsentCarry',
+        currentSubstep: '3.1',
+        lessonFocus: '2.5 Accuracy review/backfill',
+        spelling: '2.5 Block 2: two phrase dictation items completed; sentence dictation remains.'
+      })
+    ],
+    dailyRows: [
+      dailyRow({
+        group: 'AbsentCarry',
+        students: 'Student A',
+        substep: '2.5 Accuracy',
+        category: 'Dictation / sentence construction',
+        note: 'Student A completed dictation and worked through all planned parts.',
+        followUp: 'Continue monitoring accuracy.'
+      }),
+      dailyRow({
+        group: 'AbsentCarry',
+        students: 'Student B',
+        recordType: 'Attendance',
+        category: 'Groups seen / attendance',
+        substep: '2.5',
+        note: 'Student B was absent again today.',
+        followUp: 'Follow up on attendance.'
+      })
+    ],
+    groupId: 'AbsentCarry',
+    asOf: '2026-09-17',
+    generatedAt: '2026-09-17T18:00:00.000Z'
+  });
+
+  assert.equal(
+    snapshot.lessonContinuity.unfinishedWork.some(item => /sentence dictation remains/i.test(item)),
+    true
+  );
+});
+
 test('newer dictation reporting prevents stale snapshot dictation from carrying forward', () => {
   const snapshot = compileGroupPlanningSnapshot({
     currentSnapshotRows: [
