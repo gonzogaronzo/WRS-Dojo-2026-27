@@ -1,0 +1,386 @@
+{
+  "schemaVersion": "wrs-substep-source-packet-v1",
+  "packetId": "wrs-1.6-source-packet-v1",
+  "substep": "1.6",
+  "curriculumRelease": "WRS-CURRICULUM-1.0.1-2026-09-02",
+  "packetVersion": "1.0.0",
+  "verifiedAt": "2026-09-21T11:05:00-05:00",
+  "authority": [
+    {
+      "sourceId": "step-instruction-1.6-visual",
+      "kind": "step-instruction",
+      "label": "Wilson Reading System Instructor Manual, Fourth Edition — Substep 1.6 Step Instruction",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Wilson Instructors Manual (4th Ed.) EDITABLE.pdf#pdf-pp-136-143#printed-pp-142-149",
+      "priority": 1,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "dictation-steps1-6-visual",
+      "kind": "dictation-book",
+      "label": "Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf#1.6-words-and-nonsense-pdf-p-18#printed-p-14#phrases-pdf-p-20#printed-p-16#sentences-pdf-pp-27-28#printed-pp-23-24",
+      "priority": 3,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "student-reader-1-visual",
+      "kind": "student-reader",
+      "label": "Student Reader One (4th Ed.).pdf",
+      "edition": "Fourth Edition",
+      "locator": "drive-id:1HC-KFhM51TvHFSYYDWRu1C4bA2tl2hDN#1.5-review-wordlists-pdf-pp-83-86#printed-pp-81-84#1.6-wordlists-pdf-pp-95-103#printed-pp-93-101#sentences-pdf-pp-104-110#printed-pp-102-108#passages-pdf-pp-111-121#printed-pp-109-119",
+      "priority": 4,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "student-reader-1-searchable",
+      "kind": "derived-index",
+      "label": "WRS Curriculum Release 1.0.1 — student-reader-01.md",
+      "edition": "Fourth Edition searchable companion",
+      "locator": "project-source:WRS_Curriculum_Release_1.0.1_2026-09-02 (1).zip::searchable_sources/student-reader-01.md#substeps-1.5-1.6",
+      "priority": 9,
+      "verificationStatus": "searchable-companion"
+    },
+    {
+      "sourceId": "student-notebook-1-6-visual",
+      "kind": "student-notebook-answer-key",
+      "label": "Wilson Student Notebook 1-6 Answer Key.pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:WRS Student Notebooks Answer Keys.zip::Wilson Student Notebook 1-6 Answer Key.pdf#suffixes-pdf-pp-27-28#printed-pp-23-24#plurals-pdf-p-45#printed-p-41",
+      "priority": 5,
+      "verificationStatus": "visual-verified"
+    }
+  ],
+  "currentConcept": [
+    {
+      "contentId": "1.6-base-word-suffix",
+      "sourceId": "step-instruction-1.6-visual",
+      "locator": "printed-pp-142-143",
+      "verificationStatus": "verified",
+      "role": "current concept: identify a base word and suffix in three-sound closed-syllable words with -s and -es",
+      "notes": "Introductory and ongoing concept. Students read the word without the suffix first, then the whole word with the suffix."
+    },
+    {
+      "contentId": "1.6-suffix-sounds",
+      "sourceId": "step-instruction-1.6-visual",
+      "locator": "printed-pp-142-143",
+      "verificationStatus": "verified",
+      "role": "current concept: read/spell suffix -s as /s/ or /z/ and suffix -es as /ĭz/",
+      "notes": "The source models -s in shops and bugs and -es in mixes, wishes, and tosses."
+    },
+    {
+      "contentId": "1.6-plural-vs-action-verb",
+      "sourceId": "step-instruction-1.6-visual",
+      "locator": "printed-pp-143-144",
+      "verificationStatus": "verified",
+      "role": "subsequent concept: distinguish plural nouns from action verbs formed with -s/-es",
+      "notes": "The Step Instruction labels plural nouns versus action verbs as Subsequent Lessons."
+    }
+  ],
+  "sourceOrderedTeachingSequence": [
+    {
+      "contentId": "1.6-step-sequence-reading",
+      "sourceId": "step-instruction-1.6-visual",
+      "locator": "printed-pp-142-146",
+      "verificationStatus": "verified",
+      "role": "Parts 1-5 source-ordered reading instruction",
+      "notes": "No new letter-sounds. Introduce base word/suffix and -s/-es sounds first; plural noun versus action verb is subsequent instruction. Real-word accuracy/automaticity precedes 1.6 nonsense-word reading."
+    },
+    {
+      "contentId": "1.6-step-sequence-spelling",
+      "sourceId": "step-instruction-1.6-visual",
+      "locator": "printed-pp-147-149",
+      "verificationStatus": "verified",
+      "role": "Parts 6-8 source-ordered spelling instruction",
+      "notes": "Use the blank yellow suffix tile. For spelling, students name and spell the base word first and then add the suffix. Plural versus action verb spelling is subsequent instruction."
+    }
+  ],
+  "cumulativeEligibility": {
+    "throughSubstep": "1.6",
+    "soundInventoryRefs": [
+      {
+        "contentId": "1.6-cumulative-sounds",
+        "sourceId": "step-instruction-1.6-visual",
+        "locator": "printed-pp-142,147",
+        "verificationStatus": "verified",
+        "role": "all previously taught vowel Letter-Sound Cards plus selected previously taught consonant and welded sounds",
+        "notes": "The Step Instruction explicitly states there are no new letter-sounds in 1.6."
+      }
+    ],
+    "wordElementRefs": [
+      {
+        "contentId": "1.6-suffix-elements",
+        "sourceId": "student-notebook-1-6-visual",
+        "locator": "PDF-pp-27-28 / printed-pp-23-24: suffixes -s and -es",
+        "verificationStatus": "verified",
+        "role": "current taught Word Element Cards for suffix -s and suffix -es"
+      }
+    ],
+    "hfwRefs": [
+      {
+        "contentId": "1.6-hfw",
+        "sourceId": "dictation-steps1-6-visual",
+        "locator": "PDF-p-20 / printed-p-16 and PDF-pp-27-28 / printed-pp-23-24: they, have, one, from, both",
+        "verificationStatus": "verified",
+        "role": "current 1.6 High Frequency Word set"
+      }
+    ],
+    "reviewPoolRefs": [
+      {
+        "contentId": "1.5-reader-review-pool",
+        "sourceId": "student-reader-1-visual",
+        "locator": "1.5 wordlists: PDF-pp-83-86 / printed-pp-81-84",
+        "verificationStatus": "verified",
+        "role": "actual previous-Substep controlled review pool for 3-4 prior words"
+      },
+      {
+        "contentId": "1.6-reader-current-pool",
+        "sourceId": "student-reader-1-visual",
+        "locator": "1.6 wordlists: PDF-pp-95-103 / printed-pp-93-101",
+        "verificationStatus": "verified",
+        "role": "source-valid current real-word and nonsense-word reading pools"
+      },
+      {
+        "contentId": "1.6-current-nonsense-pool",
+        "sourceId": "student-reader-1-visual",
+        "locator": "1.6 nonsense lists: PDF-pp-102-103 / printed-pp-100-101",
+        "verificationStatus": "verified",
+        "role": "current 1.6 Wilson nonsense-word reading pool",
+        "notes": "The Step Instruction says students should become accurate and automatic with 1.6 real words before doing nonsense words."
+      }
+    ]
+  },
+  "partInputs": {
+    "1": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part1-sounds",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-p-142",
+          "verificationStatus": "verified",
+          "role": "Part 1 Sounds Quick Drill"
+        }
+      ],
+      "selectionRules": [
+        "Drill all previously taught vowel Letter-Sound Cards.",
+        "Be selective with previously taught consonant and welded cards.",
+        "There are no new letter-sounds in 1.6."
+      ]
+    },
+    "2": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part2-base-suffix",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-pp-142-143",
+          "verificationStatus": "verified",
+          "role": "Introductory and ongoing reading instruction for base word plus suffix -s/-es"
+        },
+        {
+          "contentId": "1.6-part2-plural-verb",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-pp-143-144",
+          "verificationStatus": "verified",
+          "role": "Subsequent reading instruction distinguishing plural nouns from action verbs"
+        }
+      ],
+      "selectionRules": [
+        "Begin with 3-4 actual 1.5 review words.",
+        "For initial 1.6 instruction, teach the base-word/suffix concept and the /s/, /z/, and /ĭz/ suffix pronunciations.",
+        "Students read the base word first, then the whole word with the suffix.",
+        "Do not pull plural-noun versus action-verb instruction forward before the introductory suffix work is established."
+      ]
+    },
+    "3": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part3-word-cards",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-pp-144-145",
+          "verificationStatus": "verified",
+          "role": "current Word Card routine, suffix-sound sorting, and later plural/action sorting"
+        },
+        {
+          "contentId": "1.6-part3-hfw",
+          "sourceId": "dictation-steps1-6-visual",
+          "locator": "PDF-p-20 / printed-p-16",
+          "verificationStatus": "verified",
+          "role": "current 1.6 HFW phrase/source set"
+        }
+      ],
+      "selectionRules": [
+        "Begin with the existing previous-Substep fat stack.",
+        "For current 1.6 Word Cards, have the student read the base word first and then the whole word.",
+        "Use taught -s/-es Word Element Cards separately as needed.",
+        "Review the current 1.6 HFW set plus prior unmastered HFWs."
+      ]
+    },
+    "4": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part4-reader-lists",
+          "sourceId": "student-reader-1-visual",
+          "locator": "PDF-pp-95-103 / printed-pp-93-101",
+          "verificationStatus": "verified",
+          "role": "1.6 real-word and nonsense-word wordlists"
+        },
+        {
+          "contentId": "1.6-part4-step-direction",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-p-146",
+          "verificationStatus": "verified",
+          "role": "Part 4 practice/charting procedure and real-before-nonsense boundary"
+        }
+      ],
+      "selectionRules": [
+        "Practice with 5-6 words from one current-substep list reflecting the day's instruction.",
+        "For charting, use another current-substep list reflecting the day's instruction and have the student read 15 words.",
+        "Students read the base word first and then the suffixed word.",
+        "Establish accuracy and automaticity with 1.6 real words before moving to 1.6 nonsense words."
+      ]
+    },
+    "5": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part5-sentences",
+          "sourceId": "student-reader-1-visual",
+          "locator": "PDF-pp-104-110 / printed-pp-102-108",
+          "verificationStatus": "verified",
+          "role": "current 1.6 sentence-reading pages"
+        },
+        {
+          "contentId": "1.6-part5-step-direction",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-p-146",
+          "verificationStatus": "verified",
+          "role": "Part 5 sentence-reading direction"
+        }
+      ],
+      "selectionRules": [
+        "Use the exact current sentence page reflecting instruction and embed all 10 sentences.",
+        "Weave questions about base word/suffix, suffix sound, current and previous concepts, vocabulary/meaning, and phrasing."
+      ]
+    },
+    "6": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part6-reverse-drill",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-p-147",
+          "verificationStatus": "verified",
+          "role": "Quick Drill in Reverse and suffix-tile preparation"
+        }
+      ],
+      "selectionRules": [
+        "Use selected previously taught vowel, consonant, and welded phonemes.",
+        "Add the blank yellow suffix tile for the Part 7 spelling work.",
+        "After -s and -es are taught, include selected taught suffix elements as needed."
+      ]
+    },
+    "7": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part7-suffix-spelling",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-pp-148-149",
+          "verificationStatus": "verified",
+          "role": "Introductory and ongoing spelling of base words plus -s/-es"
+        },
+        {
+          "contentId": "1.6-part7-notebook",
+          "sourceId": "student-notebook-1-6-visual",
+          "locator": "PDF-pp-27-28 / printed-pp-23-24 and PDF-p-45 / printed-p-41",
+          "verificationStatus": "verified",
+          "role": "Suffix and plural notebook entries"
+        }
+      ],
+      "selectionRules": [
+        "Begin with 3-4 actual 1.5 words.",
+        "Students name and spell the base word first and then add the suffix.",
+        "Use the blank yellow Suffix Tile for -s/-es and mark the base word/suffix as directed.",
+        "Keep plural-noun versus action-verb spelling for Subsequent Lessons."
+      ]
+    },
+    "8": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part8-dictation",
+          "sourceId": "dictation-steps1-6-visual",
+          "locator": "words+nonsense: PDF-p-18 / printed-p-14; phrases: PDF-p-20 / printed-p-16; sentences: PDF-pp-27-28 / printed-pp-23-24",
+          "verificationStatus": "verified",
+          "role": "current/cumulative 1.6 written-work dictation pools"
+        },
+        {
+          "contentId": "1.6-part8-step-direction",
+          "sourceId": "step-instruction-1.6-visual",
+          "locator": "printed-p-149",
+          "verificationStatus": "verified",
+          "role": "Written Work Dictation direction and base-word/suffix marking"
+        }
+      ],
+      "selectionRules": [
+        "Use source-verified Dictation Book items for current 1.6 real words, nonsense words, HFW phrases, and sentences.",
+        "When dictating suffixed words, have the student repeat the whole word, name/spell the base word first, then add the suffix.",
+        "Underline the base word and circle the suffix; circle HFWs and scoop phrases/sentences as appropriate."
+      ]
+    },
+    "9": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "1.6-part9-passages",
+          "sourceId": "student-reader-1-visual",
+          "locator": "PDF-pp-111-121 / printed-pp-109-119: ordered 1.6 controlled-passage sequence beginning with A Win for Nick's Fans",
+          "verificationStatus": "verified",
+          "role": "ordered 1.6 controlled-passage pool"
+        }
+      ],
+      "selectionRules": [
+        "Select the next unread 1.6 controlled passage in Reader sequence using the group's passage history.",
+        "If passage history is uncertain, flag it rather than infer it."
+      ]
+    },
+    "10": {
+      "status": "tbd",
+      "contentRefs": [],
+      "selectionRules": [
+        "Project default: Part 10 remains TBD unless explicitly requested."
+      ]
+    }
+  },
+  "notebook": [
+    {
+      "contentId": "1.6-notebook-suffixes",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "PDF-pp-27-28 / printed-pp-23-24: Word Elements — base word, suffix, -es, and -s with /s/ and /z/ examples",
+      "verificationStatus": "verified",
+      "role": "Word Elements notebook entry/reference for base words and suffixes"
+    },
+    {
+      "contentId": "1.6-notebook-plurals",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "PDF-p-45 / printed-p-41: Spelling Rules/Generalizations — Plurals",
+      "verificationStatus": "verified",
+      "role": "Spelling notebook entry/reference for plurals with -s and -es"
+    }
+  ],
+  "knownGaps": [],
+  "ocrConcerns": [
+    "Searchable text was used for retrieval only. Exact Substep 1.6 source sequence, Reader ranges, Dictation Book pages, suffix notation, and Notebook entries were visually checked against supplied Fourth Edition PDFs."
+  ],
+  "verification": {
+    "status": "verified",
+    "verifiedBy": "2026-09-21 source reconciliation with Steps 1-6 Instructor Manual visual pages, Student Reader One PDF, corrected-order Dictation Book Steps 1-6, and Student Notebook 1-6 Answer Key",
+    "sourceReleaseId": "WRS-CURRICULUM-1.0.1-2026-09-02",
+    "blockingIssues": []
+  }
+}
