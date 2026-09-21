@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wrs-dojo.local/schemas/wrs-planning-bundle-v1.schema.json",
+  "title": "WRS Planning Bundle v1",
+  "description": "Ephemeral single-file handoff joining one current planning snapshot, verified source packet, durable selection history, deterministic build request, queue decision, and fresh input fingerprint. It is a build handoff, not student-data or curriculum authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "schoolYear",
+    "generatedAt",
+    "groupId",
+    "plannedDate",
+    "status",
+    "blockers"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "wrs-planning-bundle-v1"
+    },
+    "schoolYear": {
+      "const": "2026-27"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "groupId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "plannedDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "enum": [
+        "needs-build",
+        "awaiting-condition",
+        "blocked",
+        "validated",
+        "needs-regeneration",
+        "completed"
+      ]
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "inputFingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "queueEntry": {
+      "type": "object"
+    },
+    "snapshot": {
+      "type": "object"
+    },
+    "sourcePacket": {
+      "type": "object"
+    },
+    "selectionHistory": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "buildRequest": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        }
+      },
+      "then": {},
+      "else": {
+        "required": [
+          "inputFingerprint",
+          "queueEntry",
+          "snapshot",
+          "sourcePacket",
+          "selectionHistory",
+          "buildRequest"
+        ]
+      }
+    }
+  ]
+}
