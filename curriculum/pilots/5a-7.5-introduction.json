@@ -1,0 +1,952 @@
+{
+  "schemaVersion": "wrs-runtime-v1",
+  "id": "5a-2026-09-21-7-5-introduction",
+  "title": "5A · 7.5 Contractions · Introduction",
+  "step": "7",
+  "substep": "5",
+  "focus": "introduction",
+  "lessonPath": "full",
+  "plannedParts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "planningContext": {
+    "conceptsToWeave": "Contractions: combine two words, identify the omitted letter(s), and use the apostrophe to represent the missing letter(s). Keep singular/plural possessives for subsequent 7.5 lessons.",
+    "troubleSpots": "5A entered 7.5 after all three students charted 15/15 on 7.4 on Sep 18. Cumulative needs remain: Alex needs long/short-vowel support and tch/dge review; Finn needs vowel identification, long/short-vowel support, and tch/dge review; Maya knows the tch/dge-after-short-vowel concept but does not always apply it automatically."
+  },
+  "sources": [
+    {
+      "id": "IM-7.5-152-168",
+      "kind": "instructor-manual",
+      "label": "Wilson Reading System Instructor Manual · Substep 7.5",
+      "edition": "Fourth Edition",
+      "locator": "Substep 7.5, printed pp. 152-168",
+      "notes": "Controls 7.5 source sequence, contraction instruction, later possessive instruction, Parts 1-8 procedures, and the no-new-sounds/no-nonsense-charting boundaries.",
+      "verification": "verified"
+    },
+    {
+      "id": "DB4-7.5",
+      "kind": "dictation-book",
+      "label": "WRS Dictation Book Steps 7-12",
+      "edition": "Fourth Edition",
+      "locator": "Substep 7.5: HFW PDF p. 11 / printed p. 5; words PDF pp. 24-25 / printed pp. 18-19; phrases PDF p. 28 / printed p. 22; sentences PDF pp. 37-38 / printed pp. 31-32",
+      "notes": "Controls current 7.5 High Frequency Words and Part 8 words, phrases, and sentences.",
+      "verification": "verified"
+    },
+    {
+      "id": "SR7-7.5",
+      "kind": "student-reader",
+      "label": "WRS Student Reader Seven",
+      "edition": "Fourth Edition",
+      "locator": "Substep 7.5 PDF pp. 136-159 / printed pp. 134-157; cumulative nonsense review from 7.1N PDF p. 15 / printed p. 13",
+      "notes": "Controls 7.5 wordlists, sentence pages, controlled passages, and the verified prior-Substep 7.1N nonsense pool used only as cumulative Part 8 review.",
+      "verification": "verified"
+    },
+    {
+      "id": "SN7-12-7.5",
+      "kind": "student-notebook",
+      "label": "WRS Student Notebook 7-12 Answer Key",
+      "edition": "Fourth Edition",
+      "locator": "Possessive reference PDF p. 62 / printed p. 58; Contractions PDF p. 65 / printed p. 61",
+      "notes": "Controls the 7.5 notebook references for contractions and possessives.",
+      "verification": "verified"
+    },
+    {
+      "id": "TEACHER-5A-2026-09-18",
+      "kind": "teacher-selection",
+      "label": "5A current instructional state",
+      "locator": "Student Data Current Snapshot and Teacher live note 2026-09-18",
+      "notes": "All three students charted 15/15 on 7.4 and the teacher explicitly advanced the group to 7.5 Introduction for the next week.",
+      "verification": "verified"
+    }
+  ],
+  "parts": [
+    {
+      "part": 1,
+      "title": "Sounds Quick Drill",
+      "sourceIds": [
+        "IM-7.5-152-168",
+        "TEACHER-5A-2026-09-18"
+      ],
+      "teacherDirections": [
+        "Drill the listed cumulative vowel responses and the listed previously taught consonant/final-stable-syllable responses. Substep 7.5 introduces no new letter-sounds."
+      ],
+      "data": {
+        "eligibleVowels": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/"
+        ],
+        "vowels": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/"
+        ],
+        "selectedReview": [
+          "dge-fudge-/j/",
+          "tch-catch-/ch/",
+          "tion-vacation-/shən/",
+          "sion-mansion-/shən/, sion-television-/zhən/"
+        ],
+        "newCardsRequiredAfterPart2": false,
+        "newAfterInstruction": [],
+        "quickDrill": [
+          "a-apple-/ă/",
+          "a-apron-/ā/",
+          "a-/ä/",
+          "e-Ed-/ĕ/",
+          "e-equal-/ē/",
+          "i-itch-/ĭ/",
+          "i-ice-/ī/",
+          "o-octopus-/ŏ/",
+          "o-open-/ō/",
+          "u-up-/ŭ/",
+          "u-uniform-/ū/",
+          "dge-fudge-/j/",
+          "tch-catch-/ch/",
+          "tion-vacation-/shən/",
+          "sion-mansion-/shən/, sion-television-/zhən/"
+        ]
+      }
+    },
+    {
+      "part": 2,
+      "title": "Teach & Review Concepts for Reading",
+      "sourceIds": [
+        "IM-7.5-152-168",
+        "SR7-7.5",
+        "TEACHER-5A-2026-09-18"
+      ],
+      "teacherDirections": [
+        "Read competition, notion, isolation, and illustrate first. Then teach the complete introductory 7.5 contraction sequence while keeping possessive nouns for subsequent lessons.",
+        "Show that a contraction combines two words and that the apostrophe represents the missing letter or letters. Include the irregular contractions don't and won't and the source groups formed with am, are, is, will, would, have, and had."
+      ],
+      "data": {
+        "conceptNotes": "A contraction is a shortened combination of two words. The apostrophe represents omitted letter(s). Contractions with not are taught first; don't and won't are irregular High Frequency Words. The source then extends contraction work to am, are, is, will, would, have, and had. Singular and plural possessives are subsequent 7.5 lessons and are not introduced in this first 7.5 lesson.",
+        "previousSubstepWords": [
+          "competition",
+          "notion",
+          "isolation",
+          "illustrate"
+        ],
+        "reviewWords": [
+          "competition",
+          "notion",
+          "isolation",
+          "illustrate"
+        ],
+        "currentExamples": [
+          "does not",
+          "doesn't",
+          "is not",
+          "isn't",
+          "can't",
+          "couldn't",
+          "don't",
+          "won't",
+          "I'm",
+          "I'll",
+          "I'd",
+          "we're",
+          "they've",
+          "he's"
+        ],
+        "currentWords": [
+          "doesn't",
+          "isn't",
+          "can't",
+          "couldn't",
+          "don't",
+          "won't",
+          "I'm",
+          "I'll",
+          "I'd",
+          "we're",
+          "they've",
+          "he's"
+        ],
+        "teachingMoves": [
+          "Read competition, notion, isolation, and illustrate accurately before new instruction.",
+          "Build does not, then replace the missing o in not with an apostrophe to form doesn't; connect the two forms without changing meaning.",
+          "Build is not and form isn't the same way; then read can't, couldn't, didn't, hasn't, haven't, shouldn't, wasn't, weren't, and aren't while naming the two whole words.",
+          "Teach don't and won't as irregular contractions and High Frequency Words.",
+          "Extend the same apostrophe principle to the source contraction groups with am, are, is, will, would, have, and had; keep possessive nouns for a later 7.5 lesson."
+        ],
+        "sourceSequenceComplete": true,
+        "part2Presentation": {
+          "version": 1,
+          "focus": "introduction",
+          "interactiveSteps": [
+            {
+              "kind": "step",
+              "id": "7-4-review",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Read competition, notion, isolation, and illustrate accurately before new instruction.",
+              "teacherDirections": [
+                "Present competition, notion, isolation, and illustrate; use scooping only as needed."
+              ],
+              "objects": [
+                {
+                  "id": "r-competition",
+                  "text": "competition",
+                  "role": "word"
+                },
+                {
+                  "id": "r-notion",
+                  "text": "notion",
+                  "role": "word"
+                },
+                {
+                  "id": "r-isolation",
+                  "text": "isolation",
+                  "role": "word"
+                },
+                {
+                  "id": "r-illustrate",
+                  "text": "illustrate",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read each 7.4 word accurately.",
+              "teachingPoint": "Cumulative 7.4 review before the 7.5 contraction sequence.",
+              "sourceRef": {
+                "sourceIds": [
+                  "SR7-7.5",
+                  "TEACHER-5A-2026-09-18"
+                ],
+                "locator": "5A 7.4 charting history plus 7.4 controlled review pool"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "does-not-doesnt",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Build does not, then form doesn't.",
+              "teacherDirections": [
+                "Present does and not, then cover the o in not with the apostrophe card and read doesn't."
+              ],
+              "objects": [
+                {
+                  "id": "does",
+                  "text": "does",
+                  "role": "word"
+                },
+                {
+                  "id": "not",
+                  "text": "not",
+                  "role": "word"
+                },
+                {
+                  "id": "doesnt",
+                  "text": "doesn't",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read does not and doesn't, then identify the missing o.",
+              "teachingPoint": "The apostrophe in a contraction represents the missing letter or letters.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-7.5-152-168"
+                ],
+                "locator": "printed pp. 152-153"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "is-not-isnt",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Use is not to form isn't.",
+              "teacherDirections": [
+                "Present is not, replace the o with the apostrophe, and read isn't; keep the meaning unchanged."
+              ],
+              "objects": [
+                {
+                  "id": "is",
+                  "text": "is",
+                  "role": "word"
+                },
+                {
+                  "id": "not-2",
+                  "text": "not",
+                  "role": "word"
+                },
+                {
+                  "id": "isnt",
+                  "text": "isn't",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read the two-word form and contraction, then name the omitted letter.",
+              "teachingPoint": "Contractions shorten two words while preserving meaning.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-7.5-152-168"
+                ],
+                "locator": "printed p. 153"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "nt-family",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Read the source n’t contraction family and name the two whole words.",
+              "teacherDirections": [
+                "Read can't, couldn't, didn't, hasn't, haven't, shouldn't, wasn't, weren't, and aren't, identifying the two words represented."
+              ],
+              "objects": [
+                {
+                  "id": "cant",
+                  "text": "can't",
+                  "role": "word"
+                },
+                {
+                  "id": "couldnt",
+                  "text": "couldn't",
+                  "role": "word"
+                },
+                {
+                  "id": "didnt",
+                  "text": "didn't",
+                  "role": "word"
+                },
+                {
+                  "id": "hasnt",
+                  "text": "hasn't",
+                  "role": "word"
+                },
+                {
+                  "id": "havent",
+                  "text": "haven't",
+                  "role": "word"
+                },
+                {
+                  "id": "shouldnt",
+                  "text": "shouldn't",
+                  "role": "word"
+                },
+                {
+                  "id": "wasnt",
+                  "text": "wasn't",
+                  "role": "word"
+                },
+                {
+                  "id": "werent",
+                  "text": "weren't",
+                  "role": "word"
+                },
+                {
+                  "id": "arent",
+                  "text": "aren't",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read each contraction and name the two whole words.",
+              "teachingPoint": "Most n’t contractions replace the o in not with an apostrophe; can’t removes n and o because can already ends in n.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-7.5-152-168"
+                ],
+                "locator": "printed pp. 153-154"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "irregular-dont-wont",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Teach don't and won't as irregular contractions.",
+              "teacherDirections": [
+                "Contrast do not with don't and will not with won't; read the High Frequency Word Cards."
+              ],
+              "objects": [
+                {
+                  "id": "dont",
+                  "text": "don't",
+                  "role": "word"
+                },
+                {
+                  "id": "wont",
+                  "text": "won't",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read don't and won't and identify their two whole words.",
+              "teachingPoint": "Don't and won't are irregular contractions and are memorized High Frequency Words.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-7.5-152-168",
+                  "DB4-7.5"
+                ],
+                "locator": "Instructor Manual printed p. 154; Dictation Book 7.5 HFW"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "other-contraction-groups",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Extend the apostrophe principle to the remaining introductory contraction groups.",
+              "teacherDirections": [
+                "Read examples with am, are, is, will, would, have, and had, naming the two whole words and the omitted letters."
+              ],
+              "objects": [
+                {
+                  "id": "im",
+                  "text": "I'm",
+                  "role": "word"
+                },
+                {
+                  "id": "ill",
+                  "text": "I'll",
+                  "role": "word"
+                },
+                {
+                  "id": "id",
+                  "text": "I'd",
+                  "role": "word"
+                },
+                {
+                  "id": "were",
+                  "text": "we're",
+                  "role": "word"
+                },
+                {
+                  "id": "theyve",
+                  "text": "they've",
+                  "role": "word"
+                },
+                {
+                  "id": "hes",
+                  "text": "he's",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read each contraction, name the two whole words, and identify the apostrophe's job.",
+              "teachingPoint": "Contractions are not limited to not; the same apostrophe principle applies to the source groups with am, are, is, will, would, have, and had.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-7.5-152-168"
+                ],
+                "locator": "printed pp. 155-156"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "part": 3,
+      "title": "Word Cards",
+      "sourceIds": [
+        "IM-7.5-152-168",
+        "DB4-7.5",
+        "SR7-7.5"
+      ],
+      "teacherDirections": [
+        "Use the existing 7.4 fat stack, then the listed 7.5 contraction cards, the complete current 7.5 High Frequency Word set, and the listed previously taught Word Elements."
+      ],
+      "data": {
+        "fatStackReference": "Existing previous-substep 7.4 fat stack",
+        "currentCards": [
+          "that's",
+          "I'm",
+          "couldn't",
+          "can't",
+          "didn't",
+          "doesn't",
+          "isn't",
+          "won't",
+          "aren't",
+          "haven't"
+        ],
+        "wordCards": [
+          {
+            "id": "wc-thats",
+            "text": "that's",
+            "type": "regular"
+          },
+          {
+            "id": "wc-im",
+            "text": "I'm",
+            "type": "regular"
+          },
+          {
+            "id": "wc-couldnt",
+            "text": "couldn't",
+            "type": "regular"
+          },
+          {
+            "id": "wc-cant",
+            "text": "can't",
+            "type": "regular"
+          },
+          {
+            "id": "wc-didnt",
+            "text": "didn't",
+            "type": "regular"
+          },
+          {
+            "id": "wc-doesnt",
+            "text": "doesn't",
+            "type": "regular"
+          },
+          {
+            "id": "wc-isnt",
+            "text": "isn't",
+            "type": "regular"
+          },
+          {
+            "id": "wc-wont",
+            "text": "won't",
+            "type": "regular"
+          },
+          {
+            "id": "wc-arent",
+            "text": "aren't",
+            "type": "regular"
+          },
+          {
+            "id": "wc-havent",
+            "text": "haven't",
+            "type": "regular"
+          }
+        ],
+        "expectedCurrentHfw": [
+          "body",
+          "anybody",
+          "everybody",
+          "nobody",
+          "somebody",
+          "won't",
+          "usual",
+          "usually",
+          "probably",
+          "either",
+          "neither"
+        ],
+        "hfwList": [
+          "body",
+          "anybody",
+          "everybody",
+          "nobody",
+          "somebody",
+          "won't",
+          "usual",
+          "usually",
+          "probably",
+          "either",
+          "neither"
+        ],
+        "wordElements": [
+          "-ion",
+          "-ment",
+          "-ly",
+          "-ness",
+          "-able"
+        ]
+      }
+    },
+    {
+      "part": 4,
+      "title": "Wordlist Reading",
+      "sourceIds": [
+        "SR7-7.5",
+        "TEACHER-5A-2026-09-18"
+      ],
+      "teacherDirections": [
+        "Read the six listed contractions from Student Reader Seven printed p. 134. For each, name the two whole words represented."
+      ],
+      "data": {
+        "studentReader": "Student Reader Seven AB",
+        "page": "134",
+        "practiceWords": [
+          "isn't",
+          "don't",
+          "doesn't",
+          "can't",
+          "hasn't",
+          "couldn't"
+        ],
+        "chartingPlanned": false,
+        "weeklyInstructionRationale": "Alex, Finn, and Maya each charted 15/15 on 7.4 on Sep 18 and this is their first 7.5 Introduction lesson. Begin with source-controlled contraction practice before a formal 7.5 charting event.",
+        "studentPracticeTargets": [
+          {
+            "studentName": "Alex",
+            "focus": "Read the contraction as a whole word and name the two words combined.",
+            "words": [
+              "doesn't",
+              "can't"
+            ]
+          },
+          {
+            "studentName": "Finn",
+            "focus": "Keep the full contraction accurate while identifying the apostrophe.",
+            "words": [
+              "isn't",
+              "couldn't"
+            ]
+          },
+          {
+            "studentName": "Maya",
+            "focus": "Read automatically, then explain which letter or letters the apostrophe represents.",
+            "words": [
+              "don't",
+              "hasn't"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "part": 5,
+      "title": "Sentence Reading",
+      "sourceIds": [
+        "SR7-7.5",
+        "TEACHER-5A-2026-09-18"
+      ],
+      "teacherDirections": [
+        "Read all ten source sentences from Student Reader Seven printed p. 140 and use the paired teacher-created weave questions."
+      ],
+      "data": {
+        "studentReader": "Student Reader Seven AB",
+        "page": "140",
+        "sentences": [
+          "The old man can’t go up the steps by himself.",
+          "Andy and Tim weren’t sure if the store was open.",
+          "Destiny couldn’t call her mother until five o’clock.",
+          "It hadn’t crossed my mind that nobody would come to the contest.",
+          "Mr. Griffon didn’t like the fact that everybody was late for class.",
+          "I don’t think anybody finished the last problem on the subtraction test.",
+          "His body doesn’t digest milk well.",
+          "My dog won’t be happy if somebody yells while she’s trying to nap.",
+          "I haven’t packed my bags for the trip yet.",
+          "The ice isn’t solid, so nobody should skate on that pond."
+        ],
+        "weaveQuestions": [
+          "In can’t, what two words are combined and what letters are omitted?",
+          "Read weren’t and identify the apostrophe’s job.",
+          "What does until tell you about when Destiny could call?",
+          "Read the fourth sentence in natural phrases. Where would you pause?",
+          "Which High Frequency Word in the fifth sentence means all the people in the group?",
+          "In don’t, why is this contraction treated as irregular?",
+          "What does digest mean in the sentence about milk?",
+          "Read the eighth sentence with expression. Which word should receive emphasis?",
+          "In haven’t, what two whole words are represented?",
+          "Which words in the last sentence help explain why skating would be unsafe?"
+        ],
+        "weaveQuestionCategories": [
+          "current-concept",
+          "current-concept",
+          "vocabulary-meaning",
+          "phrasing-expression",
+          "cumulative-structure",
+          "current-concept",
+          "vocabulary-meaning",
+          "phrasing-expression",
+          "syllable-word-structure",
+          "cumulative-structure"
+        ]
+      }
+    },
+    {
+      "part": 6,
+      "title": "Quick Drill in Reverse",
+      "sourceIds": [
+        "IM-7.5-152-168"
+      ],
+      "teacherDirections": [
+        "Dictate all twenty listed sound prompts and require the complete listed response. There are no new sounds in 7.5."
+      ],
+      "data": {
+        "quickDrillReverse": [
+          "/ă/ → a-apple-/ă/",
+          "/ā/ → a-apron-/ā/",
+          "/ä/ → a-/ä/",
+          "/ĕ/ → e-Ed-/ĕ/",
+          "/ē/ → e-equal-/ē/",
+          "/ĭ/ → i-itch-/ĭ/",
+          "/ī/ → i-ice-/ī/",
+          "/ŏ/ → o-octopus-/ŏ/",
+          "/ō/ → o-open-/ō/",
+          "/ŭ/ → u-up-/ŭ/",
+          "/ū/ → u-uniform-/ū/",
+          "/k/ → c-cat-/k/, k-kite-/k/",
+          "/s/ → s-sun-/s/, c-cent-/s/",
+          "/z/ → z-zebra-/z/, s-/z/",
+          "/j/ → j-jar-/j/, g-gem-/j/, dge-fudge-/j/",
+          "/f/ → f-fan-/f/, ph-phone-/f/",
+          "/ch/ → ch-chip-/ch/, tch-catch-/ch/",
+          "/shən/ → tion-vacation-/shən/, sion-mansion-/shən/",
+          "/zhən/ → sion-television-/zhən/",
+          "/m/ → m-map-/m/"
+        ],
+        "wordElements": [
+          "-ion",
+          "-ment",
+          "-ly",
+          "-ness",
+          "-able"
+        ]
+      }
+    },
+    {
+      "part": 7,
+      "title": "Teach & Review Concepts for Spelling",
+      "sourceIds": [
+        "IM-7.5-152-168",
+        "DB4-7.5",
+        "SN7-12-7.5",
+        "TEACHER-5A-2026-09-18"
+      ],
+      "teacherDirections": [
+        "Spell competition, notion, isolation, and illustrate first. Then teach the listed 7.5 contractions by starting with the two whole words, identifying the omitted letter or letters, and placing the apostrophe where the letters were removed."
+      ],
+      "data": {
+        "conceptNotes": "For spelling contractions, identify the two whole words, determine the omitted letter(s), and place the apostrophe in the position of the missing letter(s). Keep possessive spelling for subsequent 7.5 lessons.",
+        "previousSubstepWords": [
+          "competition",
+          "notion",
+          "isolation",
+          "illustrate"
+        ],
+        "reviewWords": [
+          "competition",
+          "notion",
+          "isolation",
+          "illustrate"
+        ],
+        "currentSubstepWords": [
+          "doesn't",
+          "isn't",
+          "can't",
+          "couldn't",
+          "hasn't",
+          "haven't",
+          "won't",
+          "shouldn't"
+        ],
+        "currentWords": [
+          "doesn't",
+          "isn't",
+          "can't",
+          "couldn't",
+          "hasn't",
+          "haven't",
+          "won't",
+          "shouldn't"
+        ],
+        "wordElements": [
+          "-ion",
+          "-ment",
+          "-ly",
+          "-ness",
+          "-able"
+        ],
+        "teachingMoves": [
+          "Spell competition, notion, isolation, and illustrate accurately before new 7.5 spelling instruction.",
+          "Form doesn't from does not and isn't from is not, replacing the missing o with an apostrophe.",
+          "Spell can't, couldn't, hasn't, haven't, and shouldn't by naming the two whole words and identifying what is omitted.",
+          "Teach won't as an irregular contraction and contrast it with will not.",
+          "Use the Student Notebook contraction reference to reinforce that the apostrophe stands for omitted letter(s); keep possessive spelling for a later 7.5 lesson."
+        ]
+      }
+    },
+    {
+      "part": 8,
+      "title": "Written Work Dictation",
+      "sourceIds": [
+        "IM-7.5-152-168",
+        "DB4-7.5",
+        "SR7-7.5",
+        "TEACHER-5A-2026-09-18"
+      ],
+      "teacherDirections": [
+        "Dictate each populated category exactly as listed. prace, gend, and crin are verified prior-Substep Wilson nonsense items from 7.1N and are cumulative review, not 7.5 nonsense words."
+      ],
+      "data": {
+        "wordElementsApplicable": true,
+        "expectedSentenceCount": 3,
+        "dictation": {
+          "sounds": [
+            "tion-vacation-/shən/",
+            "sion-mansion-/shən/",
+            "sion-television-/zhən/",
+            "ph-phone-/f/",
+            "tch-catch-/ch/"
+          ],
+          "wordElements": [
+            "-ion",
+            "-ment",
+            "-ly",
+            "-ness",
+            "-able"
+          ],
+          "realWords": [
+            "isn't",
+            "can't",
+            "couldn't",
+            "doesn't",
+            "haven't"
+          ],
+          "nonsenseWords": [
+            "prace",
+            "gend",
+            "crin"
+          ],
+          "phrases": [
+            "won't do it",
+            "won't ask him",
+            "won't tell her"
+          ],
+          "sentences": [
+            "Aren't you going to attend the presentation today?",
+            "She shouldn't let her dogs track mud in the house.",
+            "I'm going to the store before school to get donuts."
+          ]
+        },
+        "dictationCategorySourceIds": {
+          "sounds": [
+            "IM-7.5-152-168"
+          ],
+          "wordElements": [
+            "IM-7.5-152-168"
+          ],
+          "realWords": [
+            "DB4-7.5"
+          ],
+          "nonsenseWords": [
+            "SR7-7.5"
+          ],
+          "phrases": [
+            "DB4-7.5"
+          ],
+          "sentences": [
+            "DB4-7.5"
+          ]
+        },
+        "markReinforce": "Reinforce accurate apostrophe placement in contractions; use previously taught marking conventions for cumulative word structure.",
+        "troubleSpotLines": [
+          "Alex: long/short-vowel distinction and tch/dge remain cumulative review needs.",
+          "Finn: vowel identification, long/short-vowel distinction, and tch/dge remain cumulative review needs.",
+          "Maya: reinforce automatic application of the tch/dge-after-short-vowel concept while the new 7.5 contraction concept is introduced."
+        ]
+      }
+    },
+    {
+      "part": 9,
+      "title": "Controlled Text Passage Reading",
+      "sourceIds": [
+        "SR7-7.5",
+        "TEACHER-5A-2026-09-18"
+      ],
+      "teacherDirections": [
+        "Read The Clock that Couldn’t Tell Time, Part One, from Student Reader Seven printed p. 146. This is the first controlled 7.5 passage after the teacher-confirmed Sep 18 advancement from 7.4."
+      ],
+      "data": {
+        "studentReader": "Student Reader Seven AB",
+        "page": "146",
+        "passageTitle": "The Clock that Couldn’t Tell Time — Part One",
+        "passage": "The large grandfather clock sits against the wall next to the front entrance as usual. It’s been there for a long time and has been passed down time and time again to somebody in the Griffin family for over 200 years. The clock is stately with its maple panels, brass hands, and fancy glass doors. There’s just one problem - it doesn’t work!\n\nThe present-day owner of the clock, Conrad Griffin, thinks to himself, “What’s the use of having a grand clock if it can’t tell you the time?” He commits to find a way to fix this sad clock once and for all.",
+        "historyStatus": "verified-next-unread",
+        "historyNote": "5A completed 7.4 with 15/15 charting for all three students on Sep 18 and was explicitly advanced to 7.5 for the next week. No 7.5 passage is recorded before this first 7.5 lesson.",
+        "questions": [
+          {
+            "question": "Where does the grandfather clock sit?",
+            "level": "direct-recall"
+          },
+          {
+            "question": "For about how long has the clock been in the Griffin family?",
+            "level": "direct-recall"
+          },
+          {
+            "question": "What is the clock’s main problem?",
+            "level": "direct-recall"
+          },
+          {
+            "question": "Which details make the clock seem stately or grand?",
+            "level": "important-detail"
+          },
+          {
+            "question": "What does stately mean in this passage?",
+            "level": "vocabulary-in-context"
+          },
+          {
+            "question": "Why does Conrad question the usefulness of the clock?",
+            "level": "reasoning"
+          },
+          {
+            "question": "How does the clock’s long family history help explain why Conrad wants to repair it?",
+            "level": "relationship"
+          },
+          {
+            "question": "What can you infer about how Conrad feels about the clock?",
+            "level": "inference"
+          },
+          {
+            "question": "Which detail best supports the idea that the clock is a family heirloom?",
+            "level": "evidence-based-interpretation"
+          },
+          {
+            "question": "What is the main idea of Part One?",
+            "level": "synthesis"
+          }
+        ]
+      }
+    },
+    {
+      "part": 10,
+      "title": "Listening/Reading Fluency & Comprehension",
+      "sourceIds": [],
+      "teacherDirections": [],
+      "data": {
+        "teacherPlanStatus": "TBD"
+      }
+    }
+  ]
+}
