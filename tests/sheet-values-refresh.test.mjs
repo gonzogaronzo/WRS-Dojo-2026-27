@@ -24,8 +24,6 @@ const currentHeaders = [
   'Notes / Follow-up'
 ];
 
-const HASH = `sha256:${'a'.repeat(64)}`;
-
 const dailyHeaders = [
   'Date',
   'Group',
@@ -37,6 +35,22 @@ const dailyHeaders = [
   'Follow-up / Instructional Response',
   'Source'
 ];
+
+const packetRegistry = {
+  '5.5': {
+    packetId: 'wrs-5.5-source-packet-v1',
+    packetVersion: 'synthetic',
+    verified: true,
+    path: 'synthetic',
+    packet: {
+      schemaVersion: 'wrs-substep-source-packet-v1',
+      packetId: 'wrs-5.5-source-packet-v1',
+      substep: '5.5',
+      packetVersion: 'synthetic',
+      verification: { status: 'verified', blockingIssues: [] }
+    }
+  }
+};
 
 const sheetExport = {
   schemaVersion: 'wrs-sheet-values-export-v1',
@@ -86,13 +100,21 @@ test('raw connector/Sheets values become the canonical live planning feed shape'
   assert.equal(feed.groups[0].dailyRows[0]['Substep / Lesson'], '5.5 Introduction');
 });
 
-test('raw sheet-values refresh reuses a durable validated artifact when fingerprints match', () => {
+test('raw sheet-values refresh reuses a durable validated artifact only when the fresh fingerprint matches', () => {
+  const initial = refreshFromSheetValues({
+    exportData: sheetExport,
+    packetRegistry,
+    generatedAt: '2026-09-21T18:00:00.000Z'
+  });
+  const fingerprint = initial.queue.entries[0].inputFingerprint;
+  assert.match(fingerprint, /^sha256:[a-f0-9]{64}$/);
+
   const withValidatedArtifact = {
     ...sheetExport,
     validatedArtifacts: {
       'Synthetic:2026-09-21': {
-        currentFingerprint: HASH,
-        validatedFingerprint: HASH,
+        currentFingerprint: fingerprint,
+        validatedFingerprint: fingerprint,
         runtimeRef: 'runtime:synthetic',
         teacherPlanRef: 'teacher-plan:synthetic',
         lastValidatedAt: '2026-09-21T18:00:00.000Z'
@@ -102,14 +124,7 @@ test('raw sheet-values refresh reuses a durable validated artifact when fingerpr
 
   const report = refreshFromSheetValues({
     exportData: withValidatedArtifact,
-    packetRegistry: {
-      '5.5': {
-        packetId: 'wrs-5.5-source-packet-v1',
-        packetVersion: 'synthetic',
-        verified: true,
-        path: 'synthetic'
-      }
-    },
+    packetRegistry,
     generatedAt: '2026-09-21T18:05:00.000Z'
   });
 
@@ -122,14 +137,7 @@ test('raw sheet-values refresh reuses a durable validated artifact when fingerpr
 test('raw sheet-values refresh compiles a planning-ready snapshot and unblocked queue entry', () => {
   const report = refreshFromSheetValues({
     exportData: sheetExport,
-    packetRegistry: {
-      '5.5': {
-        packetId: 'wrs-5.5-source-packet-v1',
-        packetVersion: 'synthetic',
-        verified: true,
-        path: 'synthetic'
-      }
-    },
+    packetRegistry,
     generatedAt: '2026-09-21T18:00:00.000Z'
   });
 
