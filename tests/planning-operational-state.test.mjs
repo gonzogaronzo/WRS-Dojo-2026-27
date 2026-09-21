@@ -128,6 +128,30 @@ test('durable planning state persists group history and validated artifact metad
   );
 });
 
+test('corrupt persisted selection history is omitted instead of influencing planning', async () => {
+  const fake = fakeFirestore();
+  const docId = planningStateDocId('teacher-synthetic', '5A');
+  fake.docs.set(docId, {
+    schemaVersion: 'wrs-planning-operational-state-v1',
+    schoolYear: '2026-27',
+    teacherId: 'teacher-synthetic',
+    groupId: '5A',
+    selectionHistory: {
+      ...historyFor('5A'),
+      schoolYear: '2025-26'
+    },
+    validatedArtifacts: {},
+    updatedAt: '2026-09-21T18:03:00.000Z'
+  });
+
+  const states = await readPlanningOperationalStates({
+    firestore: fake.client,
+    teacherId: 'teacher-synthetic'
+  });
+
+  assert.equal(states['5A'].selectionHistory, null);
+});
+
 test('corrupt persisted validation metadata is omitted instead of reused', () => {
   const exported = planningStateForExport({
     '5A': {
