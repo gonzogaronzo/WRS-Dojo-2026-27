@@ -259,6 +259,12 @@ test('real 5.5 source packet is accepted by the orchestration source gate', () =
   assert.deepEqual(issues, []);
 });
 
+test('real 1.6 source packet is accepted by the orchestration source gate', () => {
+  const packet = JSON.parse(fs.readFileSync(new URL('../curriculum/source-packets/1.6.v1.json', import.meta.url), 'utf8'));
+  const issues = validateSourcePacket(packet);
+  assert.deepEqual(issues, []);
+});
+
 test('real 2.5 source packet is accepted by the orchestration source gate', () => {
   const packet = JSON.parse(fs.readFileSync(new URL('../curriculum/source-packets/2.5.v1.json', import.meta.url), 'utf8'));
   const issues = validateSourcePacket(packet);
