@@ -157,6 +157,32 @@ test('current unfinished work defaults to continuation route', () => {
   assert.equal(queue.entries[0].exitEvidence.some(item => /Sentence dictation remains/i.test(item)), true);
 });
 
+test('single-student in-progress assessment pauses 10-Part lesson generation without requiring a packet', () => {
+  const snap = snapshot({
+    groupId: 'Assessment',
+    substep: '1.6',
+    advancementStatus: 'continue'
+  });
+  snap.group.roster = ['Student A'];
+  snap.students = [snap.students[0]];
+  snap.students[0].latestData.fluencyAssessment = 'Book 1 post-test started; post-test not complete.';
+  snap.students[0].recommendedInstructionalResponse = ['Complete the Book 1 post-test before any advancement decision.'];
+
+  const queue = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: {},
+    generatedAt: '2026-09-18T12:00:00.000Z'
+  });
+
+  const entry = queue.entries[0];
+  assert.equal(entry.status, 'assessment-only');
+  assert.equal(entry.inputFingerprint, null);
+  assert.equal(entry.blockers.length, 0);
+  assert.match(entry.entryCondition, /Complete the recorded in-progress assessment/i);
+  assert.equal(entry.notes.some(note => /Assessment continuation:/i.test(note)), true);
+});
+
 test('prior-Substep follow-up does not force the new current Substep into continuation route', () => {
   const snap = snapshot({
     groupId: 'PriorFollowUp',
