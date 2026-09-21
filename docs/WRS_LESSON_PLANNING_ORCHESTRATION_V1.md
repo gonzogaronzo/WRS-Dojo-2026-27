@@ -164,6 +164,17 @@ The PR48 CI checks the pilot against the PR48 orchestration contracts and agains
 
 The real pilot now passes that pinned canonical gate. The first failing runs correctly stopped on placeholder-like teacher-selection language; after those strings were replaced with the already selected lesson content, the canonical gate and repository verification both passed without changing the instructional selections.
 
+
+`curriculum/pilots/5a-7.5-introduction.json` is the second real-group pilot. It uses the verified 7.5 packet and the Sep. 18 teacher-confirmed 5A advancement after Alex, Finn, and Maya each charted 15/15 on 7.4. The lesson begins the source-ordered 7.5 contraction sequence and does not pull singular/plural possessives forward from subsequent lessons. After one placeholder-like Part 8 wording issue was removed, both real pilots pass the same pinned PR40 instructional/runtime gate.
+
+## Selection and passage history
+
+The continuity contract is `wrs-group-selection-history-v1`. It records only group-level lesson-use history needed for future planning: the dated lesson ID, Substep/focus, explicit completion evidence, previously used Part 3/4/5/8 selections, and Part 9 passage identity/status. It is not curriculum authority and it is not a duplicate student-assessment store.
+
+`scripts/wrs-record-lesson-history.mjs` updates the ledger only from explicit completion evidence. A partial lesson records only Parts actually completed; Part 9 may be recorded as `started` when the passage was begun but not finished. Re-recording the same group/date/lesson replaces the event instead of creating a duplicate.
+
+The Planning Snapshot compiler and one-command refresh now accept an optional persisted group history ledger. When present, they derive `lessonContinuity.passageHistory` and `selectionHistoryRef` from it. The remaining operational task is to choose/wire the durable store used by the live system; repository fixtures must not become the live history database.
+
 ## Build fingerprints and targeted regeneration
 
 `lesson:fingerprint` computes a SHA-256 fingerprint from substantive build inputs. It deliberately ignores volatile snapshot/request generation IDs and timestamps while retaining state, packet version/content, planned date, teacher decisions, and selection history.
@@ -205,6 +216,7 @@ The executable queue builder is `scripts/wrs-build-weekly-queue.mjs`. The one-co
 - `schemas/wrs-substep-source-packet-v1.schema.json`
 - `schemas/wrs-lesson-build-request-v1.schema.json`
 - `schemas/wrs-weekly-build-queue-v1.schema.json`
+- `schemas/wrs-group-selection-history-v1.schema.json`
 
 The build-request schema intentionally accepts a versioned `wrs-teacher-plan-contract-vN` identifier. The active instructional contract is allowed to evolve without making the orchestration request lie about which contract actually ran.
 
@@ -212,22 +224,24 @@ The build-request schema intentionally accepts a versioned `wrs-teacher-plan-con
 
 Completed in this draft workstream:
 
-1. Versioned state/source/build-request/weekly-queue contracts and precedence rules.
+1. Versioned state/source/build-request/weekly-queue/selection-history contracts and precedence rules.
 2. Verified reusable source packets for 5.5 and 7.5.
 3. Executable fail-closed preflight/final orchestration gate.
 4. Synthetic regression tests with no real student fixtures.
 5. Deterministic input fingerprinting for targeted regeneration.
 6. Executable rolling weekly queue generator.
 7. One-command planning-state refresh from live/exported Current Snapshot + Daily Notes rows.
-8. Conditional real-group 5B 5.5 runtime pilot.
-9. Dedicated CI plus a pinned cross-branch check against the active PR40 canonical lesson gate.
-10. Real 5B conditional 5.5 pilot passing the pinned canonical teacher-plan/runtime gate.
-11. Deterministic live-record snapshot compiler with authority, conflict, unfinished-work, completed-Part, and advancement tests.
+8. Persistent-history recorder/reader logic with duplicate protection and explicit completed/started Part evidence.
+9. Conditional real-group 5B 5.5 runtime pilot.
+10. Real-group 5A 7.5 Introduction runtime pilot.
+11. Dedicated CI plus a pinned cross-branch check against the active PR40 canonical lesson gate.
+12. Both real pilots passing the pinned canonical teacher-plan/runtime gate.
+13. Deterministic live-record snapshot compiler with authority, conflict, unfinished-work, completed-Part, advancement, and passage-history tests.
 
 Still required before this becomes the routine weekly planner:
 
 1. Wire the live Sheets/connector retrieval/export step into the normal execution path so the refresh command receives current rows automatically.
-2. Persist selection/passage history and validated build fingerprints in the appropriate operational store.
+2. Wire the group selection-history ledger and validated build fingerprints to the durable operational store used by the live system.
 3. Expand reusable source packets across the remaining active instructional paths.
 4. Run the rolling weekly queue against refreshed live state and generate/reuse only the affected group artifacts.
 5. Record validated fingerprints from exact live snapshot/build-request inputs.
