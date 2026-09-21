@@ -534,6 +534,7 @@ test('same-day advance preserves prior taught Substep while keeping prior follow
   assert.equal(snapshot.students[0].lessonFocus, 'introduction');
   assert.equal(snapshot.lessonContinuity.lastSubstep, '5.4');
   assert.equal(snapshot.lessonContinuity.unfinishedWork.some(item => /final charting/i.test(item)), true);
+  assert.equal(snapshot.lessonContinuity.unfinishedWork.some(item => /^Substep 5\.4 is complete\./i.test(item)), false);
   assert.equal(snapshot.advancement.status, 'continue');
   assert.equal(snapshot.advancement.currentSubstep, '5.5');
 });
