@@ -128,7 +128,10 @@ export const buildQueueFingerprintRequest = ({
   plannedDate,
   lessonRoute: route,
   teacherDecisions: {
-    focus: 'use-snapshot',
+    focus: text(snapshot?.advancement?.currentSubstep)
+      && text(snapshot?.advancement?.currentSubstep) !== targetSubstep
+      ? 'introduction'
+      : 'use-snapshot',
     advancementOverride: snapshot?.advancement?.status === 'ready-pending-completion'
       && text(snapshot?.advancement?.nextSubstep) === targetSubstep
       ? 'advance'
