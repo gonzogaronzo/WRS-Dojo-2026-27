@@ -18,6 +18,7 @@ import { createSheetSynchronizer } from './sheetSync.js';
 import {
   assertPlanningExportAuthorized,
   parseAllowedTeacherUids,
+  parseTeacherFocusOverrides,
   readPlanningSheetValues
 } from './planningSheetRead.js';
 import {
@@ -142,6 +143,7 @@ export const getPlanningSheetValues = onCall(planningExportOptions, async reques
     });
 
     const teacherId = request.auth.uid;
+    const focusOverrides = parseTeacherFocusOverrides(request.data?.focusOverrides);
     const [sheetExport, statesByGroup] = await Promise.all([
       readPlanningSheetValues({
         sheets: await getSheets(),
@@ -161,7 +163,8 @@ export const getPlanningSheetValues = onCall(planningExportOptions, async reques
       ...sheetExport,
       groups: sheetExport.groups.map(group => ({
         ...group,
-        selectionHistory: operational.groups[group.groupId]?.selectionHistory ?? null
+        selectionHistory: operational.groups[group.groupId]?.selectionHistory ?? null,
+        teacherFocusOverride: focusOverrides[group.groupId] ?? null
       })),
       validatedArtifacts: operational.validatedArtifacts
     };
