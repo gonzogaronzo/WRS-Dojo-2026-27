@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { google } from 'googleapis';
 import {
   dailyNoteSource,
@@ -14,6 +15,11 @@ import {
 } from './sheetRows.js';
 import { createFirestoreSheetLock } from './sheetLock.js';
 import { createSheetSynchronizer } from './sheetSync.js';
+import {
+  assertPlanningExportAuthorized,
+  parseAllowedTeacherUids,
+  readPlanningSheetValues
+} from './planningSheetRead.js';
 
 const app = initializeApp();
 const firestore = getFirestore(app);
@@ -31,6 +37,7 @@ const DATA_LOG_SPREADSHEET_ID = process.env.WRS_DATA_LOG_SPREADSHEET_ID;
 const DATA_LOG_SHEET_NAME = process.env.WRS_DATA_LOG_SHEET_NAME || 'Data Log';
 const DAILY_LOG_SPREADSHEET_ID = process.env.WRS_DAILY_LOG_SPREADSHEET_ID;
 const DAILY_LOG_SHEET_NAME = process.env.WRS_DAILY_LOG_SHEET_NAME || 'Daily Log';
+const PLANNING_ALLOWED_TEACHER_UIDS = parseAllowedTeacherUids(process.env.WRS_PLANNING_ALLOWED_TEACHER_UIDS);
 
 let sheetsPromise;
 const getSheets = () => {
@@ -98,4 +105,44 @@ export const syncGroupNoteToSheet = onDocumentWritten(triggerOptions('group_note
     rows: groupNoteToDailyLogRows(note, noteId),
     label: 'Daily Notes Log'
   });
+});
+
+
+const planningExportOptions = {
+  region: 'us-central1',
+  maxInstances: 2,
+  concurrency: 4,
+  timeoutSeconds: 60,
+  serviceAccount: 'wrs-firebase@appspot.gserviceaccount.com'
+};
+
+const planningError = error => {
+  const code = error?.code;
+  if (code === 'unauthenticated' || code === 'permission-denied' || code === 'failed-precondition') {
+    return new HttpsError(code, error.message);
+  }
+  if (/must be YYYY-MM-DD/i.test(String(error?.message || ''))) {
+    return new HttpsError('invalid-argument', error.message);
+  }
+  console.error('Planning sheet export failed.', error);
+  return new HttpsError('internal', 'Planning sheet export failed.');
+};
+
+export const getPlanningSheetValues = onCall(planningExportOptions, async request => {
+  try {
+    assertPlanningExportAuthorized({
+      authUid: request.auth?.uid,
+      allowedTeacherUids: PLANNING_ALLOWED_TEACHER_UIDS
+    });
+
+    return await readPlanningSheetValues({
+      sheets: await getSheets(),
+      dataSpreadsheetId: DATA_LOG_SPREADSHEET_ID,
+      dailySpreadsheetId: DAILY_LOG_SPREADSHEET_ID,
+      asOf: request.data?.asOf,
+      weekOf: request.data?.weekOf
+    });
+  } catch (error) {
+    throw planningError(error);
+  }
 });
