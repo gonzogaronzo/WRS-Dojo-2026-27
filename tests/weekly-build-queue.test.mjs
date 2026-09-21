@@ -157,6 +157,28 @@ test('current unfinished work defaults to continuation route', () => {
   assert.equal(queue.entries[0].exitEvidence.some(item => /Sentence dictation remains/i.test(item)), true);
 });
 
+test('prior-Substep follow-up does not force the new current Substep into continuation route', () => {
+  const snap = snapshot({
+    groupId: 'PriorFollowUp',
+    substep: '5.5',
+    advancementStatus: 'continue',
+    unfinishedWork: ['Complete Student B final 5.4 charting.']
+  });
+  snap.lessonContinuity.lastSubstep = '5.4';
+  snap.students[0].lessonFocus = 'introduction';
+
+  const queue = buildWeeklyQueue({
+    snapshots: [snap],
+    weekOf: '2026-09-21',
+    packetRegistry: { '5.5': verifiedPacket('5.5', '1.0.4') },
+    generatedAt: '2026-09-18T12:00:00.000Z'
+  });
+
+  assert.equal(queue.entries[0].lessonRoute, 'full');
+  assert.equal(queue.entries[0].status, 'needs-build');
+  assert.equal(queue.entries[0].exitEvidence.some(item => /final 5\.4 charting/i.test(item)), true);
+});
+
 test('planning blockers fail closed before packet availability can matter', () => {
   const queue = buildWeeklyQueue({
     snapshots: [snapshot({
