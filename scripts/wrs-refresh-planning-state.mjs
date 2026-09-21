@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { compileGroupPlanningSnapshot } from './wrs-compile-planning-snapshot.mjs';
 import { buildWeeklyQueue, discoverPacketRegistry } from './wrs-build-weekly-queue.mjs';
 import { buildPlanningBundles } from './wrs-build-planning-bundles.mjs';
+import { renderPlanningReview } from './wrs-render-planning-review.mjs';
 
 const FEED_VERSION = 'wrs-live-planning-feed-v1';
 const REPORT_VERSION = 'wrs-planning-refresh-report-v1';
@@ -206,6 +207,16 @@ export function writeRefreshOutput(report, outDir) {
       'utf8'
     );
   }
+  fs.writeFileSync(
+    path.join(outDir, 'planning-review.md'),
+    renderPlanningReview({
+      snapshots: report.snapshots,
+      queue: report.queue,
+      weekOf: report.weekOf,
+      asOf: report.asOf
+    }),
+    'utf8'
+  );
   fs.writeFileSync(
     path.join(outDir, 'refresh-report.json'),
     `${JSON.stringify(report, null, 2)}\n`,
