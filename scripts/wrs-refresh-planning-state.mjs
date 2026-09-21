@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 
 import { compileGroupPlanningSnapshot } from './wrs-compile-planning-snapshot.mjs';
 import { buildWeeklyQueue, discoverPacketRegistry } from './wrs-build-weekly-queue.mjs';
+import { buildPlanningBundles } from './wrs-build-planning-bundles.mjs';
 
 const FEED_VERSION = 'wrs-live-planning-feed-v1';
 const REPORT_VERSION = 'wrs-planning-refresh-report-v1';
@@ -112,6 +113,16 @@ export function refreshPlanningState({
     });
   }
 
+  const bundles = queue
+    ? buildPlanningBundles({
+      snapshots,
+      queue,
+      packetRegistry,
+      selectionHistories,
+      generatedAt
+    })
+    : [];
+
   const queueBlockers = queue
     ? queue.entries
       .filter(entry => entry.status === 'blocked')
@@ -131,6 +142,7 @@ export function refreshPlanningState({
     status: errors.length || queueBlockers.length ? 'BLOCKED' : 'PASS',
     snapshots,
     queue,
+    bundles,
     errors: [...errors, ...queueBlockers]
   };
 }
@@ -182,6 +194,15 @@ export function writeRefreshOutput(report, outDir) {
     fs.writeFileSync(
       path.join(outDir, 'weekly-queue.json'),
       `${JSON.stringify(report.queue, null, 2)}\n`,
+      'utf8'
+    );
+  }
+  for (const bundle of Array.isArray(report.bundles) ? report.bundles : []) {
+    const groupId = text(bundle?.groupId);
+    if (!groupId) continue;
+    fs.writeFileSync(
+      path.join(outDir, `${slug(groupId)}.planning-bundle.json`),
+      `${JSON.stringify(bundle, null, 2)}\n`,
       'utf8'
     );
   }
