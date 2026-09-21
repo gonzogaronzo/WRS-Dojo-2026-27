@@ -128,6 +128,22 @@ test('durable planning state persists group history and validated artifact metad
   );
 });
 
+test('corrupt persisted validation metadata is omitted instead of reused', () => {
+  const exported = planningStateForExport({
+    '5A': {
+      selectionHistory: null,
+      validatedArtifacts: {
+        '2026-09-22': {
+          ...artifact,
+          validatedFingerprint: `sha256:${'b'.repeat(64)}`
+        }
+      }
+    }
+  });
+
+  assert.deepEqual(exported.validatedArtifacts, {});
+});
+
 test('planning operational state is callable-only and does not open direct Firestore client access', async () => {
   const rules = await readFile(new URL('../firestore.rules', import.meta.url), 'utf8');
   const functionsSource = await readFile(new URL('../functions/index.js', import.meta.url), 'utf8');
