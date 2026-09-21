@@ -20,6 +20,11 @@ import {
   parseAllowedTeacherUids,
   readPlanningSheetValues
 } from './planningSheetRead.js';
+import {
+  planningStateForExport,
+  readPlanningOperationalStates,
+  savePlanningOperationalState
+} from './planningOperationalState.js';
 
 const app = initializeApp();
 const firestore = getFirestore(app);
@@ -121,11 +126,12 @@ const planningError = error => {
   if (code === 'unauthenticated' || code === 'permission-denied' || code === 'failed-precondition') {
     return new HttpsError(code, error.message);
   }
-  if (/must be YYYY-MM-DD/i.test(String(error?.message || ''))) {
-    return new HttpsError('invalid-argument', error.message);
+  const message = String(error?.message || '');
+  if (/must be YYYY-MM-DD|invalid|unsupported planning group|does not match|at least one|exceeds|too large|required/i.test(message)) {
+    return new HttpsError('invalid-argument', message);
   }
-  console.error('Planning sheet export failed.', error);
-  return new HttpsError('internal', 'Planning sheet export failed.');
+  console.error('Planning operation failed.', error);
+  return new HttpsError('internal', 'Planning operation failed.');
 };
 
 export const getPlanningSheetValues = onCall(planningExportOptions, async request => {
@@ -135,12 +141,50 @@ export const getPlanningSheetValues = onCall(planningExportOptions, async reques
       allowedTeacherUids: PLANNING_ALLOWED_TEACHER_UIDS
     });
 
-    return await readPlanningSheetValues({
-      sheets: await getSheets(),
-      dataSpreadsheetId: DATA_LOG_SPREADSHEET_ID,
-      dailySpreadsheetId: DAILY_LOG_SPREADSHEET_ID,
-      asOf: request.data?.asOf,
-      weekOf: request.data?.weekOf
+    const teacherId = request.auth.uid;
+    const [sheetExport, statesByGroup] = await Promise.all([
+      readPlanningSheetValues({
+        sheets: await getSheets(),
+        dataSpreadsheetId: DATA_LOG_SPREADSHEET_ID,
+        dailySpreadsheetId: DAILY_LOG_SPREADSHEET_ID,
+        asOf: request.data?.asOf,
+        weekOf: request.data?.weekOf
+      }),
+      readPlanningOperationalStates({
+        firestore,
+        teacherId
+      })
+    ]);
+    const operational = planningStateForExport(statesByGroup);
+
+    return {
+      ...sheetExport,
+      groups: sheetExport.groups.map(group => ({
+        ...group,
+        selectionHistory: operational.groups[group.groupId]?.selectionHistory ?? null
+      })),
+      validatedArtifacts: operational.validatedArtifacts
+    };
+  } catch (error) {
+    throw planningError(error);
+  }
+});
+
+
+export const savePlanningOperationalStateCallable = onCall(planningExportOptions, async request => {
+  try {
+    assertPlanningExportAuthorized({
+      authUid: request.auth?.uid,
+      allowedTeacherUids: PLANNING_ALLOWED_TEACHER_UIDS
+    });
+
+    return await savePlanningOperationalState({
+      firestore,
+      teacherId: request.auth.uid,
+      groupId: request.data?.groupId,
+      selectionHistory: request.data?.selectionHistory,
+      plannedDate: request.data?.plannedDate,
+      validatedArtifact: request.data?.validatedArtifact
     });
   } catch (error) {
     throw planningError(error);
