@@ -97,6 +97,7 @@ export function buildFeedFromSheetValues(exportData) {
       plannedDate: text(group?.plannedDate) || null,
       lessonRoute: text(group?.lessonRoute) || null,
       selectionHistory: group?.selectionHistory ?? null,
+      teacherFocusOverride: text(group?.teacherFocusOverride) || null,
       dailyRows: rowsFromValues(values, `Daily Notes / ${dailyTab}`)
     };
   });
