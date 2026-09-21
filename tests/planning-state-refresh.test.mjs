@@ -45,12 +45,22 @@ const dailyRow = ({
   Source: source
 });
 
-const packet = substep => ({
-  packetId: `wrs-${substep}-source-packet-v1`,
-  packetVersion: '1.0.0',
-  verified: true,
-  path: `curriculum/source-packets/${substep}.v1.json`
-});
+const packet = substep => {
+  const sourcePacket = {
+    schemaVersion: 'wrs-substep-source-packet-v1',
+    packetId: `wrs-${substep}-source-packet-v1`,
+    substep,
+    packetVersion: '1.0.0',
+    verification: { status: 'verified', blockingIssues: [] }
+  };
+  return {
+    packetId: sourcePacket.packetId,
+    packetVersion: sourcePacket.packetVersion,
+    verified: true,
+    path: `curriculum/source-packets/${substep}.v1.json`,
+    packet: sourcePacket
+  };
+};
 
 test('one refresh compiles snapshots and a rolling queue from live-row feed data', () => {
   const feed = {
@@ -99,6 +109,9 @@ test('one refresh compiles snapshots and a rolling queue from live-row feed data
   assert.equal(report.status, 'PASS');
   assert.equal(report.snapshots.length, 2);
   assert.equal(report.queue.entries.length, 2);
+  assert.equal(report.bundles.length, 2);
+  assert.equal(report.bundles.every(bundle => bundle.status !== 'blocked'), true);
+  assert.equal(report.bundles.every(bundle => /^sha256:[a-f0-9]{64}$/.test(bundle.inputFingerprint)), true);
 
   const a = report.queue.entries.find(entry => entry.groupId === 'A');
   const b = report.queue.entries.find(entry => entry.groupId === 'B');
@@ -218,6 +231,8 @@ test('refresh carries persisted passage history into the derived group snapshot'
   assert.equal(report.status, 'PASS');
   assert.equal(report.snapshots[0].lessonContinuity.selectionHistoryRef, 'selection-history:A');
   assert.equal(report.snapshots[0].lessonContinuity.passageHistory[0].title, 'Synthetic Passage');
+  assert.equal(report.bundles[0].selectionHistory.lessons[0].selections.part9.title, 'Synthetic Passage');
+  assert.equal(report.bundles[0].inputFingerprint, report.queue.entries[0].inputFingerprint);
 });
 
 test('refresh tests do not embed current real-student names', () => {
