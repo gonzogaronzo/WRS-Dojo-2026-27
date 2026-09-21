@@ -92,6 +92,16 @@ The packet preserves the Step Instruction sequence: contractions are taught firs
 
 Source-library note: the older `WRS_Step_Instruction_Canonical_Set_2026-08-30` Step 7 Markdown stops after printed p. 130. The complete Step 7 searchable companion from `WRS_Curriculum_Release_1.0.1_2026-09-02` was used for retrieval and reconciled against the supplied visual/PDF authority for printed pp. 152–168. The truncated older Markdown must not be treated as complete 7.5 authority.
 
+
+Four additional current-path packets are now verified and reusable:
+
+- `curriculum/source-packets/1.6.v1.json` v1.0.0: base word + suffix `-s/-es`, suffix pronunciations, later plural-noun/action-verb distinction, current HFWs, Reader One controlled material, Dictation Book material, and Notebook references. The packet preserves the Wilson boundary that real-word accuracy/automaticity precedes 1.6 nonsense-word work.
+- `curriculum/source-packets/2.5.v1.json` v1.0.0: three-letter blends/up to six sounds, `-s/-es`, later closed-syllable Latin bases ending in `ct`, current HFWs, Student Reader Two material, dictation material, and notebook references. The corrected-order Dictation Book scan establishes the packet's 2.5 page locators and supersedes older inconsistent derived offsets.
+- `curriculum/source-packets/3.1.v1.json` v1.0.0: initial two-closed-syllable/multisyllabic work, four syllable-division rules, `s` saying /z/ between vowels, and the multisyllabic spelling procedure; schwa and the five closed-syllable prefixes remain Subsequent Lessons. The packet also registers Student Reader Two as the prior-Substep 2.5 review authority.
+- `curriculum/source-packets/5.2.v1.json` v1.0.0: open-syllable prefixes with stand-alone base words and one-consonant open-syllable division first; multiple-consonant division, schwa, and complex-base analysis remain Subsequent Lessons. Reader Five, Dictation Book, and Notebook locators are visually reconciled.
+
+These six packets cover the currently recorded instructional targets for 2nd, 3A/3B, 4A, 5A, and 5B without requiring a fresh whole-library source search for each lesson.
+
 ## Build flow
 
 1. **Compile state** from Current Snapshot plus newer Daily Notes / teacher reports.
@@ -225,7 +235,7 @@ The build-request schema intentionally accepts a versioned `wrs-teacher-plan-con
 Completed in this draft workstream:
 
 1. Versioned state/source/build-request/weekly-queue/selection-history contracts and precedence rules.
-2. Verified reusable source packets for 5.5 and 7.5.
+2. Verified reusable source packets for 1.6, 2.5, 3.1, 5.2, 5.5, and 7.5.
 3. Executable fail-closed preflight/final orchestration gate.
 4. Synthetic regression tests with no real student fixtures.
 5. Deterministic input fingerprinting for targeted regeneration.
@@ -242,7 +252,7 @@ Still required before this becomes the routine weekly planner:
 
 1. Wire the live Sheets/connector retrieval/export step into the normal execution path so the refresh command receives current rows automatically.
 2. Wire the group selection-history ledger and validated build fingerprints to the durable operational store used by the live system.
-3. Expand reusable source packets across the remaining active instructional paths.
+3. Expand reusable source packets only when a new current/near-term instructional path is not already covered.
 4. Run the rolling weekly queue against refreshed live state and generate/reuse only the affected group artifacts.
 5. Record validated fingerprints from exact live snapshot/build-request inputs.
 
