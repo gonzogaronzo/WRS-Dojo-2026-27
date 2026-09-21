@@ -113,11 +113,12 @@ export const buildQueueFingerprintRequest = ({
   targetSubstep,
   route,
   snapshot,
-  packet
+  packet,
+  createdAt = new Date().toISOString()
 }) => ({
   schemaVersion: 'wrs-lesson-build-request-v1',
   requestId: `queue-fingerprint:${groupId}:${plannedDate}:${targetSubstep || 'unresolved'}`,
-  createdAt: '2000-01-01T00:00:00.000Z',
+  createdAt,
   groupSnapshotRef: text(snapshot?.snapshotId) || `snapshot:${groupId}`,
   sourcePacketRef: text(packet?.packetId) || `wrs-${targetSubstep || 'unresolved'}-source-packet-v1`,
   selectionHistoryRef: snapshot?.lessonContinuity?.selectionHistoryRef ?? null,
@@ -139,7 +140,8 @@ const freshFingerprintFor = ({
   plannedDate,
   targetSubstep,
   route,
-  selectionHistory
+  selectionHistory,
+  generatedAt
 }) => {
   const packet = packetRegistryEntry?.packet;
   if (!packet || typeof packet !== 'object' || Array.isArray(packet)) return null;
@@ -149,7 +151,8 @@ const freshFingerprintFor = ({
     targetSubstep,
     route,
     snapshot,
-    packet
+    packet,
+    createdAt: generatedAt
   });
   return computeLessonBuildFingerprint({
     snapshot,
@@ -227,7 +230,8 @@ export function buildWeeklyQueue({
       plannedDate,
       targetSubstep: target.substep,
       route,
-      selectionHistory
+      selectionHistory,
+      generatedAt
     });
     const validatedFingerprint = text(validated?.validatedFingerprint) || null;
 
