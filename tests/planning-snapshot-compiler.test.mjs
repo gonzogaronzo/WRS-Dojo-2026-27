@@ -493,6 +493,53 @@ test('explicit current-Substep teaching owed blocks a conflicting Accuracy focus
   assert.match(snapshot.planningBlockers.join(' '), /Teacher must confirm Introduction versus the recorded focus/i);
 });
 
+test('explicit teacher focus override resolves the current-Substep teaching ambiguity', () => {
+  const snapshot = compileGroupPlanningSnapshot({
+    currentSnapshotRows: [
+      currentRow({
+        student: 'Student A',
+        group: 'IntroOverride',
+        currentSubstep: '5.2',
+        lessonFocus: '5.2 Accuracy',
+        updated: '2026-09-18'
+      }),
+      currentRow({
+        student: 'Student B',
+        group: 'IntroOverride',
+        currentSubstep: '5.2',
+        lessonFocus: '5.2 Accuracy',
+        updated: '2026-09-18'
+      })
+    ],
+    dailyRows: [
+      dailyRow({
+        date: '2026-09-18',
+        group: 'IntroOverride',
+        students: 'Student A; Student B',
+        substep: '5.2 Accuracy',
+        note: 'The group has not yet received a full, proper 5.2 lesson and important 5.2 content still needs to be explicitly taught.',
+        followUp: 'Next week, begin with explicit 5.2 instruction before moving forward.',
+        source: 'Teacher live note, 2026-09-18'
+      })
+    ],
+    groupId: 'IntroOverride',
+    asOf: '2026-09-18',
+    teacherFocusOverride: 'Introduction',
+    generatedAt: '2026-09-18T18:00:00.000Z'
+  });
+
+  assert.equal(snapshot.planningReady, true);
+  assert.equal(snapshot.students.every(student => student.lessonFocus === 'introduction'), true);
+  assert.equal(
+    snapshot.unresolvedConflicts.some(conflict => conflict.conflictId.includes('explicit-instruction-focus-conflict')),
+    false
+  );
+  assert.equal(
+    snapshot.stateSources.some(source => source.sourceRef.includes('teacher-decision:IntroOverride') && source.authorityRank === 1),
+    true
+  );
+});
+
 test('same-day advance preserves prior taught Substep while keeping prior follow-up visible', () => {
   const snapshot = compileGroupPlanningSnapshot({
     currentSnapshotRows: [
