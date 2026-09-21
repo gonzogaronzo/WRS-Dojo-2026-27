@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-import { runPreflight, validateSourcePacket } from '../scripts/wrs-lesson-orchestrator.mjs';
+import { computeLessonBuildFingerprint } from '../scripts/wrs-lesson-build-fingerprint.mjs';
+import { runBundlePreflight, runPreflight, validatePlanningBundle, validateSourcePacket } from '../scripts/wrs-lesson-orchestrator.mjs';
 
 const makeSnapshot = () => ({
   schemaVersion: 'wrs-group-planning-snapshot-v1',
@@ -169,6 +170,43 @@ const makeRuntime = () => ({
   }))
 });
 
+const makeBundle = () => {
+  const snapshot = makeSnapshot();
+  const packet = makePacket();
+  const request = makeRequest();
+  const selectionHistory = {
+    schemaVersion: 'wrs-group-selection-history-v1',
+    schoolYear: '2026-27',
+    groupId: 'synthetic-group',
+    updatedAt: '2026-09-17T12:00:00-05:00',
+    lessons: []
+  };
+  return {
+    schemaVersion: 'wrs-planning-bundle-v1',
+    schoolYear: '2026-27',
+    generatedAt: '2026-09-17T12:00:00-05:00',
+    groupId: 'synthetic-group',
+    plannedDate: '2026-09-18',
+    status: 'awaiting-condition',
+    blockers: [],
+    inputFingerprint: computeLessonBuildFingerprint({
+      snapshot,
+      packet,
+      request,
+      selectionHistory
+    }),
+    queueEntry: {
+      groupId: 'synthetic-group',
+      plannedDate: '2026-09-18',
+      status: 'awaiting-condition'
+    },
+    snapshot,
+    sourcePacket: packet,
+    selectionHistory,
+    buildRequest: request
+  };
+};
+
 const passingContract = {
   contractVersion: 'wrs-teacher-plan-contract-v2',
   ok: true,
@@ -180,6 +218,47 @@ const passingCompatibility = {
   ok: true,
   issues: []
 };
+
+test('single planning bundle passes orchestration preflight without reconstructing split inputs', () => {
+  const bundle = makeBundle();
+  const result = runBundlePreflight({ bundle });
+  assert.equal(result.status, 'PASS');
+  assert.equal(result.resolvedTargetSubstep, '5.5');
+  assert.equal(result.inputFingerprint, bundle.inputFingerprint);
+});
+
+test('single planning bundle passes the final gate with matching reports', () => {
+  const bundle = makeBundle();
+  const result = runBundlePreflight({
+    bundle,
+    runtime: makeRuntime(),
+    contractReport: passingContract,
+    compatibilityReport: passingCompatibility,
+    finalGate: true
+  });
+  assert.equal(result.status, 'PASS');
+  assert.equal(result.finalGate, true);
+});
+
+test('stale planning bundle fingerprint fails closed before generation', () => {
+  const bundle = makeBundle();
+  bundle.snapshot.groupTroubleSpots.push('Synthetic newly observed issue');
+  const issues = validatePlanningBundle(bundle);
+  assert.ok(issues.some(item => item.code === 'bundle_fingerprint_mismatch'));
+
+  const result = runBundlePreflight({ bundle });
+  assert.equal(result.status, 'BLOCKED');
+  assert.ok(result.issues.some(item => item.code === 'bundle_fingerprint_mismatch'));
+});
+
+test('blocked planning bundle cannot pass orchestration', () => {
+  const bundle = makeBundle();
+  bundle.status = 'blocked';
+  bundle.blockers = ['Synthetic unresolved state conflict.'];
+  const result = runBundlePreflight({ bundle });
+  assert.equal(result.status, 'BLOCKED');
+  assert.ok(result.issues.some(item => item.code === 'bundle_blocked'));
+});
 
 test('conditional next-Substep preflight passes when teacher advance authority and verified packet agree', () => {
   const result = runPreflight({
