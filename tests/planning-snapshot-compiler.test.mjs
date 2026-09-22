@@ -52,6 +52,74 @@ const dailyRow = ({
   Source: source
 });
 
+test('normalizes Daily Notes group labels without allowing partial-token matches', () => {
+  const matchingVariants = ['3B', 'Group 3B', 'group 3b', ' 3B ', 'Grp 3B'];
+  for (const group of matchingVariants) {
+    const snapshot = compileGroupPlanningSnapshot({
+      currentSnapshotRows: [
+        currentRow({
+          student: 'Student A',
+          group: '3B',
+          currentSubstep: '2.5',
+          lessonFocus: '2.5 Accuracy'
+        })
+      ],
+      dailyRows: [
+        dailyRow({
+          group,
+          substep: '2.5 Accuracy',
+          note: 'Matched normalized group label.',
+          followUp: 'Continue 2.5.',
+          source: 'WRS Dojo mission:group-normalization-test'
+        })
+      ],
+      groupId: '3B',
+      asOf: '2026-09-17',
+      generatedAt: '2026-09-17T18:00:00.000Z'
+    });
+
+    assert.equal(snapshot.lessonContinuity.lastInstructionDate, '2026-09-17', `expected ${group} to match 3B`);
+    assert.equal(
+      snapshot.stateSources.some(source => source.kind === 'dojo-completion-event'),
+      true,
+      `expected ${group} to be included as a Dojo row`
+    );
+  }
+
+  const nonMatchingVariants = ['3B/3A', 'Group 13B', 'Group 3A', 'prefix 3B suffix'];
+  for (const group of nonMatchingVariants) {
+    const snapshot = compileGroupPlanningSnapshot({
+      currentSnapshotRows: [
+        currentRow({
+          student: 'Student A',
+          group: '3B',
+          currentSubstep: '2.5',
+          lessonFocus: '2.5 Accuracy'
+        })
+      ],
+      dailyRows: [
+        dailyRow({
+          group,
+          substep: '2.5 Accuracy',
+          note: 'This row must not match 3B.',
+          followUp: 'Continue 2.5.',
+          source: 'WRS Dojo mission:group-normalization-test'
+        })
+      ],
+      groupId: '3B',
+      asOf: '2026-09-17',
+      generatedAt: '2026-09-17T18:00:00.000Z'
+    });
+
+    assert.equal(snapshot.lessonContinuity.lastInstructionDate, null, `expected ${group} not to match 3B`);
+    assert.equal(
+      snapshot.stateSources.some(source => source.kind === 'dojo-completion-event'),
+      false,
+      `expected ${group} to remain excluded`
+    );
+  }
+});
+
 test('compiles a conditional next-Substep plan without recording advancement as complete', () => {
   const snapshot = compileGroupPlanningSnapshot({
     currentSnapshotRows: [
