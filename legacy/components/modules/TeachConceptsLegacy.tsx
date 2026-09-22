@@ -83,6 +83,62 @@ const PHYSICAL_JOURNAL_MAP = {
 
 const CIPHER_WORDS_71 = ['decent', 'giant', 'suggest', 'place', 'stingy', 'engage', 'fancy'];
 
+interface PlanSection {
+  label: string;
+  items: string[];
+  emphasis: 'steps' | 'words';
+}
+
+export interface PlanContent {
+  title: string;
+  notes: string;
+  sections: PlanSection[];
+  hasContent: boolean;
+}
+
+const defaultPlanTitle = (isSpelling: boolean) => isSpelling
+  ? 'Teach & Review Concepts for Spelling'
+  : 'Teach & Review Concepts for Reading';
+
+/**
+ * The teacher-facing plan for this part. Lessons that do not supply a runner
+ * (no part2Presentation, no spellingItems) previously fell through to an empty
+ * slideshow, stranding their directions and word lists inside runtimePlan.
+ * Legacy lessons with only conceptNotes keep their existing behaviour.
+ */
+export const buildPlanContent = (lesson: Lesson, isSpelling: boolean): PlanContent => {
+  const legacyNotes = (isSpelling ? lesson.conceptNotes7 : lesson.conceptNotes) || '';
+  const runtimePart = lesson.runtimePlan?.parts.find(part => part.part === (isSpelling ? 7 : 2));
+
+  if (!runtimePart) {
+    return {
+      title: defaultPlanTitle(isSpelling),
+      notes: legacyNotes,
+      sections: [],
+      hasContent: Boolean(legacyNotes.trim())
+    };
+  }
+
+  const data = runtimePart.data || {};
+  const clean = (items?: string[]) => (items || []).map(item => String(item).trim()).filter(Boolean);
+  const sections: PlanSection[] = ([
+    { label: 'Teacher Directions', items: clean(runtimePart.teacherDirections), emphasis: 'steps' },
+    { label: 'Review', items: clean(data.reviewWords), emphasis: 'words' },
+    { label: isSpelling ? 'Current Words & Elements' : 'Current Words', items: clean(data.currentWords), emphasis: 'words' },
+    { label: 'Word Elements', items: clean(data.wordElements), emphasis: 'words' },
+    { label: 'High Frequency Words', items: clean(data.hfwList), emphasis: 'words' }
+  ] as PlanSection[]).filter(section => section.items.length > 0);
+
+  const notes = (data.conceptNotes || '').trim() || legacyNotes;
+
+  return {
+    title: runtimePart.title || defaultPlanTitle(isSpelling),
+    notes,
+    sections,
+    hasContent: Boolean(notes.trim()) || sections.length > 0
+  };
+};
+
 const TeachConcepts: React.FC<TeachConceptsProps> = ({
   lesson,
   isSpelling = false,
@@ -133,15 +189,30 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
     if (isSpelling) return (lesson.cipherWords && lesson.cipherWords.length > 0) ? 'cipher' : 'board';
     return (hasInteractivePart2 || lesson.slides?.length > 0 || lesson.googleSlidesUrl) ? 'slides' : 'board';
   })() as 'slides' | 'notes' | 'board' | 'cipher');
-  const [showTeacherNotes, setShowTeacherNotes] = useState(false);
+  // Part 7 has no deck of its own, so it must never inherit Part 2's slides
+  // through the shared session mode.
+  const hasSlideSurface = !isSpelling && (
+    hasInteractivePart2 || (lesson.slides?.length ?? 0) > 0 || Boolean(lesson.googleSlidesUrl)
+  );
+  const planContent = buildPlanContent(lesson, isSpelling);
+
+  // The plan is a teacher-only overlay; it never reaches the student display.
+  // It opens by default whenever this part carries plan content, so an imported
+  // lesson is never a blank screen the teacher has to go hunting inside.
+  const [showTeacherPlan, setShowTeacherPlan] = useState(
+    () => forcedInitialMode === 'notes' || planContent.hasContent
+  );
   const audienceMode = publicMode === 'notes' ? 'board' : publicMode;
-  const mode = showTeacherNotes && !readOnly ? 'notes' : audienceMode;
+  // The session seeds 'slides' for every part. Without a deck to show, that
+  // rendered an empty slideshow rather than falling back to a usable surface.
+  const resolvedAudienceMode = audienceMode === 'slides' && !hasSlideSurface ? 'board' : audienceMode;
+  const mode = showTeacherPlan && !readOnly ? 'notes' : resolvedAudienceMode;
   const setMode = (nextMode: 'slides' | 'notes' | 'board' | 'cipher') => {
     if (nextMode === 'notes') {
-      if (!readOnly) setShowTeacherNotes(true);
+      if (!readOnly) setShowTeacherPlan(true);
       return;
     }
-    setShowTeacherNotes(false);
+    setShowTeacherPlan(false);
     setPublicMode(nextMode);
   };
 
@@ -547,7 +618,7 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
       <div className="h-16 border-b-4 border-red-900 flex items-center justify-between px-8 z-40 flex-shrink-0 bg-stone-900 text-white shadow-xl">
         <div className="flex items-center gap-6">
            {!readOnly && <div className="flex bg-stone-800 p-1 rounded-full border border-stone-700">
-             {!isSpelling && (hasInteractivePart2 || lesson.slides?.length > 0 || lesson.googleSlidesUrl) && (
+             {hasSlideSurface && (
                 <button
                   onClick={() => setMode('slides')}
                   className={`px-5 py-2 rounded-full transition-all text-xs font-black uppercase tracking-widest ${mode === 'slides' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
@@ -565,7 +636,7 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
                onClick={() => setMode('notes')}
                className={`px-5 py-2 rounded-full transition-all text-xs font-black uppercase tracking-widest ${mode === 'notes' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
              >
-               Notes
+               Plan
              </button>
            </div>}
         </div>
@@ -639,7 +710,58 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
                )}
             </div>
           )}
-          {mode === 'notes' && <GenericText title="Plan Notes" content={isSpelling ? lesson.conceptNotes7 : lesson.conceptNotes} />}
+          {mode === 'notes' && (
+            <div className="flex-1 overflow-y-auto bg-white p-10">
+              <div className="max-w-4xl mx-auto pb-16">
+                <div className="mb-8 border-b border-stone-200 pb-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-400">
+                    {isSpelling ? 'Part 7 \u00b7 Spelling' : 'Part 2 \u00b7 Reading'}
+                  </p>
+                  <h2 className="mt-2 text-3xl font-black font-serif text-stone-900">{planContent.title}</h2>
+                </div>
+
+                {planContent.notes && (
+                  <div className="mb-8 whitespace-pre-wrap rounded-2xl border border-yellow-100 bg-yellow-50 p-6 text-lg leading-relaxed text-stone-700">
+                    {planContent.notes}
+                  </div>
+                )}
+
+                {planContent.sections.map(section => (
+                  <div key={section.label} className="mb-8">
+                    <h3 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">{section.label}</h3>
+                    {section.emphasis === 'steps' ? (
+                      <ol className="list-inside list-decimal space-y-2">
+                        {section.items.map((item, idx) => (
+                          <li key={idx} className="text-base font-medium leading-relaxed text-stone-800">{item}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {section.items.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            disabled={readOnly}
+                            onClick={() => { setBoardText(item); setMode('board'); }}
+                            className="rounded-xl border border-stone-200 bg-stone-100 px-4 py-2 text-lg font-black text-stone-900 transition-all hover:bg-stone-900 hover:text-white disabled:pointer-events-none"
+                            title="Send to the journal board"
+                          >
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {!planContent.hasContent && (
+                  <div className="rounded-2xl border-2 border-dashed border-stone-200 p-8 text-center italic text-stone-400">
+                    No plan content for this part.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           {mode === 'board' && (
             <div className="flex-1 flex flex-col min-h-0 relative">
                <div className="flex-1 flex flex-col relative min-h-0">

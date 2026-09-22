@@ -357,6 +357,20 @@ export const runtimeLessonToCompatibilityWrsPlan = (input: WRSRuntimeLessonPlan)
  * lesson modules with their current rendering shape without duplicating the
  * planning requirements into wrsPlan.
  */
+/**
+ * Concept notes and teacher directions are both instructional content. Selecting
+ * between them with `||` silently dropped every teacher direction whenever a part
+ * also supplied conceptNotes, which is the normal authoring shape.
+ */
+const conceptNotesFor = (part?: RuntimeLessonPart): string => {
+  if (!part) return '';
+  const notes = text(part.data.conceptNotes).trim();
+  const directions = (part.teacherDirections || [])
+    .map(line => line.trim())
+    .filter(Boolean);
+  return [notes, ...directions].filter(Boolean).join('\n');
+};
+
 export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson => {
   const runtime = validateRuntimeLesson(input);
   const part1 = byPart(runtime, 1);
@@ -385,8 +399,8 @@ export const runtimeLessonToLegacyLesson = (input: WRSRuntimeLessonPlan): Lesson
     title: runtime.title,
     step: runtime.step,
     substep: runtime.substep,
-    conceptNotes: part2?.data.conceptNotes || part2?.teacherDirections.join('\n') || '',
-    conceptNotes7: part7?.data.conceptNotes || part7?.teacherDirections.join('\n') || '',
+    conceptNotes: conceptNotesFor(part2),
+    conceptNotes7: conceptNotesFor(part7),
     slides: semanticPart2Slides ?? part2?.data.slides ?? [],
     quickDrill: part1?.data.quickDrill || [],
     quickDrillReverse: part6?.data.quickDrillReverse || part6?.data.quickDrill || [],

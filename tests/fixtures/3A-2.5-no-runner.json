@@ -1,0 +1,471 @@
+{
+  "schemaVersion": "wrs-runtime-v1",
+  "id": "3a-2-5-accuracy-review-backfill-2026-09-21",
+  "title": "3A — WRS 2.5 Accuracy Review / Backfill",
+  "step": "2",
+  "substep": "5",
+  "focus": "accuracy",
+  "lessonPath": "full",
+  "plannedParts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "planningContext": {
+    "conceptsToWeave": "Three-letter blends; up to six sounds in a closed syllable; sentence sequencing; complete word/sentence tracking; finish controlled text before advancement.",
+    "troubleSpots": "Nora and Alice: sometimes omit words in dictation. Levi: needs explicit sentence sequencing and sound-by-sound sequence checking. Eleanor: absent previously and may need makeup."
+  },
+  "sources": [
+    {
+      "id": "im-2-5",
+      "label": "WRS Instructor Manual Substep 2.5",
+      "kind": "instructor-manual",
+      "edition": "Fourth Edition",
+      "locator": "Substep 2.5; printed pp. 176–179"
+    },
+    {
+      "id": "reader-2",
+      "label": "WRS Student Reader 2",
+      "kind": "student-reader",
+      "locator": "pp. 108–110; The Spring Job pp. 122–123"
+    },
+    {
+      "id": "dictation-2-5",
+      "label": "WRS Dictation Book Steps 1–6",
+      "kind": "dictation-book",
+      "locator": "Substep 2.5"
+    },
+    {
+      "id": "teacher-selection",
+      "label": "Teacher-facing weekly lesson packet directions",
+      "kind": "teacher-selection",
+      "notes": "Includes group-specific carryover, comprehension questions, and repair directions."
+    }
+  ],
+  "parts": [
+    {
+      "part": 1,
+      "title": "Sounds Quick Drill",
+      "teacherDirections": [
+        "Review short vowels.",
+        "Review welded sounds ang, ank, ing, ink, ong, onk, ung, unk.",
+        "Review closed-syllable exceptions ild, ind, old, olt, ost.",
+        "Emphasize /s/, /t/, /r/, /p/, and /k/ to support three-letter blend sequencing."
+      ],
+      "sourceIds": [
+        "im-2-5"
+      ],
+      "data": {
+        "quickDrill": [
+          "a",
+          "i",
+          "o",
+          "e",
+          "u",
+          "ang",
+          "ank",
+          "ing",
+          "ink",
+          "ong",
+          "onk",
+          "ung",
+          "unk",
+          "ild",
+          "ind",
+          "old",
+          "olt",
+          "ost",
+          "s",
+          "t",
+          "r",
+          "p",
+          "k"
+        ]
+      }
+    },
+    {
+      "part": 2,
+      "title": "Teach & Review Concepts for Reading",
+      "teacherDirections": [
+        "Review 2.4 words: grant, swift, drinks, trunks.",
+        "Current contrast set: strap, splash, string, sprint.",
+        "Tap every sound, then read without tapping.",
+        "Mark the three-letter blend in scrap, strap, and sprint.",
+        "Levi: use a sound-by-sound sequence check before whole-word reread.",
+        "Nora and Alice: require complete word and sentence tracking rather than fast omission."
+      ],
+      "sourceIds": [
+        "im-2-5",
+        "teacher-selection"
+      ],
+      "data": {
+        "conceptNotes": "Accuracy with three-letter blends and up to six sounds in a closed syllable. Emphasize complete sequencing and accurate tracking.",
+        "reviewWords": [
+          "grant",
+          "swift",
+          "drinks",
+          "trunks"
+        ],
+        "currentWords": [
+          "strap",
+          "splash",
+          "string",
+          "sprint",
+          "scrap"
+        ]
+      }
+    },
+    {
+      "part": 3,
+      "title": "Word Cards",
+      "teacherDirections": [
+        "Use the existing previous-substep fat stack.",
+        "Run the current 2.5 cards for accurate whole-word reading.",
+        "Review the listed Latin-base Word Element Cards.",
+        "Review the listed high frequency words."
+      ],
+      "sourceIds": [
+        "reader-2",
+        "dictation-2-5"
+      ],
+      "data": {
+        "wordCards": [
+          {
+            "id": "2-5-strap",
+            "text": "strap",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-splash",
+            "text": "splash",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-string",
+            "text": "string",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-split",
+            "text": "split",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-scrub",
+            "text": "scrub",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-strong",
+            "text": "strong",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-sprint",
+            "text": "sprint",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-script",
+            "text": "script",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-stress",
+            "text": "stress",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-strep",
+            "text": "strep",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-splint",
+            "text": "splint",
+            "type": "regular"
+          },
+          {
+            "id": "2-5-struck",
+            "text": "struck",
+            "type": "regular"
+          }
+        ],
+        "hfwList": [
+          "each",
+          "every",
+          "everyone",
+          "very",
+          "world",
+          "work",
+          "word",
+          "too",
+          "also",
+          "no"
+        ],
+        "wordElements": [
+          "pact",
+          "sect",
+          "duct",
+          "fect",
+          "struct"
+        ]
+      }
+    },
+    {
+      "part": 4,
+      "title": "Wordlist Reading / Charting",
+      "teacherDirections": [
+        "Practice current 2.5 wordlists with: strap, splash, string, split, scrub, strong.",
+        "Chart exactly 15 real words, unmarked.",
+        "Record trouble spots for Nora, Alice, Levi, and Eleanor.",
+        "Charting plus dictation independence determine whether the group advances."
+      ],
+      "sourceIds": [
+        "reader-2",
+        "dictation-2-5",
+        "teacher-selection"
+      ],
+      "data": {
+        "practiceWords": [
+          "strap",
+          "splash",
+          "string",
+          "split",
+          "scrub",
+          "strong"
+        ],
+        "chartingWords": [
+          "strap",
+          "splash",
+          "string",
+          "split",
+          "scrub",
+          "strong",
+          "strip",
+          "scrap",
+          "spring",
+          "scrod",
+          "strum",
+          "sprint",
+          "tempt",
+          "struck",
+          "stress"
+        ],
+        "chartingType": "real",
+        "studentReader": "Student Reader 2",
+        "page": "pp. 108–110"
+      }
+    },
+    {
+      "part": 5,
+      "title": "Sentence Reading",
+      "teacherDirections": [
+        "Do not scrub if there is no mud. Prompt: Read scrub. What is the three-letter blend?",
+        "A bell will go on each string for the cats. Prompt: Find string and say each sound in order.",
+        "If everyone jumps in the pond, the splash will be very big! Prompt: Which word contains splash?",
+        "Each spring I get some plants. Prompt: Read spring without tapping if you can.",
+        "Do you want to cut the strap on this bag? Prompt: Read strap and identify the blend.",
+        "This old dog is so strong! Prompt: Which word has the blend str?",
+        "The kids will split up all the work so that everyone has a job. Prompt: Track every word. Which word begins with spl?",
+        "Everyone should have scraps for the class pet. Prompt: Read scraps. What is the base word?",
+        "The shrimp is cold so we will put it on the grill. Prompt: What is the first blend in shrimp?",
+        "Where did you find gold string? Prompt: Read string smoothly.",
+        "Trouble spots: Nora omissions; Alice omissions; Levi sequence; Eleanor makeup."
+      ],
+      "sourceIds": [
+        "teacher-selection"
+      ],
+      "data": {
+        "sentences": [
+          "Do not scrub if there is no mud.",
+          "A bell will go on each string for the cats.",
+          "If everyone jumps in the pond, the splash will be very big!",
+          "Each spring I get some plants.",
+          "Do you want to cut the strap on this bag?",
+          "This old dog is so strong!",
+          "The kids will split up all the work so that everyone has a job.",
+          "Everyone should have scraps for the class pet.",
+          "The shrimp is cold so we will put it on the grill.",
+          "Where did you find gold string?"
+        ]
+      }
+    },
+    {
+      "part": 6,
+      "title": "Quick Drill in Reverse",
+      "teacherDirections": [
+        "Use the Step 2 What Says? format.",
+        "Review the listed 20 sound-to-grapheme prompts.",
+        "Review Word Elements pact, sect, duct, fect, struct."
+      ],
+      "sourceIds": [
+        "dictation-2-5"
+      ],
+      "data": {
+        "quickDrillReverse": [
+          "/ă/",
+          "/ĕ/",
+          "/ĭ/",
+          "/ŏ/",
+          "/ŭ/",
+          "/ang/",
+          "/ank/",
+          "/ing/",
+          "/ink/",
+          "/ong/",
+          "/onk/",
+          "/ung/",
+          "/unk/",
+          "/īld/",
+          "/īnd/",
+          "/ōld/",
+          "/ōlt/",
+          "/ōst/",
+          "/k/",
+          "/z/"
+        ],
+        "wordElements": [
+          "pact",
+          "sect",
+          "duct",
+          "fect",
+          "struct"
+        ]
+      }
+    },
+    {
+      "part": 7,
+      "title": "Teach & Review Concepts for Spelling",
+      "teacherDirections": [
+        "Previous words: grant, swift, drinks, trunks.",
+        "Current words: strap, splash, string, sprint, script, stress, struck.",
+        "Tap and spell all phonemes in order.",
+        "For Levi: repeat the whole word, tap, then point to each tile position before writing.",
+        "Sentence-sequence repair: repeat the dictated sentence, count meaningful chunks, write one chunk at a time, then reread from the beginning."
+      ],
+      "sourceIds": [
+        "im-2-5",
+        "teacher-selection"
+      ],
+      "data": {
+        "conceptNotes": "Spelling accuracy for three-letter blends and complete sentence sequencing.",
+        "reviewWords": [
+          "grant",
+          "swift",
+          "drinks",
+          "trunks"
+        ],
+        "currentWords": [
+          "strap",
+          "splash",
+          "string",
+          "sprint",
+          "script",
+          "stress",
+          "struck"
+        ]
+      }
+    },
+    {
+      "part": 8,
+      "title": "Written Work Dictation",
+      "teacherDirections": [
+        "Reinforce three-letter blends.",
+        "Require complete sentence sequence with no omitted words."
+      ],
+      "sourceIds": [
+        "dictation-2-5",
+        "teacher-selection"
+      ],
+      "data": {
+        "dictation": {
+          "sounds": [
+            "/ă/",
+            "/ĭ/",
+            "/ŭ/",
+            "/ing/",
+            "/ank/"
+          ],
+          "realWords": [
+            "strap",
+            "splash",
+            "string",
+            "sprint",
+            "stress"
+          ],
+          "wordElements": [
+            "pact",
+            "sect",
+            "duct",
+            "fect",
+            "struct"
+          ],
+          "nonsenseWords": [
+            "scrid",
+            "strang",
+            "sprab"
+          ],
+          "phrases": [
+            "also does that job",
+            "in every box",
+            "for each one"
+          ],
+          "sentences": [
+            "I think that I can split the logs.",
+            "Chad will jump with a big splash.",
+            "Jim will plant crops in the spring."
+          ]
+        }
+      }
+    },
+    {
+      "part": 9,
+      "title": "Controlled Text Passage Reading",
+      "teacherDirections": [
+        "Finish from the exact stopping point; do not restart unless needed for comprehension.",
+        "Comprehension questions: What season is coming? What work does Clint expect to do? What covers the shed? Why does Clint feel stressed? What does he do after thinking about a snack and nap? How does the yard change as he works? What does Clint realize when everything is fresh? Which details show that the job is physically demanding? What evidence shows Clint’s attitude changes? What is the main idea?"
+      ],
+      "sourceIds": [
+        "reader-2",
+        "teacher-selection"
+      ],
+      "data": {
+        "passageTitle": "The Spring Job",
+        "studentReader": "Student Reader 2",
+        "page": "printed pp. 122–123",
+        "passage": "Clint is not glad about the gust of hot wind. Spring is coming! Most everyone in the world feels bliss when the sun lasts long into dusk. Yet, Clint could not help but think of all the work. When all the cold and frost ends, the land and grass would be a mess.\n\nEach spring Clint has to trim the shrubs and fix up the mulch bed. Spring has sprung, so his tasks are at hand. Black mold masks the shed. Clint finds sticks and globs of rank sod everywhere. Clint is very strong, but this is too much stress and filth!\n\nIn his mind, Clint tempts himself with a snack and a nap, but he must go on. He scrubs the swing and the two benches by the elm. Then he sets two pots on the front steps. He plants the bulbs one by one, then splashes them with water.\n\nWhen everything is fresh, Clint grasps that he should not be such a grump. He lugs the trash out back and sprints to have a bath and grill some lunch."
+      }
+    },
+    {
+      "part": 10,
+      "title": "Listening/Reading Fluency & Comprehension",
+      "teacherDirections": [
+        "TBD in the supplied weekly lesson packet. Select the Part 10 task at lesson time."
+      ],
+      "sourceIds": [
+        "teacher-selection"
+      ],
+      "data": {
+        "listeningComprehension": {
+          "mode": "teacher-selected",
+          "title": "Teacher choice",
+          "teacherDirections": [
+            "Select the Part 10 listening/reading fluency and comprehension activity at lesson time."
+          ],
+          "studentPrompt": "Listen and respond to the teacher-selected text or fluency task.",
+          "sourceIds": [
+            "teacher-selection"
+          ]
+        }
+      }
+    }
+  ]
+}
