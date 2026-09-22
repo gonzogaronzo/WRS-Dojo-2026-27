@@ -1,0 +1,891 @@
+{
+  "schemaVersion": "wrs-runtime-v1",
+  "id": "5b-2026-09-18-5-5-introduction-conditional",
+  "title": "5B · 5.5 Open-Syllable Exceptions · Introduction · conditional after 5.4 sentence dictation",
+  "step": "5",
+  "substep": "5",
+  "focus": "introduction",
+  "lessonPath": "full",
+  "plannedParts": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "planningContext": {
+    "conceptsToWeave": "Open-syllable exceptions with unstressed a and i; prefix a-; identify the position of a/i rather than requiring the student to hear stress.",
+    "troubleSpots": "5B: accented-syllable identification during spelling remains difficult. Wilson source guidance for 5.5 says many students have difficulty hearing stress, so keep the explanation of unstressed schwa but emphasize the position of a and i. Ethan's two exact oral-error distinctions from Sep 16 were not captured and must not be inferred."
+  },
+  "sources": [
+    {
+      "id": "IM-5.5-346-356",
+      "kind": "instructor-manual",
+      "label": "Wilson Reading System Instructor Manual Steps 1-6",
+      "edition": "Fourth Edition",
+      "locator": "Substep 5.5, printed pp. 346-356 / PDF pp. 338-348",
+      "notes": "Controls 5.5 concept sequence, Parts 1-8 procedures, open-syllable exceptions, prefix a-, and position-based schwa guidance.",
+      "verification": "verified"
+    },
+    {
+      "id": "DB4-5.5",
+      "kind": "dictation-book",
+      "label": "WRS Dictation Book Steps 1-6",
+      "edition": "Fourth Edition",
+      "locator": "Substep 5.5: words PDF pp. 123-126; phrases PDF p. 128; sentences PDF pp. 137-138",
+      "notes": "Controls current/cumulative Part 8 words, HFW phrases, and current-substep sentences.",
+      "verification": "verified"
+    },
+    {
+      "id": "SR5-5.5",
+      "kind": "student-reader",
+      "label": "WRS Student Reader Five",
+      "edition": "Fourth Edition",
+      "locator": "Substep 5.5 printed pp. 108-141; cumulative nonsense review from Substep 5.2N printed p. 31 / PDF p. 33",
+      "notes": "Controls Part 3/4/5/9 reading material and the registered prior-Substep Wilson nonsense pool used only as cumulative Part 8 review.",
+      "verification": "verified"
+    },
+    {
+      "id": "SN1-6-5.5",
+      "kind": "student-notebook",
+      "label": "WRS Student Notebook Answer Key Steps 1-6",
+      "edition": "Fourth Edition",
+      "locator": "Sounds PDF pp. 8-16; 5.5 open-syllable exception/prefix/spelling entries PDF pp. 22, 24, 40, 49; 5.5 HFW entries PDF pp. 51, 57-58, 71-72",
+      "notes": "Controls cumulative sound-spelling responses, current HFWs, and 5.5 notebook references.",
+      "verification": "verified"
+    },
+    {
+      "id": "TEACHER-5B-2026-09-17",
+      "kind": "teacher-selection",
+      "label": "5B live instructional state",
+      "locator": "Teacher live note 2026-09-17 plus Current Snapshot 2026-09-16",
+      "notes": "Conditional transition authority: finish remaining 5.4 sentence dictation, then begin 5.5. Preserve residual accented-syllable spelling support without holding the group at 5.4 solely for that difficulty.",
+      "verification": "verified"
+    }
+  ],
+  "parts": [
+    {
+      "part": 1,
+      "title": "Sounds Quick Drill",
+      "sourceIds": [
+        "IM-5.5-346-356",
+        "SN1-6-5.5"
+      ],
+      "teacherDirections": [
+        "Drill the listed previously taught vowel responses and the listed cumulative consonant/welded cards. After Part 2 teaches the 5.5 exceptions, add the two new 5.5 responses named in newAfterInstruction."
+      ],
+      "data": {
+        "eligibleVowels": [
+          "a-apple-/ă/",
+          "e-Ed-/ĕ/",
+          "i-itch-/ĭ/",
+          "o-octopus-/ŏ/",
+          "u-up-/ŭ/",
+          "ə-wagon-/ə/",
+          "a-e-safe-/ā/",
+          "e-e-Pete-/ē/",
+          "i-e-pine-/ī/",
+          "o-e-cone-/ō/",
+          "u-e-mule-/ū/",
+          "u-e-rule-/ü/",
+          "a-acorn-/ā/",
+          "e-me-/ē/",
+          "i-hi-/ī/",
+          "o-no-/ō/",
+          "u-pupil-/ū/",
+          "u-flu-/ü/",
+          "y-cry-/ī/",
+          "y-baby-/ē/"
+        ],
+        "vowels": [
+          "a-apple-/ă/",
+          "e-Ed-/ĕ/",
+          "i-itch-/ĭ/",
+          "o-octopus-/ŏ/",
+          "u-up-/ŭ/",
+          "ə-wagon-/ə/",
+          "a-e-safe-/ā/",
+          "e-e-Pete-/ē/",
+          "i-e-pine-/ī/",
+          "o-e-cone-/ō/",
+          "u-e-mule-/ū/",
+          "u-e-rule-/ü/",
+          "a-acorn-/ā/",
+          "e-me-/ē/",
+          "i-hi-/ī/",
+          "o-no-/ō/",
+          "u-pupil-/ū/",
+          "u-flu-/ü/",
+          "y-cry-/ī/",
+          "y-baby-/ē/"
+        ],
+        "selectedReview": [
+          "sh-ship-/sh/",
+          "ch-chin-/ch/",
+          "ang-fang-/ang/",
+          "ink-pink-/ink/",
+          "ind-find-/īnd/",
+          "old-cold-/ōld/",
+          "ost-post-/ōst/"
+        ],
+        "newCardsRequiredAfterPart2": true,
+        "newAfterInstruction": [
+          "a-Alaska-/ə/",
+          "i-animal-/ə/ or /ĭ/"
+        ],
+        "quickDrill": [
+          "a-apple-/ă/",
+          "e-Ed-/ĕ/",
+          "i-itch-/ĭ/",
+          "o-octopus-/ŏ/",
+          "u-up-/ŭ/",
+          "ə-wagon-/ə/",
+          "a-e-safe-/ā/",
+          "e-e-Pete-/ē/",
+          "i-e-pine-/ī/",
+          "o-e-cone-/ō/",
+          "u-e-mule-/ū/",
+          "u-e-rule-/ü/",
+          "a-acorn-/ā/",
+          "e-me-/ē/",
+          "i-hi-/ī/",
+          "o-no-/ō/",
+          "u-pupil-/ū/",
+          "u-flu-/ü/",
+          "y-cry-/ī/",
+          "y-baby-/ē/",
+          "sh-ship-/sh/",
+          "ch-chin-/ch/",
+          "ang-fang-/ang/",
+          "ink-pink-/ink/",
+          "ind-find-/īnd/",
+          "old-cold-/ōld/",
+          "ost-post-/ōst/"
+        ]
+      }
+    },
+    {
+      "part": 2,
+      "title": "Teach & Review Concepts for Reading",
+      "sourceIds": [
+        "IM-5.5-346-356",
+        "SN1-6-5.5",
+        "SR5-5.5"
+      ],
+      "teacherDirections": [
+        "Read volcano, educate, regulate, and deposit first. Then teach the source-ordered 5.5 reading sequence: a open-syllable exception, prefix a-, and the subsequent i open-syllable exception under the 2026-27 project pacing rule.",
+        "Explain that schwa occurs in an unstressed open syllable, but follow the source guidance to emphasize the position of a and i rather than requiring students to hear stress."
+      ],
+      "data": {
+        "conceptNotes": "Open-syllable exceptions: a can have schwa at the beginning or end of a word; prefix a- is pronounced with schwa and means on, in, or to; in subsequent 5.5 work, i can have schwa or /ĭ/ in an unstressed open syllable, usually in the middle of a word.",
+        "previousSubstepWords": [
+          "volcano",
+          "educate",
+          "regulate",
+          "deposit"
+        ],
+        "reviewWords": [
+          "volcano",
+          "educate",
+          "regulate",
+          "deposit"
+        ],
+        "currentExamples": [
+          "extra",
+          "Alaska",
+          "adopt",
+          "adult",
+          "zebra",
+          "awake",
+          "alive",
+          "arise",
+          "alone",
+          "cavity",
+          "indicate",
+          "evident"
+        ],
+        "currentWords": [
+          "extra",
+          "Alaska",
+          "adopt",
+          "adult",
+          "zebra",
+          "awake",
+          "alive",
+          "arise",
+          "alone",
+          "cavity",
+          "indicate",
+          "evident"
+        ],
+        "teachingMoves": [
+          "Read volcano, educate, regulate, and deposit accurately before new instruction.",
+          "Teach the a open-syllable exception with extra and Alaska, then practice adopt, adult, and zebra.",
+          "Teach prefix a- with awake, then practice alive, arise, and alone while identifying prefix and base word.",
+          "Teach the subsequent i open-syllable exception with cavity, indicate, and evident under the project pacing rule.",
+          "Keep the explanation of unstressed schwa while emphasizing the position of a and i rather than requiring students to hear stress."
+        ],
+        "sourceSequenceComplete": true,
+        "part2Presentation": {
+          "version": 1,
+          "focus": "introduction",
+          "interactiveSteps": [
+            {
+              "kind": "step",
+              "id": "5-4-review",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Read volcano, educate, regulate, and deposit accurately before new instruction.",
+              "teacherDirections": [
+                "Present volcano, educate, regulate, and deposit; use scooping only as needed."
+              ],
+              "objects": [
+                {
+                  "id": "r-volcano",
+                  "text": "volcano",
+                  "role": "word"
+                },
+                {
+                  "id": "r-educate",
+                  "text": "educate",
+                  "role": "word"
+                },
+                {
+                  "id": "r-regulate",
+                  "text": "regulate",
+                  "role": "word"
+                },
+                {
+                  "id": "r-deposit",
+                  "text": "deposit",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read each word and briefly identify its familiar syllable structure.",
+              "teachingPoint": "Cumulative 5.4 review before the 5.5 exception sequence.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-5.5-346-356",
+                  "SR5-5.5"
+                ],
+                "locator": "Substep 5.5 Part 2 previous-Substep review"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "a-exception-extra",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "single-card",
+              "teacherCue": "Teach the open-syllable exception a with extra.",
+              "teacherDirections": [
+                "Present extra. Contrast the expected long sound with the schwa heard at the end; mark the exception after the student reads it."
+              ],
+              "objects": [
+                {
+                  "id": "extra",
+                  "text": "extra",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read extra and identify the final a as the open-syllable exception.",
+              "teachingPoint": "In 5.5, a in an unstressed open syllable can have schwa, especially at the beginning or end of a word.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-5.5-346-356"
+                ],
+                "locator": "printed p. 347 / PDF p. 339"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "a-exception-alaska",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "single-card",
+              "teacherCue": "Use Alaska to show the a exception at both the beginning and end.",
+              "teacherDirections": [
+                "Present Alaska, then practice adopt, adult, and zebra while students identify the position of the exception."
+              ],
+              "objects": [
+                {
+                  "id": "alaska",
+                  "text": "Alaska",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read the word and locate the a syllables with the unexpected vowel sound.",
+              "teachingPoint": "Position is the reliable cue when stress is hard to hear.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-5.5-346-356"
+                ],
+                "locator": "printed p. 347 / PDF p. 339"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "prefix-a-awake",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "PREFIX_SUFFIX_CARDS",
+              "layout": "single-card",
+              "teacherCue": "Teach prefix a- with awake.",
+              "teacherDirections": [
+                "Present the a- Prefix Card, state that it has schwa and means on, in, or to, then connect it to the stand-alone base word wake in awake."
+              ],
+              "objects": [
+                {
+                  "id": "prefix-a",
+                  "text": "a-",
+                  "role": "prefix"
+                }
+              ],
+              "expectedStudentAction": "Identify a- as the prefix and wake as the stand-alone base word in awake.",
+              "teachingPoint": "Prefix a- is pronounced with schwa and is attached to the beginning of a base word.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-5.5-346-356",
+                  "SN1-6-5.5"
+                ],
+                "locator": "printed p. 348 / PDF p. 340; Notebook Open Syllable Prefixes"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "prefix-a-practice",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Practice the source examples alive, arise, and alone.",
+              "teacherDirections": [
+                "Present the three words and have students identify the prefix a- and the stand-alone base word in each."
+              ],
+              "objects": [
+                {
+                  "id": "alive",
+                  "text": "alive",
+                  "role": "word"
+                },
+                {
+                  "id": "arise",
+                  "text": "arise",
+                  "role": "word"
+                },
+                {
+                  "id": "alone",
+                  "text": "alone",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read each word, identify a-, and identify the base word.",
+              "teachingPoint": "Read and analyze the prefix separately from the base word.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-5.5-346-356"
+                ],
+                "locator": "printed p. 348 / PDF p. 340"
+              },
+              "sourceSection": "introductory-and-ongoing"
+            },
+            {
+              "kind": "step",
+              "id": "i-exception-subsequent",
+              "provenance": "source-paraphrase",
+              "actionType": "TEACH_CARD",
+              "displayType": "WRITTEN_WORD",
+              "layout": "review-row",
+              "teacherCue": "Begin the source-ordered subsequent i exception under the project pacing rule.",
+              "teacherDirections": [
+                "Present cavity, indicate, and evident. Explain that i in an unstressed open syllable can have schwa or /ĭ/, usually in the middle of a word; emphasize position rather than requiring students to hear stress."
+              ],
+              "objects": [
+                {
+                  "id": "cavity",
+                  "text": "cavity",
+                  "role": "word"
+                },
+                {
+                  "id": "indicate",
+                  "text": "indicate",
+                  "role": "word"
+                },
+                {
+                  "id": "evident",
+                  "text": "evident",
+                  "role": "word"
+                }
+              ],
+              "expectedStudentAction": "Read each word and locate the middle i open-syllable exception.",
+              "teachingPoint": "The i exception is subsequent 5.5 content included in Introduction by the 2026-27 project pacing rule.",
+              "sourceRef": {
+                "sourceIds": [
+                  "IM-5.5-346-356"
+                ],
+                "locator": "printed p. 349 / PDF p. 341"
+              },
+              "sourceSection": "subsequent-lessons",
+              "projectPacingRule": "include-subsequent-in-introduction"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "part": 3,
+      "title": "Word Cards",
+      "sourceIds": [
+        "IM-5.5-346-356",
+        "SR5-5.5",
+        "SN1-6-5.5"
+      ],
+      "teacherDirections": [
+        "Use the existing 5.4 fat stack, then the supplied current 5.5 cards, current High Frequency Words, and a- Word Element."
+      ],
+      "data": {
+        "fatStackReference": "Existing previous-substep 5.4 fat stack",
+        "currentCards": [
+          "adult",
+          "extra",
+          "adopt",
+          "awake",
+          "indicate",
+          "cavity",
+          "evident",
+          "zebra",
+          "alone",
+          "across"
+        ],
+        "wordCards": [
+          {
+            "id": "wc-adult",
+            "text": "adult",
+            "type": "regular"
+          },
+          {
+            "id": "wc-extra",
+            "text": "extra",
+            "type": "regular"
+          },
+          {
+            "id": "wc-adopt",
+            "text": "adopt",
+            "type": "regular"
+          },
+          {
+            "id": "wc-awake",
+            "text": "awake",
+            "type": "regular"
+          },
+          {
+            "id": "wc-indicate",
+            "text": "indicate",
+            "type": "regular"
+          },
+          {
+            "id": "wc-cavity",
+            "text": "cavity",
+            "type": "regular"
+          },
+          {
+            "id": "wc-evident",
+            "text": "evident",
+            "type": "regular"
+          },
+          {
+            "id": "wc-zebra",
+            "text": "zebra",
+            "type": "regular"
+          },
+          {
+            "id": "wc-alone",
+            "text": "alone",
+            "type": "regular"
+          },
+          {
+            "id": "wc-across",
+            "text": "across",
+            "type": "regular"
+          }
+        ],
+        "expectedCurrentHfw": [
+          "almost",
+          "early",
+          "family",
+          "families",
+          "since",
+          "soon"
+        ],
+        "hfwList": [
+          "almost",
+          "early",
+          "family",
+          "families",
+          "since",
+          "soon"
+        ],
+        "wordElements": [
+          "a-"
+        ]
+      }
+    },
+    {
+      "part": 4,
+      "title": "Wordlist Reading",
+      "sourceIds": [
+        "SR5-5.5",
+        "TEACHER-5B-2026-09-17"
+      ],
+      "teacherDirections": [
+        "Read the six supplied words from Student Reader Five printed p. 108. Use position-based repair for the open-syllable exception and keep support brief."
+      ],
+      "data": {
+        "studentReader": "Student Reader Five AB",
+        "page": "108",
+        "practiceWords": [
+          "adult",
+          "data",
+          "extra",
+          "abandon",
+          "peninsula",
+          "adapt"
+        ],
+        "chartingPlanned": false,
+        "weeklyInstructionRationale": "Oliver and Ethan already supplied fresh 5.4 real-word charting on Sep 16, and this is the first 5.5 Introduction lesson. Use source-controlled supported practice before scheduling a formal 5.5 charting event.",
+        "studentPracticeTargets": [
+          {
+            "studentName": "Oliver",
+            "focus": "Identify the 5.5 exception from the position of a rather than relying on hearing stress.",
+            "words": [
+              "adult",
+              "extra"
+            ]
+          },
+          {
+            "studentName": "Ethan",
+            "focus": "Identify the 5.5 exception from the position of a and keep the full multisyllabic word accurate.",
+            "words": [
+              "abandon",
+              "data"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "part": 5,
+      "title": "Sentence Reading",
+      "sourceIds": [
+        "SR5-5.5",
+        "TEACHER-5B-2026-09-17"
+      ],
+      "teacherDirections": [
+        "Read all ten source sentences from Student Reader Five printed p. 118 and use the paired teacher-created weave questions."
+      ],
+      "data": {
+        "studentReader": "Student Reader Five AB",
+        "page": "118",
+        "sentences": [
+          "Why does a zebra have stripes?",
+          "The can of tuna is on the bottom shelf.",
+          "Greta left her umbrella on the bus by mistake.",
+          "Emma drank her glass of soda too fast.",
+          "Linda let me use her extra hat since it was so cold out today.",
+          "The families did not know why anyone would abandon the dog.",
+          "The adult tickets cost almost ten bucks!",
+          "We must get to Atlanta early so we do not get stuck in traffic!",
+          "Soon I will have collected all the data for the plant study.",
+          "Patty is the only person in my family that likes granola."
+        ],
+        "weaveQuestions": [
+          "In zebra, which letter is the open-syllable exception, and where is it in the word?",
+          "Read tuna again and scoop the syllables. What syllable type do you see at the end?",
+          "What does mistake mean in this sentence?",
+          "Read the sentence about soda in two natural phrases. Where would you pause?",
+          "Which High Frequency Word appears in the sentence about the extra hat?",
+          "In abandon, where is the a that has the open-syllable exception sound?",
+          "What does almost tell you about the ticket price?",
+          "Scoop Atlanta. Which syllable contains the open-syllable exception?",
+          "Read the plant-study sentence with natural phrasing. Which word should receive emphasis?",
+          "Which High Frequency Word names Patty's group of relatives?"
+        ],
+        "weaveQuestionCategories": [
+          "current-concept",
+          "syllable-word-structure",
+          "vocabulary-meaning",
+          "phrasing-expression",
+          "cumulative-structure",
+          "current-concept",
+          "vocabulary-meaning",
+          "syllable-word-structure",
+          "phrasing-expression",
+          "cumulative-structure"
+        ]
+      }
+    },
+    {
+      "part": 6,
+      "title": "Quick Drill in Reverse",
+      "sourceIds": [
+        "IM-5.5-346-356",
+        "SN1-6-5.5"
+      ],
+      "teacherDirections": [
+        "Dictate the twenty listed prompts and require the complete listed response. Keep the a/i exception responses tied to their source-taught position patterns."
+      ],
+      "data": {
+        "quickDrillReverse": [
+          "/ă/ → a-apple-/ă/",
+          "/ĕ/ → e-Ed-/ĕ/",
+          "/ĭ/ → i-itch-/ĭ/, i-animal-/ə/ or /ĭ/",
+          "/ŏ/ → o-octopus-/ŏ/",
+          "/ŭ/ → u-up-/ŭ/, a-Alaska-/ə/, i-animal-/ə/ or /ĭ/",
+          "/ə/ → ə-wagon-/ə/",
+          "/ā/ → a-e-safe-/ā/, a-acorn-/ā/",
+          "/ē/ → e-e-Pete-/ē/, e-me-/ē/, y-baby-/ē/",
+          "/ī/ → i-e-pine-/ī/, i-hi-/ī/, y-cry-/ī/",
+          "/ō/ → o-e-cone-/ō/, o-no-/ō/",
+          "/ū/ → u-e-mule-/ū/, u-pupil-/ū/",
+          "/ü/ → u-e-rule-/ü/, u-flu-/ü/",
+          "/k/ → c-cat-/k/, k-kite-/k/, ck-sock-/k/",
+          "/ch/ → ch-chin-/ch/",
+          "/sh/ → sh-ship-/sh/",
+          "/ang/ → ang-fang-/ang/",
+          "/ink/ → ink-pink-/ink/",
+          "/īnd/ → ind-find-/īnd/",
+          "/ōld/ → old-cold-/ōld/",
+          "/ōst/ → ost-post-/ōst/"
+        ],
+        "wordElements": [
+          "a-",
+          "-s",
+          "-es",
+          "-ed",
+          "-ing"
+        ]
+      }
+    },
+    {
+      "part": 7,
+      "title": "Teach & Review Concepts for Spelling",
+      "sourceIds": [
+        "IM-5.5-346-356",
+        "SN1-6-5.5",
+        "SR5-5.5"
+      ],
+      "teacherDirections": [
+        "Begin with the four supplied 5.4 words, then follow the source-ordered 5.5 spelling sequence for the a exception, prefix a-, and subsequent i exception."
+      ],
+      "data": {
+        "conceptNotes": "For spelling, use the multisyllabic procedure and identify the position of the exception. Do not require Oliver or Ethan to hear stress reliably before they can apply the 5.5 pattern.",
+        "previousSubstepWords": [
+          "volcano",
+          "educate",
+          "regulate",
+          "deposit"
+        ],
+        "reviewWords": [
+          "volcano",
+          "educate",
+          "regulate",
+          "deposit"
+        ],
+        "currentSubstepWords": [
+          "sofa",
+          "panda",
+          "adopt",
+          "extra",
+          "across",
+          "alone",
+          "cavity",
+          "indicate"
+        ],
+        "currentWords": [
+          "sofa",
+          "panda",
+          "adopt",
+          "extra",
+          "across",
+          "alone",
+          "cavity",
+          "indicate"
+        ],
+        "wordElements": [
+          "a-"
+        ],
+        "teachingMoves": [
+          "Spell sofa, panda, adopt, and extra with the multisyllabic spelling procedure and identify the position of a.",
+          "Spell across, then practice alone while identifying prefix a- and the base word.",
+          "Begin subsequent i exception spelling with cavity and indicate under the project pacing rule.",
+          "Explain unstressed schwa, but emphasize position rather than requiring accurate stress perception."
+        ]
+      }
+    },
+    {
+      "part": 8,
+      "title": "Written Work Dictation",
+      "sourceIds": [
+        "IM-5.5-346-356",
+        "DB4-5.5",
+        "SR5-5.5",
+        "SN1-6-5.5"
+      ],
+      "teacherDirections": [
+        "Dictate each populated category exactly as listed. blenet, frolipe, and glestome are verified prior-Substep Wilson nonsense items from 5.2N. Treat them as cumulative material, not as 5.5 nonsense items."
+      ],
+      "data": {
+        "wordElementsApplicable": true,
+        "expectedSentenceCount": 3,
+        "dictation": {
+          "sounds": [
+            "/ŭ/",
+            "/ĭ/",
+            "/ā/",
+            "/ē/",
+            "/ī/"
+          ],
+          "wordElements": [
+            "a-",
+            "-s",
+            "-es",
+            "-ed",
+            "-ing"
+          ],
+          "realWords": [
+            "adult",
+            "extra",
+            "adopt",
+            "awake",
+            "indicate"
+          ],
+          "nonsenseWords": [
+            "blenet",
+            "frolipe",
+            "glestome"
+          ],
+          "phrases": [
+            "with my family",
+            "two more families",
+            "is almost done"
+          ],
+          "sentences": [
+            "It is a crime to abandon your dog!",
+            "An adult will set the rules for the small children.",
+            "I must adapt to the family rules."
+          ]
+        },
+        "dictationCategorySourceIds": {
+          "sounds": [
+            "IM-5.5-346-356",
+            "SN1-6-5.5"
+          ],
+          "wordElements": [
+            "IM-5.5-346-356",
+            "SN1-6-5.5"
+          ],
+          "realWords": [
+            "DB4-5.5"
+          ],
+          "nonsenseWords": [
+            "SR5-5.5"
+          ],
+          "phrases": [
+            "DB4-5.5"
+          ],
+          "sentences": [
+            "DB4-5.5"
+          ]
+        },
+        "markReinforce": "Mark the 5.5 open-syllable exception or prefix a- only where taught; emphasize the position of a/i when stress is difficult to hear.",
+        "troubleSpotLines": [
+          "Oliver: accented-syllable identification / position-based repair",
+          "Ethan: accented-syllable identification / position-based repair; do not infer the two uncaptured Sep 16 oral errors"
+        ]
+      }
+    },
+    {
+      "part": 9,
+      "title": "Controlled Text Passage Reading",
+      "sourceIds": [
+        "SR5-5.5",
+        "TEACHER-5B-2026-09-17"
+      ],
+      "teacherDirections": [
+        "Read A Day with Grandma from Student Reader Five printed pp. 128-129. The passage is the first controlled 5.5 passage; no 5.5 passage could have been completed before this conditional entry into 5.5."
+      ],
+      "data": {
+        "studentReader": "Student Reader Five AB",
+        "page": "128-129",
+        "passageTitle": "A Day with Grandma",
+        "passage": "Emma and her sister, Melissa, made plans to visit Grandma in Atlanta. Since the two gals wanted to get on their way before the traffic rush, they set their clocks to wake up early. They had bananas and a granola snack. Then, they fed the family pets before they set off on their long trip across the state.\n\nThe drive to Atlanta was full of splendid things. The abundant red hills were impressive, and Emma thought they should look at the beautiful landscape for a while. However, Melissa reminded her about their plan to spend the entire day with Grandma. Extra stops on their drive would only make them late!\n\nIt was almost nine a.m. when they pulled up to Grandma’s small house. Grandma was a tall thin woman with a kind smile. She met Emma and Melissa on the front step with hugs for both of them.\n\nThe three women were so much alike! They spent the day talking about all kinds of things. Grandma made sure Emma and Melissa had plenty of snacks. Before long, it was time to go home. Emma and Melissa told Grandma that they would be back to spend another day with her very soon.",
+        "historyStatus": "verified-next-unread",
+        "historyNote": "5B remains at 5.4 until the final 5.4 sentence dictation is completed; therefore no 5.5 controlled passage precedes this first 5.5 passage.",
+        "questions": [
+          {
+            "question": "Who went to visit Grandma?",
+            "level": "direct-recall"
+          },
+          {
+            "question": "Where did Grandma live?",
+            "level": "direct-recall"
+          },
+          {
+            "question": "What did Emma and Melissa eat before leaving?",
+            "level": "direct-recall"
+          },
+          {
+            "question": "What did the sisters do before setting off on their trip?",
+            "level": "sequence"
+          },
+          {
+            "question": "Why did Melissa say they should not stop to look at the landscape?",
+            "level": "important-detail"
+          },
+          {
+            "question": "Why did the sisters set their clocks to wake up early?",
+            "level": "reasoning"
+          },
+          {
+            "question": "How does the passage show that Emma, Melissa, and Grandma are close?",
+            "level": "relationship"
+          },
+          {
+            "question": "What can you infer about Grandma from how she welcomed and cared for the sisters?",
+            "level": "inference"
+          },
+          {
+            "question": "Which detail best supports the idea that the sisters wanted to spend as much time as possible with Grandma?",
+            "level": "evidence-based-interpretation"
+          },
+          {
+            "question": "What is the passage mainly showing about the sisters’ visit with Grandma?",
+            "level": "synthesis"
+          }
+        ]
+      }
+    },
+    {
+      "part": 10,
+      "title": "Listening/Reading Fluency & Comprehension",
+      "sourceIds": [],
+      "teacherDirections": [],
+      "data": {
+        "teacherPlanStatus": "TBD"
+      }
+    }
+  ]
+}

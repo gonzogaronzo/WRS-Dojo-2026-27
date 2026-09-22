@@ -1,0 +1,414 @@
+{
+  "schemaVersion": "wrs-substep-source-packet-v1",
+  "packetId": "wrs-2.5-source-packet-v1",
+  "substep": "2.5",
+  "curriculumRelease": "WRS-CURRICULUM-1.0.1-2026-09-02",
+  "packetVersion": "1.0.0",
+  "verifiedAt": "2026-09-21T10:50:00-05:00",
+  "authority": [
+    {
+      "sourceId": "step-instruction-2.5-visual",
+      "kind": "step-instruction",
+      "label": "Wilson Reading System Instructor Manual, Fourth Edition — Substep 2.5 Step Instruction",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Wilson Instructors Manual (4th Ed.) EDITABLE.pdf#pdf-pp-176-183#printed-pp-182-189",
+      "priority": 1,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "instructor-manual-steps1-6-searchable",
+      "kind": "derived-index",
+      "label": "WRS Curriculum Release 1.0.1 — Steps 1-6 Instructor Manual searchable companion",
+      "edition": "Fourth Edition searchable companion",
+      "locator": "project-source:WRS_Curriculum_Release_1.0.1_2026-09-02 (1).zip::searchable_sources#substep-2.5#printed-pp-182-189",
+      "priority": 9,
+      "verificationStatus": "searchable-companion"
+    },
+    {
+      "sourceId": "dictation-steps1-6-visual",
+      "kind": "dictation-book",
+      "label": "Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Dictation Book Steps 1-6 (4th Edition -- corrected order).pdf#2.5-words-and-nonsense-pdf-p-39#printed-p-35#phrases-pdf-p-42#printed-p-38#sentences-pdf-p-51#printed-p-47",
+      "priority": 3,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "student-reader-2-visual",
+      "kind": "student-reader",
+      "label": "Student Reader Two (4th Ed.).pdf",
+      "edition": "Fourth Edition",
+      "locator": "drive-id:1_248ZUgH8I0SnGFNrcFSpxKkCgVuqyhM#2.4-review-pdf-pp-84-91#printed-pp-82-89#2.5-wordlists-pdf-pp-110-116#printed-pp-108-114#sentences-pdf-pp-117-120#printed-pp-115-118#passages-pdf-pp-121-127#printed-pp-119-125",
+      "priority": 4,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "student-reader-2-searchable",
+      "kind": "derived-index",
+      "label": "WRS Curriculum Release 1.0.1 — student-reader-02.md",
+      "edition": "Fourth Edition searchable companion",
+      "locator": "project-source:WRS_Curriculum_Release_1.0.1_2026-09-02 (1).zip::searchable_sources/student-reader-02.md#substeps-2.4-2.5",
+      "priority": 9,
+      "verificationStatus": "searchable-companion"
+    },
+    {
+      "sourceId": "student-notebook-1-6-visual",
+      "kind": "student-notebook-answer-key",
+      "label": "Wilson Student Notebook 1-6 Answer Key.pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:WRS Student Notebooks Answer Keys.zip::Wilson Student Notebook 1-6 Answer Key.pdf#consonant-combinations-pdf-p-7#printed-p-3#latin-bases-pdf-pp-33-35#printed-pp-29-31#ways-to-spell-k-pdf-p-46#printed-p-42",
+      "priority": 5,
+      "verificationStatus": "visual-verified"
+    }
+  ],
+  "currentConcept": [
+    {
+      "contentId": "2.5-three-letter-blends",
+      "sourceId": "step-instruction-2.5-visual",
+      "locator": "printed-pp-182-183",
+      "verificationStatus": "verified",
+      "role": "current concept: read three-letter blends and blend/segment up to six sounds in a closed syllable",
+      "notes": "Introductory and ongoing concept. Each consonant in the three-letter blend retains its own sound; examples in the source sequence include trap→strap, scrap, and script."
+    },
+    {
+      "contentId": "2.5-three-letter-blends-with-suffixes",
+      "sourceId": "step-instruction-2.5-visual",
+      "locator": "printed-p-183",
+      "verificationStatus": "verified",
+      "role": "current concept: read three-letter-blend words with suffix -s or -es",
+      "notes": "The Step Instruction explicitly practices sprint-sprints and splash-splashes after the initial blend work."
+    },
+    {
+      "contentId": "2.5-closed-syllable-latin-bases-ct",
+      "sourceId": "step-instruction-2.5-visual",
+      "locator": "printed-pp-183-184",
+      "verificationStatus": "verified",
+      "role": "subsequent concept: read common closed-syllable Latin-base elements ending in the ct blend",
+      "notes": "Subsequent Lessons concept. Fifteen source-listed bases: -dict-, -duct-, -fect-, -flect-, -flict-, -ject-, -lect-, -pact-, -rect-, -sect-, -spect-, -struct-, -tact-, -tract-, -vict-."
+    }
+  ],
+  "sourceOrderedTeachingSequence": [
+    {
+      "contentId": "2.5-step-sequence-reading",
+      "sourceId": "step-instruction-2.5-visual",
+      "locator": "printed-pp-182-186",
+      "verificationStatus": "verified",
+      "role": "Parts 1-5 source-ordered reading instruction",
+      "notes": "No new letter-sounds. Teach three-letter blends and up to six sounds first, then -s/-es forms and marking. Add 2.5 nonsense-word reading when ready. Closed-syllable Latin bases with ct are explicitly Subsequent Lessons."
+    },
+    {
+      "contentId": "2.5-step-sequence-spelling",
+      "sourceId": "step-instruction-2.5-visual",
+      "locator": "printed-pp-187-189",
+      "verificationStatus": "verified",
+      "role": "Parts 6-8 source-ordered spelling instruction",
+      "notes": "No new sounds in Part 6. Spell three-letter-blend words first with blank tiles, reinforce c for /k/ in a three-letter blend, then add suffix/nonsense spelling once proficient. Latin-base spelling is Subsequent Lessons."
+    }
+  ],
+  "cumulativeEligibility": {
+    "throughSubstep": "2.5",
+    "soundInventoryRefs": [
+      {
+        "contentId": "2.5-cumulative-sounds",
+        "sourceId": "step-instruction-2.5-visual",
+        "locator": "printed-pp-182,187",
+        "verificationStatus": "verified",
+        "role": "all previously taught vowel Letter-Sound Cards plus selected previously taught consonant and welded sounds",
+        "notes": "The Step Instruction explicitly states that there are no new letter-sounds/sounds in Substep 2.5."
+      }
+    ],
+    "wordElementRefs": [
+      {
+        "contentId": "2.5-word-elements",
+        "sourceId": "step-instruction-2.5-visual",
+        "locator": "printed-pp-184,187",
+        "verificationStatus": "verified",
+        "role": "previously taught suffixes plus 2.5 Latin-base elements after those bases have been introduced",
+        "notes": "Do not include the ct Latin bases in Part 3 or Part 6 before their Subsequent Lessons introduction."
+      }
+    ],
+    "hfwRefs": [
+      {
+        "contentId": "2.5-hfw",
+        "sourceId": "dictation-steps1-6-visual",
+        "locator": "PDF-p-42 / printed-p-38 and PDF-p-51 / printed-p-47: too, two, no, go, so, also, very, every, everywhere, everyone, everything, each, work, word, world",
+        "verificationStatus": "verified",
+        "role": "current 2.5 High Frequency Word set"
+      }
+    ],
+    "reviewPoolRefs": [
+      {
+        "contentId": "2.4-reader-review-pool",
+        "sourceId": "student-reader-2-visual",
+        "locator": "2.4 wordlists: PDF-pp-84-91 / printed-pp-82-89",
+        "verificationStatus": "verified",
+        "role": "actual previous-Substep controlled review pool for 3-4 prior words"
+      },
+      {
+        "contentId": "2.5-reader-current-pool",
+        "sourceId": "student-reader-2-visual",
+        "locator": "2.5 wordlists: PDF-pp-110-116 / printed-pp-108-114",
+        "verificationStatus": "verified",
+        "role": "source-valid current real-word, suffix, nonsense-word, and Latin-base reading pools"
+      },
+      {
+        "contentId": "2.5-current-nonsense-pool",
+        "sourceId": "student-reader-2-visual",
+        "locator": "2.5 nonsense lists: PDF-pp-114-115 / printed-pp-112-113",
+        "verificationStatus": "verified",
+        "role": "current 2.5 Wilson nonsense-word reading pool",
+        "notes": "The Step Instruction warns that 2.5 nonsense words can be challenging because students may be blending six sounds."
+      }
+    ]
+  },
+  "partInputs": {
+    "1": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part1-sounds",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-p-182",
+          "verificationStatus": "verified",
+          "role": "Part 1 Sounds Quick Drill"
+        }
+      ],
+      "selectionRules": [
+        "Drill all previously taught vowel Letter-Sound Cards.",
+        "Be selective with previously taught consonant and welded cards.",
+        "There are no new letter-sounds in 2.5."
+      ]
+    },
+    "2": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part2-three-letter-blends",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-pp-182-183",
+          "verificationStatus": "verified",
+          "role": "Introductory and ongoing reading instruction for three-letter blends, up to six sounds, suffix -s/-es, and marking"
+        },
+        {
+          "contentId": "2.5-part2-latin-bases",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-pp-183-184",
+          "verificationStatus": "verified",
+          "role": "Subsequent reading instruction for fifteen closed-syllable Latin bases ending in ct"
+        }
+      ],
+      "selectionRules": [
+        "Begin with 3-4 actual 2.4 review words.",
+        "For an Introduction lesson, teach three-letter blends/up to six sounds before the Latin-base material.",
+        "Use the source sequence trap→strap, then additional three-letter-blend examples such as scrap and six-sound script.",
+        "Practice suffix -s/-es and three-letter-blend marking after the core blend concept.",
+        "Introduce the fifteen ct Latin bases only in Subsequent Lessons."
+      ]
+    },
+    "3": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part3-word-cards",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-pp-184-185",
+          "verificationStatus": "verified",
+          "role": "current Word Card routine and Latin-base Syllable Cards after introduction"
+        },
+        {
+          "contentId": "2.5-part3-hfw",
+          "sourceId": "dictation-steps1-6-visual",
+          "locator": "PDF-p-42 / printed-p-38",
+          "verificationStatus": "verified",
+          "role": "current 2.5 HFW phrase/source set"
+        }
+      ],
+      "selectionRules": [
+        "Begin with the existing previous-Substep fat stack; do not fabricate it.",
+        "Use current 2.5 Word Cards only for concepts already taught at that point in the source sequence.",
+        "After the ct Latin bases have been introduced, add their Latin-base Syllable Cards and read a separate taught Word Element packet as needed.",
+        "Review the complete current 2.5 HFW set plus prior unmastered HFWs."
+      ]
+    },
+    "4": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part4-reader-lists",
+          "sourceId": "student-reader-2-visual",
+          "locator": "PDF-pp-110-116 / printed-pp-108-114",
+          "verificationStatus": "verified",
+          "role": "2.5 three-letter-blend, suffix, nonsense-word, and Latin-base wordlists"
+        },
+        {
+          "contentId": "2.5-part4-step-direction",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-p-185",
+          "verificationStatus": "verified",
+          "role": "Part 4 practice/charting procedure and list types"
+        }
+      ],
+      "selectionRules": [
+        "Practice with 5-6 words from one current-substep list that reflects the instruction for that day.",
+        "For charting, use another current-substep list that also reflects the day's instruction and have the student read 15 words.",
+        "The source explicitly provides three-letter-blend, +suffix, nonsense-word, and Latin-base lists.",
+        "2.5 nonsense words may require tapping and should not be pushed for speed before accuracy."
+      ]
+    },
+    "5": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part5-sentences",
+          "sourceId": "student-reader-2-visual",
+          "locator": "PDF-pp-117-120 / printed-pp-115-118",
+          "verificationStatus": "verified",
+          "role": "current 2.5 sentence-reading pages"
+        },
+        {
+          "contentId": "2.5-part5-step-direction",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-p-186",
+          "verificationStatus": "verified",
+          "role": "Part 5 sentence-reading direction"
+        }
+      ],
+      "selectionRules": [
+        "Use the exact current sentence page reflecting the concepts taught so far and embed all 10 sentences.",
+        "Review HFWs/untaught words at the top of the selected page as needed.",
+        "Weave questions about current and previous concepts, vocabulary/meaning, phrasing, and word structure."
+      ]
+    },
+    "6": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part6-reverse-drill",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-p-187",
+          "verificationStatus": "verified",
+          "role": "Quick Drill in Reverse requirements"
+        }
+      ],
+      "selectionRules": [
+        "Use selected previously taught vowel, consonant, and welded phonemes; there are no new sounds in 2.5.",
+        "After the Latin-base elements are taught, include selected taught word elements as needed."
+      ]
+    },
+    "7": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part7-three-letter-blends",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-pp-187-188",
+          "verificationStatus": "verified",
+          "role": "Introductory and ongoing spelling instruction for three-letter blends, suffixes, and nonsense words"
+        },
+        {
+          "contentId": "2.5-part7-latin-bases",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-p-188",
+          "verificationStatus": "verified",
+          "role": "Subsequent spelling instruction for closed-syllable Latin bases with ct"
+        },
+        {
+          "contentId": "2.5-part7-k-spelling",
+          "sourceId": "student-notebook-1-6-visual",
+          "locator": "PDF-p-46 / printed-p-42: Ways to Spell /k/ — use c in a three-letter blend, example scrap",
+          "verificationStatus": "verified",
+          "role": "Notebook-backed spelling generalization used in 2.5"
+        }
+      ],
+      "selectionRules": [
+        "Begin with 3-4 actual 2.4 words before current 2.5 spelling work.",
+        "Use blank tiles to segment/spell current three-letter-blend words, including source examples string and splash.",
+        "Reinforce that /k/ in a three-letter blend is spelled with c, with source examples scrap and scrub.",
+        "Only after proficiency with 2.5 real words, add 2.5 suffix and nonsense-word spelling.",
+        "Teach ct Latin-base spelling in Subsequent Lessons after those bases have been introduced in Part 2."
+      ]
+    },
+    "8": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part8-dictation",
+          "sourceId": "dictation-steps1-6-visual",
+          "locator": "words+nonsense: PDF-p-39 / printed-p-35; phrases: PDF-p-42 / printed-p-38; sentences: PDF-p-51 / printed-p-47",
+          "verificationStatus": "verified",
+          "role": "current/cumulative 2.5 written-work dictation pools"
+        },
+        {
+          "contentId": "2.5-part8-step-direction",
+          "sourceId": "step-instruction-2.5-visual",
+          "locator": "printed-p-189",
+          "verificationStatus": "verified",
+          "role": "Written Work Dictation direction and marking targets"
+        }
+      ],
+      "selectionRules": [
+        "Use source-verified Dictation Book items for current 2.5 real words, nonsense words, HFW phrases, and sentences.",
+        "Sounds, taught word elements, words, and phrases may be cumulative/current; sentences are selected from current 2.5.",
+        "Mark three-letter blends, base word plus suffix, syllables, and taught word elements as appropriate.",
+        "The source states a goal of three written sentences."
+      ]
+    },
+    "9": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "2.5-part9-passages",
+          "sourceId": "student-reader-2-visual",
+          "locator": "PDF-pp-121-127 / printed-pp-119-125: Big Bass; The Best Gram and Gramps in the World; The Spring Job; Help from Chan",
+          "verificationStatus": "verified",
+          "role": "ordered 2.5 controlled-passage pool"
+        }
+      ],
+      "selectionRules": [
+        "Select the next unread 2.5 controlled passage in Reader sequence using the group's passage history.",
+        "If passage history is uncertain, flag it rather than infer it."
+      ]
+    },
+    "10": {
+      "status": "tbd",
+      "contentRefs": [],
+      "selectionRules": [
+        "Project default: Part 10 remains TBD unless explicitly requested."
+      ]
+    }
+  },
+  "notebook": [
+    {
+      "contentId": "2.5-notebook-three-letter-blend",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "PDF-p-7 / printed-p-3: Sounds — Consonant Combinations; three-letter blend example scrap",
+      "verificationStatus": "verified",
+      "role": "Sounds notebook entry/reference for three-letter blends and marking"
+    },
+    {
+      "contentId": "2.5-notebook-latin-bases",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "PDF-pp-33-35 / printed-pp-29-31: Word Elements — fifteen closed-syllable Latin bases with ct blend",
+      "verificationStatus": "verified",
+      "role": "Word Elements notebook reference for 2.5 ct Latin bases"
+    },
+    {
+      "contentId": "2.5-notebook-k-spelling",
+      "sourceId": "student-notebook-1-6-visual",
+      "locator": "PDF-p-46 / printed-p-42: Spelling Rules/Generalizations — Ways to Spell /k/; use c in a three-letter blend, scrap",
+      "verificationStatus": "verified",
+      "role": "Spelling notebook reference for c representing /k/ in a three-letter blend"
+    }
+  ],
+  "knownGaps": [],
+  "ocrConcerns": [
+    "Searchable companions were used for retrieval only. Exact Step Instruction sequence, Reader page ranges, Dictation Book 2.5 word/phrase/sentence pages, and Notebook entries were visually checked against the supplied Fourth Edition PDFs.",
+    "Older derived Dictation Book references for 2.5 used inconsistent PDF/page offsets. The visual corrected-order Fourth Edition source establishes the durable locators used here: words/nonsense PDF p.39 / printed p.35; phrases PDF p.42 / printed p.38; sentences PDF p.51 / printed p.47."
+  ],
+  "verification": {
+    "status": "verified",
+    "verifiedBy": "2026-09-21 source reconciliation with Steps 1-6 Instructor Manual visual pages, Student Reader Two PDF, corrected-order Dictation Book Steps 1-6, and Student Notebook 1-6 Answer Key",
+    "sourceReleaseId": "WRS-CURRICULUM-1.0.1-2026-09-02",
+    "blockingIssues": []
+  }
+}

@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { google } from 'googleapis';
 import {
   dailyNoteSource,
@@ -14,6 +15,17 @@ import {
 } from './sheetRows.js';
 import { createFirestoreSheetLock } from './sheetLock.js';
 import { createSheetSynchronizer } from './sheetSync.js';
+import {
+  assertPlanningExportAuthorized,
+  parseAllowedTeacherUids,
+  parseTeacherFocusOverrides,
+  readPlanningSheetValues
+} from './planningSheetRead.js';
+import {
+  planningStateForExport,
+  readPlanningOperationalStates,
+  savePlanningOperationalState
+} from './planningOperationalState.js';
 
 const app = initializeApp();
 const firestore = getFirestore(app);
@@ -31,6 +43,7 @@ const DATA_LOG_SPREADSHEET_ID = process.env.WRS_DATA_LOG_SPREADSHEET_ID;
 const DATA_LOG_SHEET_NAME = process.env.WRS_DATA_LOG_SHEET_NAME || 'Data Log';
 const DAILY_LOG_SPREADSHEET_ID = process.env.WRS_DAILY_LOG_SPREADSHEET_ID;
 const DAILY_LOG_SHEET_NAME = process.env.WRS_DAILY_LOG_SHEET_NAME || 'Daily Log';
+const PLANNING_ALLOWED_TEACHER_UIDS = parseAllowedTeacherUids(process.env.WRS_PLANNING_ALLOWED_TEACHER_UIDS);
 
 let sheetsPromise;
 const getSheets = () => {
@@ -98,4 +111,85 @@ export const syncGroupNoteToSheet = onDocumentWritten(triggerOptions('group_note
     rows: groupNoteToDailyLogRows(note, noteId),
     label: 'Daily Notes Log'
   });
+});
+
+
+const planningExportOptions = {
+  region: 'us-central1',
+  maxInstances: 2,
+  concurrency: 4,
+  timeoutSeconds: 60,
+  serviceAccount: 'wrs-firebase@appspot.gserviceaccount.com'
+};
+
+const planningError = error => {
+  const code = error?.code;
+  if (code === 'unauthenticated' || code === 'permission-denied' || code === 'failed-precondition') {
+    return new HttpsError(code, error.message);
+  }
+  const message = String(error?.message || '');
+  if (/must be YYYY-MM-DD|invalid|unsupported planning group|focusOverrides|teacher focus override|does not match|at least one|exceeds|too large|required/i.test(message)) {
+    return new HttpsError('invalid-argument', message);
+  }
+  console.error('Planning operation failed.', error);
+  return new HttpsError('internal', 'Planning operation failed.');
+};
+
+export const getPlanningSheetValues = onCall(planningExportOptions, async request => {
+  try {
+    assertPlanningExportAuthorized({
+      authUid: request.auth?.uid,
+      allowedTeacherUids: PLANNING_ALLOWED_TEACHER_UIDS
+    });
+
+    const teacherId = request.auth.uid;
+    const focusOverrides = parseTeacherFocusOverrides(request.data?.focusOverrides);
+    const [sheetExport, statesByGroup] = await Promise.all([
+      readPlanningSheetValues({
+        sheets: await getSheets(),
+        dataSpreadsheetId: DATA_LOG_SPREADSHEET_ID,
+        dailySpreadsheetId: DAILY_LOG_SPREADSHEET_ID,
+        asOf: request.data?.asOf,
+        weekOf: request.data?.weekOf
+      }),
+      readPlanningOperationalStates({
+        firestore,
+        teacherId
+      })
+    ]);
+    const operational = planningStateForExport(statesByGroup);
+
+    return {
+      ...sheetExport,
+      groups: sheetExport.groups.map(group => ({
+        ...group,
+        selectionHistory: operational.groups[group.groupId]?.selectionHistory ?? null,
+        teacherFocusOverride: focusOverrides[group.groupId] ?? null
+      })),
+      validatedArtifacts: operational.validatedArtifacts
+    };
+  } catch (error) {
+    throw planningError(error);
+  }
+});
+
+
+export const savePlanningOperationalStateCallable = onCall(planningExportOptions, async request => {
+  try {
+    assertPlanningExportAuthorized({
+      authUid: request.auth?.uid,
+      allowedTeacherUids: PLANNING_ALLOWED_TEACHER_UIDS
+    });
+
+    return await savePlanningOperationalState({
+      firestore,
+      teacherId: request.auth.uid,
+      groupId: request.data?.groupId,
+      selectionHistory: request.data?.selectionHistory,
+      plannedDate: request.data?.plannedDate,
+      validatedArtifact: request.data?.validatedArtifact
+    });
+  } catch (error) {
+    throw planningError(error);
+  }
 });

@@ -1,0 +1,112 @@
+name: PR48 Lesson Orchestration
+
+on:
+  push:
+    branches:
+      - feature/lesson-planning-orchestration-v1
+  pull_request:
+    branches:
+      - independent-hosting
+    paths:
+      - 'scripts/wrs-lesson-*.mjs'
+      - 'scripts/wrs-compile-planning-snapshot.mjs'
+      - 'scripts/wrs-build-weekly-queue.mjs'
+      - 'scripts/wrs-build-planning-bundles.mjs'
+      - 'scripts/wrs-refresh-planning-state.mjs'
+      - 'scripts/wrs-render-planning-review.mjs'
+      - 'scripts/wrs-refresh-from-sheet-values.mjs'
+      - 'scripts/wrs-record-lesson-history.mjs'
+      - 'scripts/wrs-record-validated-artifact.mjs'
+      - 'functions/planningSheetRead.js'
+      - 'functions/planningOperationalState.js'
+      - 'functions/index.js'
+      - 'functions/.env.example'
+      - 'tests/lesson-*.test.mjs'
+      - 'tests/planning-snapshot-compiler.test.mjs'
+      - 'tests/planning-bundle.test.mjs'
+      - 'tests/planning-review.test.mjs'
+      - 'tests/validated-artifact-recorder.test.mjs'
+      - 'tests/weekly-build-queue.test.mjs'
+      - 'tests/planning-state-refresh.test.mjs'
+      - 'tests/current-path-packet-coverage.test.mjs'
+      - 'tests/sheet-values-refresh.test.mjs'
+      - 'tests/planning-sheet-export.test.mjs'
+      - 'tests/planning-operational-state.test.mjs'
+      - 'schemas/wrs-*.schema.json'
+      - 'curriculum/source-packets/**'
+      - 'curriculum/pilots/**'
+      - 'docs/WRS_LESSON_PLANNING_ORCHESTRATION_V1.md'
+      - 'package.json'
+      - '.github/workflows/pr48-lesson-orchestration.yml'
+
+concurrency:
+  group: wrs-dojo-pr48-lesson-orchestration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  orchestration-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out exact PR48 commit
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run orchestration, fingerprint, and snapshot-compiler unit tests
+        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/lesson-selection-history.test.mjs tests/planning-snapshot-compiler.test.mjs tests/planning-bundle.test.mjs tests/planning-review.test.mjs tests/validated-artifact-recorder.test.mjs tests/weekly-build-queue.test.mjs tests/planning-state-refresh.test.mjs tests/current-path-packet-coverage.test.mjs tests/sheet-values-refresh.test.mjs tests/planning-sheet-export.test.mjs tests/planning-operational-state.test.mjs
+
+      - name: Parse orchestration schemas, source packets, and pilot runtime
+        run: |
+          node -e "const fs=require('fs'); const schemas=['schemas/wrs-group-planning-snapshot-v1.schema.json','schemas/wrs-substep-source-packet-v1.schema.json','schemas/wrs-lesson-build-request-v1.schema.json','schemas/wrs-weekly-build-queue-v1.schema.json','schemas/wrs-group-selection-history-v1.schema.json','schemas/wrs-planning-bundle-v1.schema.json']; const packets=fs.readdirSync('curriculum/source-packets').filter(f=>f.endsWith('.json')).map(f=>'curriculum/source-packets/'+f); const pilots=fs.readdirSync('curriculum/pilots').filter(f=>f.endsWith('.json')).map(f=>'curriculum/pilots/'+f); for (const f of [...schemas,...packets,...pilots]) JSON.parse(fs.readFileSync(f,'utf8')); console.log('JSON parse PASS:', packets.length, 'source packets,', pilots.length, 'pilots')"
+
+  pr40-canonical-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    needs: orchestration-contracts
+
+    steps:
+      - name: Check out exact PR48 commit
+        uses: actions/checkout@v4
+
+      - name: Check out pinned PR40 gate
+        uses: actions/checkout@v4
+        with:
+          ref: f5816d321da91d568ef7fbde5e2f1d7591e7d786
+          path: pr40-gate
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Install pinned PR40 dependencies
+        working-directory: pr40-gate
+        run: npm ci
+
+      - name: Run real pilots through pinned PR40 canonical gate
+        id: canonical_gate
+        working-directory: pr40-gate
+        run: |
+          npx tsx -e "import fs from 'node:fs'; import path from 'node:path'; import { validateCanonicalLessonGate } from './legacy/canonicalLessonGate.ts'; const pilotDir='../curriculum/pilots'; const files=fs.readdirSync(pilotDir).filter(f=>f.endsWith('.json')).sort(); const results=files.map(file=>{ const runtime=JSON.parse(fs.readFileSync(path.join(pilotDir,file),'utf8')); return {file,...validateCanonicalLessonGate(runtime)}; }); fs.writeFileSync('../pr40-gate-results.json',JSON.stringify(results,null,2)); console.log(JSON.stringify(results,null,2)); if(results.some(result=>!result.ok)) process.exit(1);"
+
+      - name: Preserve PR40 canonical-gate diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr48-pr40-canonical-gate-${{ github.sha }}
+          path: pr40-gate-results.json
+          if-no-files-found: error
+          retention-days: 7

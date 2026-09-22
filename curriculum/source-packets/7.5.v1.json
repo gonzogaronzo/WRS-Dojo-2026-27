@@ -1,0 +1,399 @@
+{
+  "schemaVersion": "wrs-substep-source-packet-v1",
+  "packetId": "wrs-7.5-source-packet-v1",
+  "substep": "7.5",
+  "curriculumRelease": "WRS-CURRICULUM-1.0.1-2026-09-02",
+  "packetVersion": "1.0.0",
+  "verifiedAt": "2026-09-21T09:31:00-05:00",
+  "authority": [
+    {
+      "sourceId": "step-instruction-7.5-visual",
+      "kind": "step-instruction",
+      "label": "Wilson Reading System Instructor Manual, Fourth Edition — Substep 7.5 Step Instruction",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Wilson Instructors Manual / Step 7 visual authority#printed-pp-152-168",
+      "priority": 1,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "instructor-manual-step7-searchable",
+      "kind": "derived-index",
+      "label": "WRS Curriculum Release 1.0.1 — wrs-step7-instructor-manual-verified.md",
+      "edition": "Fourth Edition verified searchable companion",
+      "locator": "project-source:WRS_Curriculum_Release_1.0.1_2026-09-02 (1).zip::WRS_Curriculum_Release_1.0.1/searchable_sources/wrs-step7-instructor-manual-verified.md#printed-pp-152-168",
+      "priority": 9,
+      "verificationStatus": "searchable-companion"
+    },
+    {
+      "sourceId": "dictation-steps7-12-visual",
+      "kind": "dictation-book",
+      "label": "Dictation Book 7-12 (4th Ed. Complete).pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Dictation Book 7-12 (4th Ed. Complete).pdf#7.5-hfw-pdf-p-11#printed-p-5#words-pdf-pp-24-25#printed-pp-18-19#phrases-pdf-p-28#printed-p-22#sentences-pdf-pp-37-38#printed-pp-31-32",
+      "priority": 3,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "student-reader-7-visual",
+      "kind": "student-reader",
+      "label": "Student Reader 7 (1).pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:Student Reader 7 (1).pdf#7.1N-pdf-p-15#printed-p-13#7.4-review-pdf-pp-104-119#printed-pp-102-117#7.5-pdf-pp-136-159#printed-pp-134-157",
+      "priority": 4,
+      "verificationStatus": "visual-verified"
+    },
+    {
+      "sourceId": "student-reader-7-searchable",
+      "kind": "derived-index",
+      "label": "WRS Curriculum Release 1.0.1 — student-reader-07.md",
+      "edition": "Fourth Edition searchable companion",
+      "locator": "project-source:WRS_Curriculum_Release_1.0.1_2026-09-02 (1).zip::WRS_Curriculum_Release_1.0.1/searchable_sources/student-reader-07.md#substeps-7.1N-7.4-7.5",
+      "priority": 9,
+      "verificationStatus": "searchable-companion"
+    },
+    {
+      "sourceId": "student-notebook-7-12-visual",
+      "kind": "student-notebook-answer-key",
+      "label": "W4WSNBK72_Wilson_Student_Notebook_7-12_Answer_Key March 28.pdf",
+      "edition": "Fourth Edition",
+      "locator": "project-source:WRS Student Notebooks Answer Keys.zip::W4WSNBK72_Wilson_Student_Notebook_7-12_Answer_Key March 28.pdf#pdf-p-62#printed-p-58#pdf-p-65#printed-p-61",
+      "priority": 5,
+      "verificationStatus": "visual-verified"
+    }
+  ],
+  "currentConcept": [
+    {
+      "contentId": "7.5-contractions",
+      "sourceId": "step-instruction-7.5-visual",
+      "locator": "printed-pp-152-156",
+      "verificationStatus": "verified",
+      "role": "current concept: read contractions and understand the apostrophe as representing omitted letter(s)",
+      "notes": "Introductory and ongoing concept. Source sequence begins with contractions formed with not, including irregular don't and won't, then expands to contractions with am, are, is, will, would, have, and had."
+    },
+    {
+      "contentId": "7.5-possessives-singular",
+      "sourceId": "step-instruction-7.5-visual",
+      "locator": "printed-pp-156-157",
+      "verificationStatus": "verified",
+      "role": "current concept: read singular possessive nouns",
+      "notes": "Source labels this as Subsequent Lessons after contraction work."
+    },
+    {
+      "contentId": "7.5-possessives-plural",
+      "sourceId": "step-instruction-7.5-visual",
+      "locator": "printed-p-158",
+      "verificationStatus": "verified",
+      "role": "current concept: read plural possessive nouns",
+      "notes": "Source identifies plural possessives as an advanced concept to teach after singular possessives are mastered."
+    }
+  ],
+  "sourceOrderedTeachingSequence": [
+    {
+      "contentId": "7.5-step-sequence-reading",
+      "sourceId": "step-instruction-7.5-visual",
+      "locator": "printed-pp-152-160",
+      "verificationStatus": "verified",
+      "role": "Parts 1-5 source-ordered reading instruction",
+      "notes": "No new letter-sounds. Teach contractions first; singular and plural possessives are subsequent concepts. Part 4 provides separate contraction and possessive wordlist types and explicitly states there are no nonsense words for charting."
+    },
+    {
+      "contentId": "7.5-step-sequence-spelling",
+      "sourceId": "step-instruction-7.5-visual",
+      "locator": "printed-pp-161-167",
+      "verificationStatus": "verified",
+      "role": "Parts 6-8 source-ordered spelling instruction",
+      "notes": "No new sounds in Part 6. Spelling contractions is introductory/ongoing; singular and plural possessives are subsequent lessons."
+    }
+  ],
+  "cumulativeEligibility": {
+    "throughSubstep": "7.5",
+    "soundInventoryRefs": [
+      {
+        "contentId": "7.5-cumulative-sounds",
+        "sourceId": "step-instruction-7.5-visual",
+        "locator": "printed-pp-152,161",
+        "verificationStatus": "verified",
+        "role": "cumulative previously taught sound inventory through 7.4",
+        "notes": "The Step Instruction explicitly states that no new letter-sounds/sounds are introduced in 7.5."
+      }
+    ],
+    "wordElementRefs": [
+      {
+        "contentId": "7.5-cumulative-word-elements",
+        "sourceId": "step-instruction-7.5-visual",
+        "locator": "printed-pp-159,161",
+        "verificationStatus": "verified",
+        "role": "previously taught Word Element Cards remain eligible as needed",
+        "notes": "7.5 introduces an apostrophe card/tile, not a new prefix, suffix, Latin base, or Greek combining form."
+      }
+    ],
+    "hfwRefs": [
+      {
+        "contentId": "7.5-hfw",
+        "sourceId": "dictation-steps7-12-visual",
+        "locator": "PDF-p-11 / printed-p-5: body, anybody, everybody, nobody, somebody, won't, usual, usually, probably, either, neither",
+        "verificationStatus": "verified",
+        "role": "current 7.5 High Frequency Word set"
+      }
+    ],
+    "reviewPoolRefs": [
+      {
+        "contentId": "7.4-reader-review-pool",
+        "sourceId": "student-reader-7-visual",
+        "locator": "7.4 wordlists: PDF-pp-104-119 / printed-pp-102-117",
+        "verificationStatus": "verified",
+        "role": "actual previous-Substep controlled review pool for 3-4 prior words"
+      },
+      {
+        "contentId": "7.5-reader-current-pool",
+        "sourceId": "student-reader-7-visual",
+        "locator": "7.5 wordlists: PDF-pp-136-141 / printed-pp-134-139",
+        "verificationStatus": "verified",
+        "role": "source-valid current controlled reading pool"
+      },
+      {
+        "contentId": "7.5-cumulative-nonsense-review-pool",
+        "sourceId": "student-reader-7-visual",
+        "locator": "Substep 7.1N, PDF-p-15 / printed-p-13",
+        "verificationStatus": "verified",
+        "role": "verified prior-Substep Wilson nonsense-word pool eligible only as cumulative review when Part 8 calls for nonsense words",
+        "notes": "Substep 7.5 has no current nonsense-word list and no nonsense-word charting. Never label 7.1N items as 7.5 nonsense words."
+      }
+    ]
+  },
+  "partInputs": {
+    "1": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part1-sounds",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-p-152",
+          "verificationStatus": "verified",
+          "role": "Part 1 Sounds Quick Drill"
+        }
+      ],
+      "selectionRules": [
+        "Be selective with previously taught vowel, consonant, and welded Letter-Sound Cards.",
+        "There are no new letter-sounds in 7.5; do not invent or introduce a new sound card."
+      ]
+    },
+    "2": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part2-contractions",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-pp-152-156",
+          "verificationStatus": "verified",
+          "role": "Introductory and ongoing reading instruction for contractions"
+        },
+        {
+          "contentId": "7.5-part2-possessives",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-pp-156-158",
+          "verificationStatus": "verified",
+          "role": "Subsequent reading instruction for singular and plural possessive nouns"
+        }
+      ],
+      "selectionRules": [
+        "Begin with 3-4 actual 7.4 review words.",
+        "For an Introduction lesson, begin with contractions. Do not pull singular/plural possessives forward from the source's Subsequent Lessons sequence.",
+        "Once contractions are established, teach singular possessives before plural possessives."
+      ]
+    },
+    "3": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part3-word-cards",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-p-159",
+          "verificationStatus": "verified",
+          "role": "current Word Card direction and contraction activity"
+        },
+        {
+          "contentId": "7.5-part3-hfw",
+          "sourceId": "dictation-steps7-12-visual",
+          "locator": "PDF-p-11 / printed-p-5",
+          "verificationStatus": "verified",
+          "role": "current 7.5 HFW set"
+        }
+      ],
+      "selectionRules": [
+        "Begin with the existing previous-Substep fat stack; do not fabricate it.",
+        "Use current 7.5 Word Cards only for concepts already taught at that point in the source sequence.",
+        "The WRS Word Cards provide a contraction sample; additional source-consistent contraction cards may be prepared as directed by the Step Instruction."
+      ]
+    },
+    "4": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part4-reader-lists",
+          "sourceId": "student-reader-7-visual",
+          "locator": "PDF-pp-136-141 / printed-pp-134-139",
+          "verificationStatus": "verified",
+          "role": "7.5 practice/charting wordlists"
+        },
+        {
+          "contentId": "7.5-part4-step-direction",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-p-160",
+          "verificationStatus": "verified",
+          "role": "Part 4 list types and charting boundary"
+        }
+      ],
+      "selectionRules": [
+        "Practice with 5-6 words from one current-substep list reflecting the day's instruction.",
+        "For charting, use another current-substep list reflecting instruction and select 15 real words.",
+        "No nonsense-word charting is provided in 7.5."
+      ]
+    },
+    "5": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part5-sentences",
+          "sourceId": "student-reader-7-visual",
+          "locator": "PDF-pp-142-147 / printed-pp-140-145",
+          "verificationStatus": "verified",
+          "role": "current 7.5 sentence-reading pages"
+        },
+        {
+          "contentId": "7.5-part5-step-direction",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-p-160",
+          "verificationStatus": "verified",
+          "role": "Part 5 sentence-reading direction"
+        }
+      ],
+      "selectionRules": [
+        "Select the exact current sentence page that matches the concepts taught so far and embed all 10 sentences.",
+        "When contractions have been taught, have the student identify the contraction and name the two words combined.",
+        "When possessives have been taught, have the student identify the possessive noun and explain ownership."
+      ]
+    },
+    "6": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part6-reverse-drill",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-p-161",
+          "verificationStatus": "verified",
+          "role": "Quick Drill in Reverse requirements"
+        }
+      ],
+      "selectionRules": [
+        "Use previously taught vowel, consonant, and welded phonemes only; there are no new sounds in 7.5.",
+        "Previously taught word elements may be dictated as needed."
+      ]
+    },
+    "7": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part7-contractions",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-pp-161-163",
+          "verificationStatus": "verified",
+          "role": "Introductory and ongoing spelling instruction for contractions"
+        },
+        {
+          "contentId": "7.5-part7-possessives",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-pp-164-166",
+          "verificationStatus": "verified",
+          "role": "Subsequent spelling instruction for singular and plural possessives"
+        }
+      ],
+      "selectionRules": [
+        "Begin with 3-4 actual 7.4 words before current 7.5 spelling work.",
+        "For an Introduction lesson, teach spelling contractions before possessive spelling.",
+        "Use the source distinction between plural -s/-es and apostrophe placement to show possession; do not collapse plural and possessive rules."
+      ]
+    },
+    "8": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part8-dictation",
+          "sourceId": "dictation-steps7-12-visual",
+          "locator": "words: PDF-pp-24-25 / printed-pp-18-19; phrases: PDF-p-28 / printed-p-22; sentences: PDF-pp-37-38 / printed-pp-31-32",
+          "verificationStatus": "verified",
+          "role": "current/cumulative written-work dictation pools"
+        },
+        {
+          "contentId": "7.5-part8-step-direction",
+          "sourceId": "step-instruction-7.5-visual",
+          "locator": "printed-p-167",
+          "verificationStatus": "verified",
+          "role": "Written Work Dictation direction"
+        },
+        {
+          "contentId": "7.5-part8-cumulative-nonsense",
+          "sourceId": "student-reader-7-visual",
+          "locator": "Substep 7.1N, PDF-p-15 / printed-p-13",
+          "verificationStatus": "verified",
+          "role": "verified cumulative Wilson nonsense-word pool for the required Part 8 nonsense category"
+        }
+      ],
+      "selectionRules": [
+        "Use source-verified Dictation Book items for current 7.5 real words, phrases, and sentences.",
+        "There are no new marking directions in 7.5; mark previously taught concepts as appropriate.",
+        "If the active Part 8 contract calls for nonsense words, use verified 7.1N items only as cumulative review and label them that way."
+      ]
+    },
+    "9": {
+      "status": "ready",
+      "contentRefs": [
+        {
+          "contentId": "7.5-part9-passages",
+          "sourceId": "student-reader-7-visual",
+          "locator": "PDF-pp-148-159 / printed-pp-146-157",
+          "verificationStatus": "verified",
+          "role": "ordered 7.5 controlled-passage pool"
+        }
+      ],
+      "selectionRules": [
+        "Select the next unread controlled passage in Reader sequence using the group's passage history.",
+        "If passage history is uncertain, flag it rather than infer it."
+      ]
+    },
+    "10": {
+      "status": "tbd",
+      "contentRefs": [],
+      "selectionRules": [
+        "Project default: Part 10 remains TBD unless explicitly requested."
+      ]
+    }
+  },
+  "notebook": [
+    {
+      "contentId": "7.5-notebook-possessives",
+      "sourceId": "student-notebook-7-12-visual",
+      "locator": "PDF-p-62 / printed-p-58: Spelling Rules/Generalizations — singular vs. plural possessive examples",
+      "verificationStatus": "verified",
+      "role": "Spelling notebook entry/reference for possessive nouns"
+    },
+    {
+      "contentId": "7.5-notebook-contractions",
+      "sourceId": "student-notebook-7-12-visual",
+      "locator": "PDF-p-65 / printed-p-61: Spelling Rules/Generalizations — Contractions",
+      "verificationStatus": "verified",
+      "role": "Spelling notebook entry/reference for contractions"
+    }
+  ],
+  "knownGaps": [],
+  "ocrConcerns": [
+    "The searchable Step 7 and Reader 7 Markdown files are retrieval aids. Exact apostrophe placement, contractions, punctuation, page-dependent layout, and source sequence were visually checked against the supplied source images/PDFs.",
+    "The older WRS_Step_Instruction_Canonical_Set_2026-08-30 Step 7 Markdown is incomplete after printed page 130; the complete Step 7 searchable companion in WRS Curriculum Release 1.0.1 was used for retrieval and reconciled against the visual pages for 7.5."
+  ],
+  "verification": {
+    "status": "verified",
+    "verifiedBy": "2026-09-21 source reconciliation with Step 7 visual pages, Student Reader 7 PDF, Dictation Book 7-12, and Student Notebook 7-12 Answer Key",
+    "sourceReleaseId": "WRS-CURRICULUM-1.0.1-2026-09-02",
+    "blockingIssues": []
+  }
+}
