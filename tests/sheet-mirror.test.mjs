@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  chartingTypeFromStudentDataRow,
   dailyNoteSource,
   dailyNoteToDailyLogRows,
   groupNoteSource,
@@ -46,6 +47,31 @@ test('mission rows preserve observed scores, errors, attendance, and stable sour
   assert.equal(rows[1][5], 'Attendance');
   assert.equal(rows[1][6], 'Absent');
   assert.equal(rows[1][9], 'Absent');
+});
+
+test('typed mission rows distinguish real-word from nonsense-word charting', () => {
+  const [realRow] = missionToStudentDataRows({ ...mission, chartingType: 'real' });
+  const [nonsenseRow] = missionToStudentDataRows({ ...mission, chartingType: 'nonsense' });
+
+  assert.equal(realRow[5], 'Real-Word Charting');
+  assert.equal(nonsenseRow[5], 'Nonsense-Word Charting');
+  assert.equal(chartingTypeFromStudentDataRow(realRow), 'real');
+  assert.equal(chartingTypeFromStudentDataRow(nonsenseRow), 'nonsense');
+});
+
+test('an old mission without chartingType remains explicitly untyped in the Data Log row', () => {
+  const [row] = missionToStudentDataRows(mission);
+  assert.equal(row[5], 'Wordlist Charting');
+  assert.equal(chartingTypeFromStudentDataRow(row), null);
+});
+
+test('an old-format generic Data Log row parses as unknown rather than real or nonsense', () => {
+  const oldRow = [
+    '2026-09-07', 'Student A', 'Sample Group', '3.1', 'Sample Lesson',
+    'Wordlist Charting', '12/15 (80%)', 'word1, word2, word3', '', 'Present',
+    `${studentDataSourcePrefix('mission-old')}student:student-a`, ''
+  ];
+  assert.equal(chartingTypeFromStudentDataRow(oldRow), null);
 });
 
 test('mission Daily Log row summarizes only values present on the mission', () => {
