@@ -200,7 +200,7 @@ const TeachConcepts: React.FC<TeachConceptsProps> = ({
   // It opens by default whenever this part carries plan content, so an imported
   // lesson is never a blank screen the teacher has to go hunting inside.
   const [showTeacherPlan, setShowTeacherPlan] = useState(
-    () => forcedInitialMode === 'notes' || planContent.hasContent
+    () => forcedInitialMode === 'notes' || (!hasSlideSurface && planContent.hasContent)
   );
   const audienceMode = publicMode === 'notes' ? 'board' : publicMode;
   // The session seeds 'slides' for every part. Without a deck to show, that
