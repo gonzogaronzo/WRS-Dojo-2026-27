@@ -32,14 +32,21 @@ const dateOnly = value => {
   return match ? match[0] : '';
 };
 
+const normalizeGroupToken = value => text(value)
+  .replace(/^(?:group|grp)\s+/i, '')
+  .trim()
+  .toLowerCase();
+
 const splitGroupTokens = value => text(value)
   .split(/[;,]/)
-  .map(item => item.trim())
+  .map(normalizeGroupToken)
   .filter(Boolean);
 
-const rowMatchesGroup = (row, groupId) => (
-  splitGroupTokens(field(row, 'Group', 'group')).includes(groupId)
-);
+const rowMatchesGroup = (row, groupId) => {
+  const normalizedGroupId = normalizeGroupToken(groupId);
+  return Boolean(normalizedGroupId)
+    && splitGroupTokens(field(row, 'Group', 'group')).includes(normalizedGroupId);
+};
 
 const substepFrom = value => {
   const match = text(value).match(/\b(\d+\.\d+)\b/);
