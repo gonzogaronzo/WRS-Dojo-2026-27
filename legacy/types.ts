@@ -400,6 +400,7 @@ export interface MissionRecord {
   substep: string;
   lessonStep: string;
   lessonTitle: string;
+  chartingType?: 'real' | 'nonsense';
   notes: string;
   timestamp: any;
   results: StudentMissionResult[];

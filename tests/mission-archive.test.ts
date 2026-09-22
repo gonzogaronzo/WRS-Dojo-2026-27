@@ -16,6 +16,26 @@ const lesson: Lesson = {
   hfwList: [], affixPractice: []
 };
 
+const lessonWithChartingType = (chartingType: 'real' | 'nonsense'): Lesson => ({
+  ...lesson,
+  runtimePlan: {
+    schemaVersion: 'wrs-runtime-v1',
+    id: `runtime-${chartingType}`,
+    title: `${chartingType} charting lesson`,
+    step: '4',
+    substep: '2',
+    focus: 'accuracy',
+    sources: [],
+    parts: [{
+      part: 4,
+      title: 'Wordlist Reading / Charting',
+      teacherDirections: [],
+      sourceIds: [],
+      data: { chartingType }
+    }]
+  }
+});
+
 const student: StudentProfile = {
   id: 'student-1', name: 'Levi', masteredSounds: [], masteredHFW: [],
   attendanceCount: 2, notes: '', history: []
@@ -60,6 +80,29 @@ test('builds a complete exact word-by-word mission record', () => {
     { studentId: student.id, studentName: student.name, status: 'present' },
     { studentId: absentStudent.id, studentName: absentStudent.name, status: 'absent' }
   ]);
+});
+
+test('preserves real and nonsense charting types from runtime Part 4 without guessing for legacy lessons', () => {
+  const build = (typedLesson: Lesson) => buildMissionRecord({
+    id: `mission-${typedLesson.runtimePlan?.parts[0]?.data.chartingType || 'legacy'}`,
+    teacherId: 'teacher-1',
+    date: '2026-08-19',
+    lesson: typedLesson,
+    group,
+    students: [student, absentStudent],
+    studentIds: [student.id],
+    scores,
+    notes: ''
+  });
+
+  const realMission = build(lessonWithChartingType('real'));
+  const nonsenseMission = build(lessonWithChartingType('nonsense'));
+  const legacyMission = build(lesson);
+
+  assert.equal(realMission.chartingType, 'real');
+  assert.equal(nonsenseMission.chartingType, 'nonsense');
+  assert.equal(legacyMission.chartingType, undefined);
+  assert.equal(Object.prototype.hasOwnProperty.call(legacyMission, 'chartingType'), false);
 });
 
 test('adds full records to student and group history', () => {

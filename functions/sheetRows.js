@@ -9,6 +9,27 @@ const lessonStep = mission => {
 
 const missionAttendance = mission => Array.isArray(mission?.attendance) ? mission.attendance : [];
 const missionResults = mission => Array.isArray(mission?.results) ? mission.results : [];
+const missionChartingType = mission => (
+  mission?.chartingType === 'real' || mission?.chartingType === 'nonsense'
+    ? mission.chartingType
+    : null
+);
+
+export const studentDataChartingLabel = chartingType => (
+  chartingType === 'real'
+    ? 'Real-Word Charting'
+    : chartingType === 'nonsense'
+      ? 'Nonsense-Word Charting'
+      : 'Wordlist Charting'
+);
+
+export const chartingTypeFromStudentDataRow = row => {
+  if (!Array.isArray(row)) return null;
+  const label = text(row[5]).trim();
+  if (label === 'Real-Word Charting') return 'real';
+  if (label === 'Nonsense-Word Charting') return 'nonsense';
+  return null;
+};
 
 export const studentDataSourcePrefix = missionId => `WRS Dojo mission:${missionId} `;
 export const missionDailySource = missionId => `WRS Dojo mission:${missionId}`;
@@ -20,6 +41,7 @@ export const missionToStudentDataRows = (mission, missionId = mission?.id) => {
   const id = text(missionId || mission.id);
   const results = missionResults(mission);
   const attendance = missionAttendance(mission);
+  const chartingType = missionChartingType(mission);
   const entries = attendance.length > 0
     ? attendance
     : results.map(result => ({
@@ -43,7 +65,7 @@ export const missionToStudentDataRows = (mission, missionId = mission?.id) => {
       text(mission.squadName),
       lessonStep(mission),
       text(mission.lessonTitle),
-      status === 'absent' ? 'Attendance' : hasCharting ? 'Wordlist Charting' : 'Lesson Attendance',
+      status === 'absent' ? 'Attendance' : hasCharting ? studentDataChartingLabel(chartingType) : 'Lesson Attendance',
       status === 'absent' ? 'Absent' : hasCharting ? `${correct}/${total} (${accuracy}%)` : 'Present',
       errors.join(', '),
       '',

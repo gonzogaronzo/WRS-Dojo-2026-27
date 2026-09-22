@@ -79,6 +79,12 @@ export const buildMissionRecord = ({
     };
   });
 
+  const runtimeChartingType = lesson.runtimePlan?.parts
+    .find(part => part.part === 4)?.data.chartingType;
+  const chartingType = runtimeChartingType === 'real' || runtimeChartingType === 'nonsense'
+    ? runtimeChartingType
+    : undefined;
+
   return {
     id,
     teacherId,
@@ -90,6 +96,7 @@ export const buildMissionRecord = ({
     substep: lesson.substep,
     lessonStep: `${lesson.step}.${lesson.substep}`,
     lessonTitle: lesson.title,
+    ...(chartingType ? { chartingType } : {}),
     notes,
     timestamp: new Date().toISOString(),
     results,
