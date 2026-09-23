@@ -52,7 +52,12 @@ const packetRegistry = {
   }
 };
 
+import { DATA_LOG_HEADERS } from '../functions/chartingEvidence.js';
+
+const completionRow = ['2026-09-18', 'Synthetic', 'Synthetic Student', 'Instructional / Student Data', 'Completion', '5.4', 'Substep 5.4 is complete.', '', 'Teacher live note'];
+
 const sheetExport = {
+  dataLogValues: [DATA_LOG_HEADERS, ['2026-09-18', 'Synthetic Student', 'Synthetic', '5.4', 'Charting', 'Real-word charting', '13/15']],
   schemaVersion: 'wrs-sheet-values-export-v1',
   schoolYear: '2026-27',
   asOf: '2026-09-21',
@@ -64,6 +69,7 @@ const sheetExport = {
   dailyTabValues: {
     Synthetic: [
       dailyHeaders,
+      completionRow,
       ['2026-09-21', 'Synthetic', 'Synthetic Student', 'Instructional / Student Data', 'Substep start', '5.5 Introduction', 'Began 5.5.', 'Continue 5.5 Introduction.', 'Teacher live note, 2026-09-21']
     ]
   },
@@ -97,8 +103,8 @@ test('raw connector/Sheets values become the canonical live planning feed shape'
   assert.equal(feed.currentSnapshotRows.length, 1);
   assert.equal(feed.groups.length, 1);
   assert.equal(feed.groups[0].groupId, 'Synthetic');
-  assert.equal(feed.groups[0].dailyRows.length, 1);
-  assert.equal(feed.groups[0].dailyRows[0]['Substep / Lesson'], '5.5 Introduction');
+  assert.equal(feed.groups[0].dailyRows.length, 2);
+  assert.equal(feed.groups[0].dailyRows[1]['Substep / Lesson'], '5.5 Introduction');
 });
 
 test('raw sheet-values refresh reuses a durable validated artifact only when the fresh fingerprint matches', () => {
@@ -145,6 +151,7 @@ test('sheet-values group metadata preserves an explicit teacher focus override',
     dailyTabValues: {
       Synthetic: [
         dailyHeaders,
+      completionRow,
         ['2026-09-21', 'Synthetic', 'Synthetic Student', 'Instructional / Student Data', 'Instruction', '5.5 Accuracy', 'The group has not yet received a full, proper 5.5 lesson.', 'Begin with explicit 5.5 instruction before moving forward.', 'Teacher live note, 2026-09-21']
       ]
     },

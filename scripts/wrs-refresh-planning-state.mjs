@@ -78,6 +78,7 @@ export function refreshPlanningState({
     try {
       const snapshot = compileGroupPlanningSnapshot({
         currentSnapshotRows,
+        chartingEvidence: feed.chartingEvidence ?? null,
         dailyRows: Array.isArray(group?.dailyRows) ? group.dailyRows : [],
         groupId,
         schedule: text(group?.schedule),

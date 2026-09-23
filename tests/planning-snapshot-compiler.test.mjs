@@ -133,7 +133,10 @@ test('compiles a conditional next-Substep plan without recording advancement as 
     generatedAt: '2026-09-17T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.advancement.status, 'ready-pending-completion');
   assert.equal(snapshot.advancement.currentSubstep, '5.4');
   assert.equal(snapshot.advancement.nextSubstep, '5.5');
@@ -175,7 +178,10 @@ test('keeps official placement separate from review/backfill target', () => {
     generatedAt: '2026-09-17T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.students[0].officialPlacement.substep, '3.1');
   assert.equal(snapshot.students[0].instructionalTarget.substep, '2.5');
   assert.equal(snapshot.students[0].instructionalTarget.relationshipToPlacement, 'review-backfill');
@@ -230,7 +236,10 @@ test('newer explicit daily target outranks an older Current Snapshot target whil
     generatedAt: '2026-09-17T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.students[0].officialPlacement.substep, '5.5');
   assert.equal(snapshot.students[0].officialPlacement.status, 'teacher-confirmed-current');
   assert.equal(snapshot.students[0].instructionalTarget.substep, '5.5');
@@ -439,7 +448,10 @@ test('recognizes conditional wording that says advance to Substep', () => {
     generatedAt: '2026-09-17T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.advancement.status, 'ready-pending-completion');
   assert.equal(snapshot.advancement.currentSubstep, '2.5');
   assert.equal(snapshot.advancement.nextSubstep, '3.1');
@@ -466,7 +478,10 @@ test('an unconditional explicit teacher advance is represented as teacher-confir
     generatedAt: '2026-09-17T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.advancement.status, 'teacher-confirmed-advance');
   assert.equal(snapshot.advancement.currentSubstep, '5.4');
   assert.equal(snapshot.advancement.nextSubstep, '5.5');
@@ -505,7 +520,10 @@ test('same-day teacher completion plus explicit begin-next-substep resolves to t
     generatedAt: '2026-09-18T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.students[0].officialPlacement.substep, '7.5');
   assert.equal(snapshot.students[0].instructionalTarget.substep, '7.5');
   assert.equal(snapshot.students[0].lessonFocus, 'introduction');
@@ -596,7 +614,10 @@ test('explicit teacher focus override resolves the current-Substep teaching ambi
     generatedAt: '2026-09-18T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.students.every(student => student.lessonFocus === 'introduction'), true);
   assert.equal(
     snapshot.unresolvedConflicts.some(conflict => conflict.conflictId.includes('explicit-instruction-focus-conflict')),
@@ -644,7 +665,10 @@ test('same-day advance preserves prior taught Substep while keeping prior follow
     generatedAt: '2026-09-18T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.students[0].instructionalTarget.substep, '5.5');
   assert.equal(snapshot.students[0].lessonFocus, 'introduction');
   assert.equal(snapshot.lessonContinuity.lastSubstep, '5.4');
@@ -686,7 +710,10 @@ test('an older teacher note does not override a newer Current Snapshot state', (
     generatedAt: '2026-09-18T18:00:00.000Z'
   });
 
-  assert.equal(snapshot.planningReady, true);
+  // These legacy fixtures provide no Data Log export; readiness now fails closed.
+  assert.equal(snapshot.planningReady, false);
+  assert.ok(snapshot.chartingConformance.findings.some(item => item.code === 'evidence-unavailable'));
+  assert.deepEqual(snapshot.planningBlockers, snapshot.chartingConformance.blockers);
   assert.equal(snapshot.students[0].officialPlacement.substep, '5.5');
   assert.equal(snapshot.students[0].instructionalTarget.substep, '5.5');
   assert.equal(snapshot.students[0].lessonFocus, 'accuracy');

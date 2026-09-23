@@ -4,6 +4,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { validateChartingConformance } from './wrs-charting-conformance.mjs';
+import { resolveCompletedSubstep } from './wrs-completed-substep.mjs';
+
 import { passageHistoryFromLedger } from './wrs-record-lesson-history.mjs';
 
 const SCHOOL_YEAR = '2026-27';
@@ -330,6 +333,7 @@ const rowSignalsReviewBackfill = row => {
 
 export function compileGroupPlanningSnapshot({
   currentSnapshotRows,
+  chartingEvidence = null,
   dailyRows,
   groupId,
   schedule = '',
@@ -542,8 +546,16 @@ export function compileGroupPlanningSnapshot({
     fallbackAuthorityRef
   });
 
+  const completedSubsteps = Object.fromEntries(students.map(student => [student.name,
+    resolveCompletedSubstep({ dailyRows, groupId, student: student.name,
+      currentTarget: student.instructionalTarget.substep, asOf: effectiveAsOf })
+  ]));
+  const chartingConformance = validateChartingConformance({
+    evidence: chartingEvidence, groupId, students, completedSubsteps, asOf: effectiveAsOf
+  });
+
   const blockingConflicts = conflicts.filter(item => item.blocksPlanning);
-  const blockers = [];
+  const blockers = [...chartingConformance.blockers];
   if (!currentSubstep) blockers.push('Group instructional target could not be resolved.');
   if (!resolvedFocus) blockers.push('Lesson focus could not be resolved.');
   if (students.some(student => !student.officialPlacement.substep)) blockers.push('One or more official placements are missing.');
@@ -580,6 +592,7 @@ export function compileGroupPlanningSnapshot({
     advancement,
     unresolvedConflicts: conflicts,
     stateSources,
+    chartingConformance,
     planningReady: blockers.length === 0,
     planningBlockers: blockers
   };
@@ -602,7 +615,7 @@ function parseArgs(argv) {
 function usage() {
   return [
     'Usage:',
-    '  node scripts/wrs-compile-planning-snapshot.mjs --current-snapshot current.json --daily-notes daily.json --group 5B --as-of YYYY-MM-DD [--history group-history.json] [--focus-override Introduction|Accuracy|Automaticity/Fluency] [--schedule "7:45-8:30"] [--out snapshot.json]',
+    '  node scripts/wrs-compile-planning-snapshot.mjs --current-snapshot current.json --daily-notes daily.json --group 5B --as-of YYYY-MM-DD [--charting-evidence evidence.json] [--history group-history.json] [--focus-override Introduction|Accuracy|Automaticity/Fluency] [--schedule "7:45-8:30"] [--out snapshot.json]',
     '',
     'Inputs are current row exports from WRS 2026–27 Student Data Log / Current Snapshot and the matching Daily Notes group tab.',
     'The compiler is deterministic and conservative: it does not connect to Google Drive itself, infer missing Wilson content, or record a conditional advancement as completed.'
@@ -617,6 +630,7 @@ export function main(argv = process.argv.slice(2)) {
 
   const snapshot = compileGroupPlanningSnapshot({
     currentSnapshotRows: readJson(options['current-snapshot']),
+    chartingEvidence: options['charting-evidence'] ? JSON.parse(fs.readFileSync(options['charting-evidence'], 'utf8')) : null,
     dailyRows: readJson(options['daily-notes']),
     groupId: options.group,
     schedule: options.schedule || '',

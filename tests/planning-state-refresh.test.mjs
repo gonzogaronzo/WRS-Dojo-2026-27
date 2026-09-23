@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
+import { DATA_LOG_HEADERS, normalizeChartingEvidence } from '../functions/chartingEvidence.js';
 import { refreshPlanningState } from '../scripts/wrs-refresh-planning-state.mjs';
 
 const currentRow = ({
@@ -43,6 +44,20 @@ const dailyRow = ({
   'Note / Data': note,
   'Follow-up / Instructional Response': followUp,
   Source: source
+});
+
+// Synthetic prior completion/evidence keeps these queue/history tests focused on
+// their existing behavior while exercising the new gate through the real pipeline.
+const withPriorCharting = feed => ({
+  ...feed,
+  chartingEvidence: normalizeChartingEvidence([DATA_LOG_HEADERS,
+    ...feed.currentSnapshotRows.map(row => ['2026-09-01', row.Student, row.Group, '1.1', 'Charting', 'Real-Word Charting', '13/15'])
+  ]),
+  groups: feed.groups.map(group => ({ ...group, dailyRows: [
+    { Date: '2026-09-01', Group: group.groupId, 'Student(s)': '', 'Substep / Lesson': '1.1',
+      'Note / Data': 'Substep 1.1 is complete.', Source: 'Teacher live note' },
+    ...group.dailyRows
+  ] }))
 });
 
 const packet = substep => {
@@ -98,7 +113,7 @@ test('one refresh compiles snapshots and a rolling queue from live-row feed data
   };
 
   const report = refreshPlanningState({
-    feed,
+    feed: withPriorCharting(feed),
     packetRegistry: {
       '5.5': packet('5.5'),
       '2.5': packet('2.5')
@@ -138,7 +153,7 @@ test('a missing packet blocks only that queue entry and the refresh report', () 
   };
 
   const report = refreshPlanningState({
-    feed,
+    feed: withPriorCharting(feed),
     packetRegistry: { '5.5': packet('5.5') },
     generatedAt: '2026-09-18T12:00:00.000Z'
   });
@@ -165,7 +180,7 @@ test('group compilation failures are reported instead of silently dropping into 
   };
 
   const report = refreshPlanningState({
-    feed,
+    feed: withPriorCharting(feed),
     packetRegistry: { '5.5': packet('5.5') },
     generatedAt: '2026-09-18T12:00:00.000Z'
   });
@@ -202,7 +217,7 @@ test('refresh applies an explicit teacher focus override without changing the Su
   };
 
   const report = refreshPlanningState({
-    feed,
+    feed: withPriorCharting(feed),
     packetRegistry: { '5.2': packet('5.2') },
     generatedAt: '2026-09-18T12:00:00.000Z'
   });
@@ -257,7 +272,7 @@ test('refresh carries persisted passage history into the derived group snapshot'
   };
 
   const report = refreshPlanningState({
-    feed,
+    feed: withPriorCharting(feed),
     packetRegistry: { '5.5': packet('5.5') },
     generatedAt: '2026-09-18T12:00:00.000Z'
   });

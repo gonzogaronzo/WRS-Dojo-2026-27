@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 import {
   CURRENT_SNAPSHOT_RANGE,
+  DATA_LOG_RANGE,
   DAILY_NOTE_RANGES,
   DAILY_NOTE_TABS,
   assertPlanningExportAuthorized,
@@ -11,6 +12,10 @@ import {
   parseTeacherFocusOverrides,
   readPlanningSheetValues
 } from '../functions/planningSheetRead.js';
+
+import { DATA_LOG_HEADERS } from '../functions/chartingEvidence.js';
+
+const dataValues = [DATA_LOG_HEADERS, ['2026-09-18', 'Synthetic Student', 'Synthetic', '5.4', 'Charting', 'Real-Word Charting', '13/15']];
 
 const currentValues = [
   ['Student', 'Group', 'Current Substep'],
@@ -33,6 +38,9 @@ const fakeSheets = () => {
             calls.push(args);
             if (args.spreadsheetId === 'data-id' && args.range === CURRENT_SNAPSHOT_RANGE) {
               return { data: { values: currentValues } };
+            }
+            if (args.spreadsheetId === 'data-id' && args.range === DATA_LOG_RANGE) {
+              return { data: { values: dataValues } };
             }
             const tab = DAILY_NOTE_TABS.find(name => (
               args.spreadsheetId === 'daily-id' && args.range === DAILY_NOTE_RANGES[name]
@@ -89,7 +97,7 @@ test('teacher focus overrides are normalized and restricted to supported groups'
   );
 });
 
-test('planning export reads only the fixed Current Snapshot and six fixed Daily Notes tabs', async () => {
+test('planning export reads the fixed Current Snapshot, Data Log and six fixed Daily Notes tabs', async () => {
   const fake = fakeSheets();
   const result = await readPlanningSheetValues({
     sheets: fake.client,
@@ -103,12 +111,15 @@ test('planning export reads only the fixed Current Snapshot and six fixed Daily 
   assert.equal(result.schoolYear, '2026-27');
   assert.deepEqual(result.currentSnapshotValues, currentValues);
   assert.deepEqual(Object.keys(result.dailyTabValues), DAILY_NOTE_TABS);
-  assert.equal(fake.calls.length, 1 + DAILY_NOTE_TABS.length);
+  assert.equal(result.chartingEvidence.records[0].scoredCount, 15);
+  assert.equal(result.chartingEvidence.records[0].chartingType, 'real');
+  assert.equal(fake.calls.length, 2 + DAILY_NOTE_TABS.length);
 
   assert.deepEqual(
     fake.calls.map(call => [call.spreadsheetId, call.range]),
     [
       ['data-id', CURRENT_SNAPSHOT_RANGE],
+      ['data-id', DATA_LOG_RANGE],
       ...DAILY_NOTE_TABS.map(tab => ['daily-id', DAILY_NOTE_RANGES[tab]])
     ]
   );
@@ -164,4 +175,21 @@ test('planning export tests contain no current real-student names', () => {
   for (const name of ['Oliver', 'Ethan', 'Alex', 'Finn', 'Maya', 'Enrique', 'Levi', 'Nora', 'Eleanor', 'Alice', 'Izzy', 'Juliana', 'Carolyn', 'Elise', 'Charlotte', 'Bennett', 'Ben', 'Xavier', 'Uffarren']) {
     assert.equal(source.includes(name), false);
   }
+});
+
+test('missing Data Log values remain unavailable rather than becoming an empty successful export', async () => {
+  const fake = fakeSheets();
+  const get = fake.client.spreadsheets.values.get;
+  fake.client.spreadsheets.values.get = args => args.range === DATA_LOG_RANGE
+    ? Promise.resolve({ data: {} }) : get(args);
+  const result = await readPlanningSheetValues({sheets: fake.client, dataSpreadsheetId: 'data-id', dailySpreadsheetId: 'daily-id', asOf: '2026-09-18', weekOf: '2026-09-21'});
+  assert.equal(result.chartingEvidence.status, 'unavailable');
+});
+
+test('failed Data Log transport rejects the export, never returning successful partial evidence', async () => {
+  const fake = fakeSheets();
+  const get = fake.client.spreadsheets.values.get;
+  fake.client.spreadsheets.values.get = args => args.range === DATA_LOG_RANGE
+    ? Promise.reject(new Error('Data Log read failed')) : get(args);
+  await assert.rejects(() => readPlanningSheetValues({sheets: fake.client, dataSpreadsheetId: 'data-id', dailySpreadsheetId: 'daily-id', asOf: '2026-09-18', weekOf: '2026-09-21'}), /Data Log read failed/);
 });

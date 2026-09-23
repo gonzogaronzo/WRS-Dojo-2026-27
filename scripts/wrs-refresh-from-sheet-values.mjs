@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { normalizeChartingEvidence } from '../functions/chartingEvidence.js';
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -108,6 +109,7 @@ export function buildFeedFromSheetValues(exportData) {
     asOf,
     weekOf,
     currentSnapshotRows,
+    chartingEvidence: exportData.chartingEvidence ?? normalizeChartingEvidence(exportData.dataLogValues),
     groups: feedGroups
   };
 }

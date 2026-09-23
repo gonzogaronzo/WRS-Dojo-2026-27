@@ -9,6 +9,10 @@ on:
       - independent-hosting
     paths:
       - 'scripts/wrs-lesson-*.mjs'
+      - 'scripts/wrs-charting-conformance.mjs'
+      - 'scripts/wrs-completed-substep.mjs'
+      - 'functions/chartingEvidence.js'
+      - 'tests/charting-conformance.test.mjs'
       - 'scripts/wrs-compile-planning-snapshot.mjs'
       - 'scripts/wrs-build-weekly-queue.mjs'
       - 'scripts/wrs-build-planning-bundles.mjs'
@@ -64,7 +68,7 @@ jobs:
         run: npm ci
 
       - name: Run orchestration, fingerprint, and snapshot-compiler unit tests
-        run: node --test tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/lesson-selection-history.test.mjs tests/planning-snapshot-compiler.test.mjs tests/planning-bundle.test.mjs tests/planning-review.test.mjs tests/validated-artifact-recorder.test.mjs tests/weekly-build-queue.test.mjs tests/planning-state-refresh.test.mjs tests/current-path-packet-coverage.test.mjs tests/sheet-values-refresh.test.mjs tests/planning-sheet-export.test.mjs tests/planning-operational-state.test.mjs
+        run: node --test tests/charting-conformance.test.mjs tests/lesson-orchestrator.test.mjs tests/lesson-build-fingerprint.test.mjs tests/lesson-selection-history.test.mjs tests/planning-snapshot-compiler.test.mjs tests/planning-bundle.test.mjs tests/planning-review.test.mjs tests/validated-artifact-recorder.test.mjs tests/weekly-build-queue.test.mjs tests/planning-state-refresh.test.mjs tests/current-path-packet-coverage.test.mjs tests/sheet-values-refresh.test.mjs tests/planning-sheet-export.test.mjs tests/planning-operational-state.test.mjs
 
       - name: Parse orchestration schemas, source packets, and pilot runtime
         run: |
