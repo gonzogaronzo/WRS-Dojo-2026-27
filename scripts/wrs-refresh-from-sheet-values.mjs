@@ -99,6 +99,7 @@ export function buildFeedFromSheetValues(exportData) {
       lessonRoute: text(group?.lessonRoute) || null,
       selectionHistory: group?.selectionHistory ?? null,
       teacherFocusOverride: text(group?.teacherFocusOverride) || null,
+      teacherTargetOverride: group?.teacherTargetOverride ?? null,
       dailyRows: rowsFromValues(values, `Daily Notes / ${dailyTab}`)
     };
   });

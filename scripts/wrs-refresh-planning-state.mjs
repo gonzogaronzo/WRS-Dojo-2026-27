@@ -85,6 +85,7 @@ export function refreshPlanningState({
         asOf,
         selectionHistory: group?.selectionHistory ?? null,
         teacherFocusOverride: group?.teacherFocusOverride ?? null,
+        teacherTargetOverride: group?.teacherTargetOverride ?? null,
         generatedAt
       });
       if (text(group?.displayName)) snapshot.group.displayName = text(group.displayName);

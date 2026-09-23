@@ -10,6 +10,7 @@ import {
   assertPlanningExportAuthorized,
   parseAllowedTeacherUids,
   parseTeacherFocusOverrides,
+  parseTeacherTargetOverrides,
   readPlanningSheetValues
 } from '../functions/planningSheetRead.js';
 
@@ -166,6 +167,8 @@ test('callable planning export is auth-gated and does not accept spreadsheet IDs
   assert.match(source, /dataSpreadsheetId:\s*DATA_LOG_SPREADSHEET_ID/);
   assert.match(source, /dailySpreadsheetId:\s*DAILY_LOG_SPREADSHEET_ID/);
   assert.match(source, /parseTeacherFocusOverrides\(request\.data\?\.focusOverrides\)/);
+  assert.match(source, /parseTeacherTargetOverrides\(request\.data\?\.targetOverrides\)/);
+  assert.match(source, /teacherTargetOverride:\s*targetOverrides\[group\.groupId\]/);
   assert.match(source, /teacherFocusOverride:\s*focusOverrides\[group\.groupId\]/);
   assert.doesNotMatch(source, /request\.data\?\.(?:spreadsheetId|dataSpreadsheetId|dailySpreadsheetId|sheetName|tabName)/);
 });
@@ -192,4 +195,12 @@ test('failed Data Log transport rejects the export, never returning successful p
   fake.client.spreadsheets.values.get = args => args.range === DATA_LOG_RANGE
     ? Promise.reject(new Error('Data Log read failed')) : get(args);
   await assert.rejects(() => readPlanningSheetValues({sheets: fake.client, dataSpreadsheetId: 'data-id', dailySpreadsheetId: 'daily-id', asOf: '2026-09-18', weekOf: '2026-09-21'}), /Data Log read failed/);
+});
+
+test('request targets are validated separately from focus and restricted to supported groups', () => {
+  assert.deepEqual(parseTeacherTargetOverrides({'3A': ' 2.5 ', '5A': '7.5'}), {'3A': '2.5', '5A': '7.5'});
+  assert.deepEqual(parseTeacherTargetOverrides(null), {});
+  for (const input of [[], '2.5', {'Unknown': '2.5'}, {'3A': ''}, {'3A': '2.5 then 3.1'}, {'3A': '0.0'}]) {
+    assert.throws(() => parseTeacherTargetOverrides(input));
+  }
 });

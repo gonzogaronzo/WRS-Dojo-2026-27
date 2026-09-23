@@ -57,7 +57,10 @@ export function validateChartingConformance({ evidence, groupId, students, compl
     if (!name) { add('invalid-context', 'A planning student has no identity.'); continue; }
     const completed = completedSubsteps?.[name];
     const requiredSubstep = completed?.status === 'resolved' && /^\d+\.\d+$/.test(completed.substep || '') ? completed.substep : null;
-    if (!requiredSubstep) add('completed-substep-unresolved', `${name}: ${completed?.reason || 'Most recently completed Substep cannot be established.'}`, name);
+    if (completed?.status === 'conflicted') add('completion-conflict', `${name}: ${completed.reason}`, name);
+    else if (!['resolved', 'none-established'].includes(completed?.status) || (completed.status === 'resolved' && !requiredSubstep)) {
+      add('invalid-context', `${name}: completion state is missing or malformed.`, name);
+    }
     const studentRecords = records.filter(record => record.student === name);
     if (available && requiredSubstep && !studentRecords.some(record => record.substep === requiredSubstep)) {
       const otherSubsteps = [...new Set(studentRecords.map(record => record.substep))];

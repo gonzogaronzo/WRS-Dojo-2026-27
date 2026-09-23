@@ -225,3 +225,22 @@ test('sheet-values adapter tests contain no current real-student names', () => {
     assert.equal(source.includes(name), false);
   }
 });
+
+test('request target survives the export/feed/refresh path and prevents a different queued target', () => {
+  const request = {
+    ...sheetExport,
+    groups: [{...sheetExport.groups[0], teacherTargetOverride: '2.5'}],
+    dailyTabValues: {Synthetic: [dailyHeaders,
+      ['2026-09-21', 'Synthetic', 'Synthetic Student', 'Instruction', 'Advancement', '2.4', 'Ready to advance.', 'Begin 2.5 next week.', 'Daily Debrief']
+    ]},
+    dataLogValues: [DATA_LOG_HEADERS, ['2026-09-18', 'Synthetic Student', 'Synthetic', '2.5', 'Charting', 'Nonsense-word reading', '13/15']]
+  };
+  assert.equal(buildFeedFromSheetValues(request).groups[0].teacherTargetOverride, '2.5');
+  const report = refreshFromSheetValues({exportData: request, packetRegistry: {'2.5': {...packetRegistry['5.5'], packetId: 'wrs-2.5-source-packet-v1', packet: {...packetRegistry['5.5'].packet, substep: '2.5', packetId: 'wrs-2.5-source-packet-v1'}}}});
+  const snapshot = report.snapshots[0];
+  assert.equal(snapshot.planningReady, true);
+  assert.equal(snapshot.students[0].instructionalTarget.substep, '2.5');
+  assert.equal(snapshot.students[0].officialPlacement.substep, '5.5');
+  assert.equal(snapshot.chartingConformance.completedSubsteps['Synthetic Student'].status, 'none-established');
+  assert.equal(report.queue.entries[0].sourcePacketRef, 'wrs-2.5-source-packet-v1');
+});

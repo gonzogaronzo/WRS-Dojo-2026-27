@@ -51,6 +51,22 @@ export function parseTeacherFocusOverrides(value) {
   return result;
 }
 
+// Request-time instruction only; never a placement or completion claim.
+export function parseTeacherTargetOverrides(value) {
+  if (value == null) return {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('targetOverrides must be an object keyed by supported planning group.');
+  }
+  const result = {};
+  for (const [groupId, rawTarget] of Object.entries(value)) {
+    if (!DAILY_NOTE_TABS.includes(groupId)) throw new Error(`Unsupported planning group: ${groupId || '(blank)'}.`);
+    const target = text(rawTarget);
+    if (!/^[1-9]\d*\.[1-9]\d*$/.test(target)) throw new Error('Teacher target override must be a Substep such as 2.5.');
+    result[groupId] = target;
+  }
+  return result;
+}
+
 export function parseAllowedTeacherUids(value) {
   return [...new Set(text(value)
     .split(',')

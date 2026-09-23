@@ -341,3 +341,4 @@ Still required before this becomes the routine weekly planner:
 5. Record validated fingerprints from exact live snapshot/build-request inputs.
 
 PR #48 remains draft. No merge or production deployment belongs to this workstream until those gates are proven.
+The planning request also supports `teacherTargetOverride` per group (authenticated export: `targetOverrides`, compiler CLI: `--target`). For example, a request to plan 2.5 for 3A supplies `targetOverrides: { "3A": "2.5" }`. This resolves the instructional target directly and disables advancement-based completion inference for that request; it does not claim a placement change or completion. Existing explicit completion records and scored charting still undergo the separate conformance check. See `docs/CHARTING_CONFORMANCE.md` for completion states, parser boundaries, and the live six-group comparison.

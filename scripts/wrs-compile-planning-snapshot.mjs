@@ -340,6 +340,7 @@ export function compileGroupPlanningSnapshot({
   asOf,
   selectionHistory = null,
   teacherFocusOverride = null,
+  teacherTargetOverride = null,
   generatedAt = new Date().toISOString()
 }) {
   if (!groupId) throw new Error('groupId is required.');
@@ -356,6 +357,12 @@ export function compileGroupPlanningSnapshot({
   }
   const effectiveAsOf = dateOnly(asOf) || dateOnly(generatedAt);
   if (!effectiveAsOf) throw new Error('asOf must resolve to YYYY-MM-DD.');
+
+  const targetOverride = text(teacherTargetOverride);
+  if (teacherTargetOverride != null && !/^[1-9]\d*\.[1-9]\d*$/.test(targetOverride)) {
+    throw new Error('Teacher target override must be a Substep such as 2.5.');
+  }
+  const targetAuthorityRef = `teacher-request:${groupId}:${effectiveAsOf}:target:${targetOverride}`;
 
   const requestedFocusOverride = text(teacherFocusOverride);
   const focusOverride = requestedFocusOverride ? normalizeFocus(requestedFocusOverride) : '';
@@ -378,12 +385,12 @@ export function compileGroupPlanningSnapshot({
   ));
   const currentTargets = unique(rawTargets);
   const dailyInstructionSubstep = deriveDailySubstep(latestDaily);
-  const explicitTeacherTargetCandidate = deriveExplicitTeacherCurrentTarget(latestDaily);
+  const explicitTeacherTargetCandidate = targetOverride ? '' : deriveExplicitTeacherCurrentTarget(latestDaily);
   const explicitTeacherCurrentTarget = currentTargets.includes(explicitTeacherTargetCandidate)
     ? explicitTeacherTargetCandidate
     : '';
   const dailyTarget = explicitTeacherCurrentTarget || dailyInstructionSubstep;
-  const currentSubstep = dailyTarget || (currentTargets.length === 1 ? currentTargets[0] : '');
+  const currentSubstep = targetOverride || dailyTarget || (currentTargets.length === 1 ? currentTargets[0] : '');
 
   const currentFocuses = unique(current.map(row => normalizeFocus(field(row, 'Lesson Focus', 'lessonFocus'))));
   const dailyFocus = deriveDailyFocus(latestDaily);
@@ -401,7 +408,7 @@ export function compileGroupPlanningSnapshot({
   );
   const conflicts = [];
 
-  if (currentTargets.length > 1 && !dailyTarget) {
+  if (currentTargets.length > 1 && !dailyTarget && !targetOverride) {
     conflicts.push({
       conflictId: `${groupId}-target-substep-conflict-${effectiveAsOf}`,
       severity: 'blocking',
@@ -458,7 +465,8 @@ export function compileGroupPlanningSnapshot({
     const currentRowSignalsReview = /\b(?:review|backfill)\b/i.test(text(field(row, 'Lesson Focus', 'lessonFocus')));
     const dailySignalsReview = latestDaily.some(rowSignalsReviewBackfill);
     const newerTeacherCurrent = Boolean(
-      dailyTarget
+      !targetOverride
+      && dailyTarget
       && dailyTarget !== snapshotOfficialSubstep
       && !currentRowSignalsReview
       && !dailySignalsReview
@@ -483,8 +491,8 @@ export function compileGroupPlanningSnapshot({
       },
       instructionalTarget: {
         substep: target,
-        relationshipToPlacement: target === officialSubstep ? 'current' : 'review-backfill',
-        sourceRef: dailyTarget ? dailyAuthorityRef : fallbackAuthorityRef
+        relationshipToPlacement: target === officialSubstep ? 'current' : (targetOverride ? 'teacher-directed' : 'review-backfill'),
+        sourceRef: targetOverride ? targetAuthorityRef : (dailyTarget ? dailyAuthorityRef : fallbackAuthorityRef)
       },
       lessonFocus: focus,
       latestData: {
@@ -513,6 +521,14 @@ export function compileGroupPlanningSnapshot({
     notes: 'Official placement, per-student latest data, trouble spots, and recommended response.'
   }];
 
+  if (targetOverride) {
+    stateSources.push({
+      sourceRef: targetAuthorityRef, kind: 'explicit-teacher-report', date: effectiveAsOf,
+      authorityRank: 1, locator: `Planning request / target override / group ${groupId}`,
+      notes: `Teacher requested Substep ${targetOverride}. This is a planning instruction, not a placement or completion claim.`
+    });
+  }
+
   if (focusOverride) {
     stateSources.push({
       sourceRef: `teacher-decision:${groupId}:${effectiveAsOf}:focus:${focusOverride}`,
@@ -540,7 +556,10 @@ export function compileGroupPlanningSnapshot({
     });
   }
 
-  const advancement = deriveAdvancement({
+  const advancement = targetOverride ? {
+    status: 'continue', currentSubstep: targetOverride, nextSubstep: null,
+    condition: null, authorityRef: targetAuthorityRef
+  } : deriveAdvancement({
     currentSubstep,
     latestDailyRows: latestDaily,
     fallbackAuthorityRef
@@ -548,7 +567,8 @@ export function compileGroupPlanningSnapshot({
 
   const completedSubsteps = Object.fromEntries(students.map(student => [student.name,
     resolveCompletedSubstep({ dailyRows, groupId, student: student.name,
-      currentTarget: student.instructionalTarget.substep, asOf: effectiveAsOf })
+      currentTarget: student.instructionalTarget.substep, asOf: effectiveAsOf,
+      allowAdvancementInference: !targetOverride })
   ]));
   const chartingConformance = validateChartingConformance({
     evidence: chartingEvidence, groupId, students, completedSubsteps, asOf: effectiveAsOf
@@ -615,7 +635,7 @@ function parseArgs(argv) {
 function usage() {
   return [
     'Usage:',
-    '  node scripts/wrs-compile-planning-snapshot.mjs --current-snapshot current.json --daily-notes daily.json --group 5B --as-of YYYY-MM-DD [--charting-evidence evidence.json] [--history group-history.json] [--focus-override Introduction|Accuracy|Automaticity/Fluency] [--schedule "7:45-8:30"] [--out snapshot.json]',
+    '  node scripts/wrs-compile-planning-snapshot.mjs --current-snapshot current.json --daily-notes daily.json --group 5B --as-of YYYY-MM-DD [--charting-evidence evidence.json] [--history group-history.json] [--target 2.5] [--focus-override Introduction|Accuracy|Automaticity/Fluency] [--schedule "7:45-8:30"] [--out snapshot.json]',
     '',
     'Inputs are current row exports from WRS 2026–27 Student Data Log / Current Snapshot and the matching Daily Notes group tab.',
     'The compiler is deterministic and conservative: it does not connect to Google Drive itself, infer missing Wilson content, or record a conditional advancement as completed.'
@@ -636,7 +656,8 @@ export function main(argv = process.argv.slice(2)) {
     schedule: options.schedule || '',
     asOf: options['as-of'],
     selectionHistory: options.history ? readJson(options.history) : null,
-    teacherFocusOverride: options['focus-override'] || null
+    teacherFocusOverride: options['focus-override'] || null,
+    teacherTargetOverride: options.target ?? null
   });
 
   const rendered = `${JSON.stringify(snapshot, null, 2)}\n`;
