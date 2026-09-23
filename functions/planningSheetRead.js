@@ -1,6 +1,9 @@
+import { normalizeChartingEvidence } from './chartingEvidence.js';
+
 const SCHOOL_YEAR = '2026-27';
 const EXPORT_VERSION = 'wrs-sheet-values-export-v1';
 
+export const DATA_LOG_RANGE = "'Data Log'!A:L";
 export const CURRENT_SNAPSHOT_RANGE = "'Current Snapshot'!A:N";
 export const DAILY_NOTE_TABS = Object.freeze(['2nd', '3A', '3B', '4A', '5A', '5B']);
 export const DAILY_NOTE_RANGES = Object.freeze(
@@ -44,6 +47,22 @@ export function parseTeacherFocusOverrides(value) {
     }
     const focus = normalizeTeacherFocus(rawFocus);
     if (focus) result[groupId] = focus;
+  }
+  return result;
+}
+
+// Request-time instruction only; never a placement or completion claim.
+export function parseTeacherTargetOverrides(value) {
+  if (value == null) return {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('targetOverrides must be an object keyed by supported planning group.');
+  }
+  const result = {};
+  for (const [groupId, rawTarget] of Object.entries(value)) {
+    if (!DAILY_NOTE_TABS.includes(groupId)) throw new Error(`Unsupported planning group: ${groupId || '(blank)'}.`);
+    const target = text(rawTarget);
+    if (!/^[1-9]\d*\.[1-9]\d*$/.test(target)) throw new Error('Teacher target override must be a Substep such as 2.5.');
+    result[groupId] = target;
   }
   return result;
 }
@@ -99,10 +118,15 @@ export async function readPlanningSheetValues({
   const effectiveAsOf = date(asOf, 'asOf');
   const effectiveWeekOf = date(weekOf, 'weekOf');
 
-  const [currentResponse, ...dailyResponses] = await Promise.all([
+  const [currentResponse, dataLogResponse, ...dailyResponses] = await Promise.all([
     sheets.spreadsheets.values.get({
       spreadsheetId: dataId,
       range: CURRENT_SNAPSHOT_RANGE,
+      majorDimension: 'ROWS'
+    }),
+    sheets.spreadsheets.values.get({
+      spreadsheetId: dataId,
+      range: DATA_LOG_RANGE,
       majorDimension: 'ROWS'
     }),
     ...DAILY_NOTE_TABS.map(tab => sheets.spreadsheets.values.get({
@@ -131,6 +155,7 @@ export async function readPlanningSheetValues({
     asOf: effectiveAsOf,
     weekOf: effectiveWeekOf,
     currentSnapshotValues,
+    chartingEvidence: normalizeChartingEvidence(valuesFrom(dataLogResponse)),
     dailyTabValues,
     groups: DAILY_NOTE_TABS.map(groupId => ({
       groupId,

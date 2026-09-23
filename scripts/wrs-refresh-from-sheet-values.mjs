@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { normalizeChartingEvidence } from '../functions/chartingEvidence.js';
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -98,6 +99,7 @@ export function buildFeedFromSheetValues(exportData) {
       lessonRoute: text(group?.lessonRoute) || null,
       selectionHistory: group?.selectionHistory ?? null,
       teacherFocusOverride: text(group?.teacherFocusOverride) || null,
+      teacherTargetOverride: group?.teacherTargetOverride ?? null,
       dailyRows: rowsFromValues(values, `Daily Notes / ${dailyTab}`)
     };
   });
@@ -108,6 +110,7 @@ export function buildFeedFromSheetValues(exportData) {
     asOf,
     weekOf,
     currentSnapshotRows,
+    chartingEvidence: exportData.chartingEvidence ?? normalizeChartingEvidence(exportData.dataLogValues),
     groups: feedGroups
   };
 }

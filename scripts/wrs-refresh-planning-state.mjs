@@ -78,12 +78,14 @@ export function refreshPlanningState({
     try {
       const snapshot = compileGroupPlanningSnapshot({
         currentSnapshotRows,
+        chartingEvidence: feed.chartingEvidence ?? null,
         dailyRows: Array.isArray(group?.dailyRows) ? group.dailyRows : [],
         groupId,
         schedule: text(group?.schedule),
         asOf,
         selectionHistory: group?.selectionHistory ?? null,
         teacherFocusOverride: group?.teacherFocusOverride ?? null,
+        teacherTargetOverride: group?.teacherTargetOverride ?? null,
         generatedAt
       });
       if (text(group?.displayName)) snapshot.group.displayName = text(group.displayName);

@@ -52,7 +52,12 @@ const packetRegistry = {
   }
 };
 
+import { DATA_LOG_HEADERS } from '../functions/chartingEvidence.js';
+
+const completionRow = ['2026-09-18', 'Synthetic', 'Synthetic Student', 'Instructional / Student Data', 'Completion', '5.4', 'Substep 5.4 is complete.', '', 'Teacher live note'];
+
 const sheetExport = {
+  dataLogValues: [DATA_LOG_HEADERS, ['2026-09-18', 'Synthetic Student', 'Synthetic', '5.4', 'Charting', 'Real-word charting', '13/15']],
   schemaVersion: 'wrs-sheet-values-export-v1',
   schoolYear: '2026-27',
   asOf: '2026-09-21',
@@ -64,6 +69,7 @@ const sheetExport = {
   dailyTabValues: {
     Synthetic: [
       dailyHeaders,
+      completionRow,
       ['2026-09-21', 'Synthetic', 'Synthetic Student', 'Instructional / Student Data', 'Substep start', '5.5 Introduction', 'Began 5.5.', 'Continue 5.5 Introduction.', 'Teacher live note, 2026-09-21']
     ]
   },
@@ -97,8 +103,8 @@ test('raw connector/Sheets values become the canonical live planning feed shape'
   assert.equal(feed.currentSnapshotRows.length, 1);
   assert.equal(feed.groups.length, 1);
   assert.equal(feed.groups[0].groupId, 'Synthetic');
-  assert.equal(feed.groups[0].dailyRows.length, 1);
-  assert.equal(feed.groups[0].dailyRows[0]['Substep / Lesson'], '5.5 Introduction');
+  assert.equal(feed.groups[0].dailyRows.length, 2);
+  assert.equal(feed.groups[0].dailyRows[1]['Substep / Lesson'], '5.5 Introduction');
 });
 
 test('raw sheet-values refresh reuses a durable validated artifact only when the fresh fingerprint matches', () => {
@@ -145,6 +151,7 @@ test('sheet-values group metadata preserves an explicit teacher focus override',
     dailyTabValues: {
       Synthetic: [
         dailyHeaders,
+      completionRow,
         ['2026-09-21', 'Synthetic', 'Synthetic Student', 'Instructional / Student Data', 'Instruction', '5.5 Accuracy', 'The group has not yet received a full, proper 5.5 lesson.', 'Begin with explicit 5.5 instruction before moving forward.', 'Teacher live note, 2026-09-21']
       ]
     },
@@ -217,4 +224,23 @@ test('sheet-values adapter tests contain no current real-student names', () => {
   for (const name of ['Oliver', 'Ethan', 'Alex', 'Finn', 'Maya', 'Enrique', 'Levi', 'Nora', 'Eleanor', 'Alice', 'Izzy', 'Juliana', 'Carolyn', 'Elise', 'Charlotte', 'Bennett', 'Ben', 'Xavier', 'Uffarren']) {
     assert.equal(source.includes(name), false);
   }
+});
+
+test('request target survives the export/feed/refresh path and prevents a different queued target', () => {
+  const request = {
+    ...sheetExport,
+    groups: [{...sheetExport.groups[0], teacherTargetOverride: '2.5'}],
+    dailyTabValues: {Synthetic: [dailyHeaders,
+      ['2026-09-21', 'Synthetic', 'Synthetic Student', 'Instruction', 'Advancement', '2.4', 'Ready to advance.', 'Begin 2.5 next week.', 'Daily Debrief']
+    ]},
+    dataLogValues: [DATA_LOG_HEADERS, ['2026-09-18', 'Synthetic Student', 'Synthetic', '2.5', 'Charting', 'Nonsense-word reading', '13/15']]
+  };
+  assert.equal(buildFeedFromSheetValues(request).groups[0].teacherTargetOverride, '2.5');
+  const report = refreshFromSheetValues({exportData: request, packetRegistry: {'2.5': {...packetRegistry['5.5'], packetId: 'wrs-2.5-source-packet-v1', packet: {...packetRegistry['5.5'].packet, substep: '2.5', packetId: 'wrs-2.5-source-packet-v1'}}}});
+  const snapshot = report.snapshots[0];
+  assert.equal(snapshot.planningReady, true);
+  assert.equal(snapshot.students[0].instructionalTarget.substep, '2.5');
+  assert.equal(snapshot.students[0].officialPlacement.substep, '5.5');
+  assert.equal(snapshot.chartingConformance.completedSubsteps['Synthetic Student'].status, 'none-established');
+  assert.equal(report.queue.entries[0].sourcePacketRef, 'wrs-2.5-source-packet-v1');
 });

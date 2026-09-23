@@ -19,6 +19,7 @@ import {
   assertPlanningExportAuthorized,
   parseAllowedTeacherUids,
   parseTeacherFocusOverrides,
+  parseTeacherTargetOverrides,
   readPlanningSheetValues
 } from './planningSheetRead.js';
 import {
@@ -128,7 +129,7 @@ const planningError = error => {
     return new HttpsError(code, error.message);
   }
   const message = String(error?.message || '');
-  if (/must be YYYY-MM-DD|invalid|unsupported planning group|focusOverrides|teacher focus override|does not match|at least one|exceeds|too large|required/i.test(message)) {
+  if (/must be YYYY-MM-DD|invalid|unsupported planning group|focusOverrides|targetOverrides|teacher target override|teacher focus override|does not match|at least one|exceeds|too large|required/i.test(message)) {
     return new HttpsError('invalid-argument', message);
   }
   console.error('Planning operation failed.', error);
@@ -143,6 +144,7 @@ export const getPlanningSheetValues = onCall(planningExportOptions, async reques
     });
 
     const teacherId = request.auth.uid;
+    const targetOverrides = parseTeacherTargetOverrides(request.data?.targetOverrides);
     const focusOverrides = parseTeacherFocusOverrides(request.data?.focusOverrides);
     const [sheetExport, statesByGroup] = await Promise.all([
       readPlanningSheetValues({
@@ -164,7 +166,8 @@ export const getPlanningSheetValues = onCall(planningExportOptions, async reques
       groups: sheetExport.groups.map(group => ({
         ...group,
         selectionHistory: operational.groups[group.groupId]?.selectionHistory ?? null,
-        teacherFocusOverride: focusOverrides[group.groupId] ?? null
+        teacherFocusOverride: focusOverrides[group.groupId] ?? null,
+        teacherTargetOverride: targetOverrides[group.groupId] ?? null
       })),
       validatedArtifacts: operational.validatedArtifacts
     };
