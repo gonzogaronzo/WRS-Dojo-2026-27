@@ -122,18 +122,18 @@ for (const item of ['ank', 'b'] as const) {
     const teacherHidden = renderAuditoryPrivacyCase(item, false, 0);
     assert.equal(countVisibleSourceOccurrences(teacherHidden, `/${item}/`), 1, 'teacher pre-reveal should contain the dictated sound only in Teacher Only');
     assert.match(teacherHidden, /Teacher only/i);
-    assert.equal(answerCheck(teacherHidden).includes(item), false, 'Answer Check must be empty before reveal');
+    assert.doesNotMatch(answerCheck(teacherHidden), new RegExp(`>${item}<`), 'Answer Check must be empty before reveal');
 
     const studentHidden = renderAuditoryPrivacyCase(item, true, 0);
     assert.equal(countVisibleSourceOccurrences(studentHidden, `/${item}/`), 0, 'student DOM must not contain the dictated sound before reveal');
     assert.equal(studentHidden.includes('Teacher only'), false, 'Teacher Only must not render in readOnly mode');
-    assert.equal(answerCheck(studentHidden).includes(item), false, 'student Answer Check must be empty before reveal');
+    assert.doesNotMatch(answerCheck(studentHidden), new RegExp(`>${item}<`), 'student Answer Check must be empty before reveal');
 
     const teacherShown = renderAuditoryPrivacyCase(item, false, 1);
-    assert.equal(answerCheck(teacherShown).includes(item), true, 'teacher Answer Check should contain the revealed answer');
+    assert.match(answerCheck(teacherShown), new RegExp(`>${item}<`), 'teacher Answer Check should contain the revealed answer');
 
     const studentShown = renderAuditoryPrivacyCase(item, true, 1);
-    assert.equal(answerCheck(studentShown).includes(item), true, 'student Answer Check should receive the answer after reveal');
+    assert.match(answerCheck(studentShown), new RegExp(`>${item}<`), 'student Answer Check should receive the answer after reveal');
   });
 }
 
