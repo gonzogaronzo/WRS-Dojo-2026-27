@@ -5,7 +5,7 @@ import { WRS_PHONEME_MAP } from '../../wrsKnowledgeBase';
 import Tile from '../Tile';
 import {
   ChevronLeft, ChevronRight, Shuffle, Ear, Trash2,
-  CloudSun, Plane, Flower, Bug, BookOpen, Layers,
+  CloudSun, Plane, Flower, Bug, Layers,
   CheckCircle2, Pen, MousePointer2, PenTool, Sparkles
 } from 'lucide-react';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
