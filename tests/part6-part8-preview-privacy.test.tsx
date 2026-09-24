@@ -120,12 +120,12 @@ const renderAuditoryPrivacyCase = (item: 'ank' | 'b', readOnly: boolean, reveale
 for (const item of ['ank', 'b'] as const) {
   test(`Part 6 reverse privacy contract for ${item}`, () => {
     const teacherHidden = renderAuditoryPrivacyCase(item, false, 0);
-    assert.equal(countVisibleSourceOccurrences(teacherHidden, item), 1, 'teacher pre-reveal should contain the item only in Teacher Only');
+    assert.equal(countVisibleSourceOccurrences(teacherHidden, `/${item}/`), 1, 'teacher pre-reveal should contain the dictated sound only in Teacher Only');
     assert.match(teacherHidden, /Teacher only/i);
     assert.equal(answerCheck(teacherHidden).includes(item), false, 'Answer Check must be empty before reveal');
 
     const studentHidden = renderAuditoryPrivacyCase(item, true, 0);
-    assert.equal(countVisibleSourceOccurrences(studentHidden, item), 0, 'student DOM must not contain the answer before reveal');
+    assert.equal(countVisibleSourceOccurrences(studentHidden, `/${item}/`), 0, 'student DOM must not contain the dictated sound before reveal');
     assert.equal(studentHidden.includes('Teacher only'), false, 'Teacher Only must not render in readOnly mode');
     assert.equal(answerCheck(studentHidden).includes(item), false, 'student Answer Check must be empty before reveal');
 
