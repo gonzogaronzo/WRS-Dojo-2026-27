@@ -37,7 +37,7 @@ test('actual presenter path keeps Part 6 answer-bearing data out until Reveal', 
   for (const index of [0, 1]) {
     const hidden = renderPart6({ quickDrillIndex: index, quickDrillRevealed: 0, quickDrillItems: part6Items });
     const payload = JSON.stringify(hidden.snapshot);
-    assert.match(hidden.markup, />LISTEN<\/span>/);
+    assert.match(hidden.markup, /data-part6-student-state="listen"/);
     assert.equal(payload.includes('/old/'), false);
     assert.equal(payload.includes('word-element::-struct-'), false);
     assert.equal(payload.includes('-struct-'), false);
@@ -73,25 +73,69 @@ const renderTeacherPart6 = (currentIndex: number, revealedCount: number) => {
   );
 };
 
-test('teacher Part 6 primary card hides the sound target until Reveal and resets on Next', () => {
-  const hiddenFirst = primaryPart6Surface(renderTeacherPart6(0, 0));
-  assert.match(hiddenFirst, /data-part6-student-state="listen"/);
-  assert.match(hiddenFirst, />LISTEN<\/span>/);
-  assert.doesNotMatch(hiddenFirst, /\/ă\/|>a<\/span>|text-\[144px\]/);
-
-  const revealedFirst = primaryPart6Surface(renderTeacherPart6(0, 1));
-  assert.match(revealedFirst, /data-part6-student-state="revealed"/);
-  assert.match(revealedFirst, />a<\/span>/);
-
-  const hiddenNext = primaryPart6Surface(renderTeacherPart6(1, 0));
-  assert.match(hiddenNext, /data-part6-student-state="listen"/);
-  assert.match(hiddenNext, />LISTEN<\/span>/);
-  assert.doesNotMatch(hiddenNext, /\/old\/|>old<\/span>|text-\[144px\]/);
-
-  const hiddenWordElement = primaryPart6Surface(renderTeacherPart6(2, 0));
-  assert.match(hiddenWordElement, />LISTEN<\/span>/);
-  assert.doesNotMatch(hiddenWordElement, /-struct-/);
+test('teacher Part 6 primary response surface stays empty before and after Reveal', () => {
+  for (const [index, revealed] of [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]] as const) {
+    const surface = primaryPart6Surface(renderTeacherPart6(index, revealed));
+    assert.match(surface, new RegExp(`data-part6-student-state="${revealed > 0 ? 'revealed' : 'listen'}"`));
+    assert.doesNotMatch(surface, /\/ă\/|\/old\/|>a<\/span>|>old<\/span>|-struct-|<svg|<button/);
+  }
 });
+
+
+const answerCheck = (markup: string): string => {
+  const match = markup.match(/<div[^>]*data-testid="answer-check"[\s\S]*?<\/div><\/div><\/div>/);
+  assert.ok(match, 'Answer Check was not rendered');
+  return match[0];
+};
+
+const renderAuditoryPrivacyCase = (item: 'ank' | 'b', readOnly: boolean, revealedCount: number) => {
+  const source = `/${item}/ → ${item}`;
+  const testLesson = {
+    ...lesson,
+    step: '2',
+    substep: '1',
+    quickDrillReverse: [source],
+    runtimePlan: {
+      ...lesson.runtimePlan,
+      step: '2',
+      substep: '1'
+    }
+  } as Lesson;
+  return renderToStaticMarkup(
+    <LessonRuntimeProvider lesson={testLesson}>
+      <QuickDrill
+        sounds={[source]}
+        isReverse
+        step="2"
+        substep="1"
+        currentIndex={0}
+        revealedCount={revealedCount}
+        shuffledItems={[source]}
+        readOnly={readOnly}
+      />
+    </LessonRuntimeProvider>
+  );
+};
+
+for (const item of ['ank', 'b'] as const) {
+  test(`Part 6 reverse privacy contract for ${item}`, () => {
+    const teacherHidden = renderAuditoryPrivacyCase(item, false, 0);
+    assert.equal(countVisibleSourceOccurrences(teacherHidden, item), 1, 'teacher pre-reveal should contain the item only in Teacher Only');
+    assert.match(teacherHidden, /Teacher only/i);
+    assert.equal(answerCheck(teacherHidden).includes(item), false, 'Answer Check must be empty before reveal');
+
+    const studentHidden = renderAuditoryPrivacyCase(item, true, 0);
+    assert.equal(countVisibleSourceOccurrences(studentHidden, item), 0, 'student DOM must not contain the answer before reveal');
+    assert.equal(studentHidden.includes('Teacher only'), false, 'Teacher Only must not render in readOnly mode');
+    assert.equal(answerCheck(studentHidden).includes(item), false, 'student Answer Check must be empty before reveal');
+
+    const teacherShown = renderAuditoryPrivacyCase(item, false, 1);
+    assert.equal(answerCheck(teacherShown).includes(item), true, 'teacher Answer Check should contain the revealed answer');
+
+    const studentShown = renderAuditoryPrivacyCase(item, true, 1);
+    assert.equal(answerCheck(studentShown).includes(item), true, 'student Answer Check should receive the answer after reveal');
+  });
+}
 
 const cases = [
   { tab: 0, key: 'sounds', answer: 'qux' }, { tab: 1, key: 'word-elements', answer: '-morphx-' },
