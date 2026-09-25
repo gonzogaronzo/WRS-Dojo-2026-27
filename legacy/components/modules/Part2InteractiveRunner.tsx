@@ -370,7 +370,8 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
       type,
       x: 770,
       y: 385,
-      scale: 1.25
+      scale: usesWordSequence ? 2.5 : 1.25
+  
     };
     replaceMarks([...activeMarks, mark]);
   };
@@ -416,7 +417,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
           'data-part2-word-index': objectIndex + 1
         } : {})}
         {...(!placed ? { 'data-staging-order': object.stagingOrder || objectIndex + 1 } : {})}
-        className={`rounded-xl ${!placed ? 'bg-white/85 p-1 shadow-lg' : 'bg-transparent p-0'} ${dominantReviewWord ? 'origin-center scale-[1.45]' : ''}`}
+        className={`rounded-xl ${!placed ? 'bg-white/85 p-1 shadow-lg' : 'bg-transparent p-0'} ${dominantReviewWord ? 'origin-center scale-[2.9]' : ''}`}
       >
         <Tile data={semanticTile(object)} size="xl" />
       </div>
