@@ -229,8 +229,10 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
   const [localMarks, setLocalMarks] = useState<CodingMark[]>([]);
   const [localMarkingToolsVisible, setLocalMarkingToolsVisible] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);
-  // Where a press on a stacked card began, so a click can be told apart from a drag.
-  const stackPressRef = useRef<{ x: number; y: number } | null>(null);
+  const stackPanelRef = useRef<HTMLButtonElement>(null);
+  // With the pen on, a press that starts on the pull stack is a click on the
+  // stack (lay out the word), not a pen stroke.
+  const penStackPressRef = useRef<{ x: number; y: number } | null>(null);
   const [contentScale, setContentScale] = useState(1);
   const lessonStageScale = useLessonStageScale();
 
@@ -464,17 +466,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
         } : {})}
         {...(!placed ? { 'data-staging-order': object.stagingOrder || objectIndex + 1 } : {})}
         className={`rounded-xl ${!placed ? 'bg-white/85 p-1 shadow-lg' : 'bg-transparent p-0'} ${dominantReviewWord ? 'origin-center scale-[2.9]' : ''}`}
-        {...(pullStack && !placed && !readOnly ? {
-          title: 'Click to lay out the whole word',
-          onPointerDown: (event: React.PointerEvent) => { stackPressRef.current = { x: event.clientX, y: event.clientY }; },
-          onClick: (event: React.MouseEvent) => {
-            const press = stackPressRef.current;
-            stackPressRef.current = null;
-            // A press that travelled is a drag of the top card, not a click.
-            if (press && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 6) return;
-            layOutWord();
-          }
-        } : {})}
+        {...(pullStack && !placed && !readOnly ? { title: 'Click to lay out the whole word' } : {})}
       >
         <Tile data={semanticTile(object)} size="xl" fit={pullStack ? buildFit : 1} />
       </div>
@@ -498,6 +490,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
         initialPos={{ x: state.x, y: state.y }}
         viewportScale={contentScale * lessonStageScale}
         disabled={!dragEnabled}
+        {...(pullStack && !placed && !readOnly ? { onTap: layOutWord } : {})}
         onDrag={position => updateCurrentState(key, { ...position, placed: true })}
         onDragEnd={position => updateCurrentState(key, { ...position, placed: true })}
         className={readOnly ? 'pointer-events-none' : ''}
@@ -646,7 +639,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
                   </ul>
                 </aside>
               ) : null}
-              {pullStack && !readOnly && unplaced.length > 0 && <button type="button" data-part2-staging-stack onClick={layOutWord} className="absolute left-12 top-14 z-20 h-[610px] w-[280px] cursor-pointer rounded-2xl border border-stone-300 bg-stone-50/90 p-4 text-left align-top shadow-sm hover:border-stone-400 hover:bg-stone-100/90 flex flex-col justify-start"><span className="text-[11px] font-black uppercase tracking-[0.18em] text-stone-500">Pull stack</span><span className="mt-1 text-xs text-stone-500">Click to lay out the word, or drag the top card.</span></button>}
+              {pullStack && !readOnly && unplaced.length > 0 && <button type="button" ref={stackPanelRef} data-part2-staging-stack onClick={layOutWord} className="absolute left-12 top-14 z-20 h-[610px] w-[280px] cursor-pointer rounded-2xl border border-stone-300 bg-stone-50/90 p-4 text-left align-top shadow-sm hover:border-stone-400 hover:bg-stone-100/90 flex flex-col justify-start"><span className="text-[11px] font-black uppercase tracking-[0.18em] text-stone-500">Pull stack</span><span className="mt-1 text-xs text-stone-500">Click to lay out the word, or drag the top card.</span></button>}
               {pullStack && readOnly && unplaced.length > 0 && <p className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-center text-2xl font-semibold text-stone-400">Waiting for the teacher to place the supplied materials.</p>}
               {activeStep.actionType === 'NOTEBOOK' ? (
                 <NotebookPage step={activeStep} />
@@ -683,10 +676,33 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
         <canvas
           ref={syncedDrawing.canvasRef}
           data-part2-drawing-surface
-          onPointerDown={syncedDrawing.onPointerDown}
-          onPointerMove={syncedDrawing.onPointerMove}
-          onPointerUp={syncedDrawing.onPointerUp}
-          onPointerCancel={syncedDrawing.onPointerCancel}
+          onPointerDown={event => {
+            const panel = stackPanelRef.current?.getBoundingClientRect();
+            const onStack = panel && event.clientX >= panel.left && event.clientX <= panel.right
+              && event.clientY >= panel.top && event.clientY <= panel.bottom;
+            if (onStack) {
+              penStackPressRef.current = { x: event.clientX, y: event.clientY };
+              return;
+            }
+            syncedDrawing.onPointerDown(event);
+          }}
+          onPointerMove={event => {
+            if (penStackPressRef.current) return;
+            syncedDrawing.onPointerMove(event);
+          }}
+          onPointerUp={event => {
+            const press = penStackPressRef.current;
+            if (press) {
+              penStackPressRef.current = null;
+              if (Math.hypot(event.clientX - press.x, event.clientY - press.y) <= 6) layOutWord();
+              return;
+            }
+            syncedDrawing.onPointerUp(event);
+          }}
+          onPointerCancel={event => {
+            penStackPressRef.current = null;
+            syncedDrawing.onPointerCancel(event);
+          }}
           className={`absolute inset-0 z-40 touch-none ${readOnly || activeDrawingTool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`}
         />
       </div>

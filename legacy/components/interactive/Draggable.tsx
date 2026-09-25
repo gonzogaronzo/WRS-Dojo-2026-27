@@ -11,7 +11,15 @@ interface DraggableProps {
   disabled?: boolean;
   style?: React.CSSProperties;
   viewportScale?: number;
+  /**
+   * Called for a press that barely moves (a click or tap). Works even when
+   * dragging is disabled. The browser sends a dragged element's click to the
+   * element itself, so children's onClick handlers cannot detect this reliably.
+   */
+  onTap?: () => void;
 }
+
+const TAP_TOLERANCE_PX = 6;
 
 const Draggable: React.FC<DraggableProps> = ({ 
   children, 
@@ -21,7 +29,8 @@ const Draggable: React.FC<DraggableProps> = ({
   className = '',
   disabled = false,
   style,
-  viewportScale = 1
+  viewportScale = 1,
+  onTap
 }) => {
   const [pos, setPos] = useState(initialPos);
   const posRef = useRef(initialPos);
@@ -32,9 +41,18 @@ const Draggable: React.FC<DraggableProps> = ({
   const startElemPos = useRef({ x: 0, y: 0 });
   const hasMovedRef = useRef(false);
   const nodeRef = useRef<HTMLDivElement>(null);
+  const tapStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  const isTap = (e: React.PointerEvent) => {
+    const start = tapStartRef.current;
+    tapStartRef.current = null;
+    return Boolean(start && Math.hypot(e.clientX - start.x, e.clientY - start.y) <= TAP_TOLERANCE_PX);
+  };
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (disabled || e.button !== 0) return;
+    if (e.button !== 0) return;
+    if (onTap) tapStartRef.current = { x: e.clientX, y: e.clientY };
+    if (disabled) return;
     
     setIsDragging(true);
     hasMovedRef.current = false;
@@ -56,6 +74,10 @@ const Draggable: React.FC<DraggableProps> = ({
   const onPointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
     
+    // With onTap, a tiny wobble stays a tap: nothing moves until the press travels.
+    if (onTap && tapStartRef.current
+      && Math.hypot(e.clientX - tapStartRef.current.x, e.clientY - tapStartRef.current.y) <= TAP_TOLERANCE_PX) return;
+
     // Calculate the mouse shift (delta), adjusting for container scale
     const dx = (e.clientX - startMousePos.current.x) / viewportScale;
     const dy = (e.clientY - startMousePos.current.y) / viewportScale;
@@ -79,6 +101,12 @@ const Draggable: React.FC<DraggableProps> = ({
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
+    if (onTap && isTap(e)) {
+      if (isDragging && nodeRef.current) nodeRef.current.releasePointerCapture(e.pointerId);
+      setIsDragging(false);
+      onTap();
+      return;
+    }
     if (!isDragging) return;
     if (nodeRef.current) {
       nodeRef.current.releasePointerCapture(e.pointerId);
