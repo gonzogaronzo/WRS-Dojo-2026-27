@@ -11,6 +11,8 @@ interface TileProps {
   data: TileData;
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   rounding?: 'all' | 'left' | 'right' | 'none';
+  /** Part 2 only: multiplies the card's size so a whole word fits the board. */
+  fit?: number;
 }
 
 interface EncodedPart2Tile {
@@ -65,9 +67,10 @@ const SemanticWilsonCard: React.FC<{
   role: WrsSemanticVisualRole;
   text: string;
   size: NonNullable<TileProps['size']>;
-}> = ({ role, text, size }) => {
+  fit?: number;
+}> = ({ role, text, size, fit = 1 }) => {
   const visual = getWrsSemanticCardVisual(role);
-  const scale = sizeScale(size);
+  const scale = sizeScale(size) * fit;
   const baseWidth = visual.kind === 'affix' || visual.kind === 'word-element'
     ? WRS_TILE_VISUALS.affixWidth
     : WRS_TILE_VISUALS.width;
@@ -101,6 +104,9 @@ const SemanticWilsonCard: React.FC<{
   );
 };
 
+// Word cards cap at 430px wide; long words shrink their lettering to stay inside.
+const wholeWordFontSize = (text: string) => Math.min(52, Math.floor(350 / Math.max(1, text.length * 0.58)));
+
 const SemanticWholeWord: React.FC<{ text: string }> = ({ text }) => (
   <div
     data-part2-role="word"
@@ -115,16 +121,19 @@ const SemanticWholeWord: React.FC<{ text: string }> = ({ text }) => (
       fontFamily: 'Arial, Helvetica, sans-serif'
     }}
   >
-    <span className="text-[52px] font-semibold leading-none whitespace-nowrap">{text}</span>
+    <span className="font-semibold leading-none whitespace-nowrap" style={{ fontSize: wholeWordFontSize(text) }}>{text}</span>
   </div>
 );
 
-const SemanticSyllableCard: React.FC<{ text: string }> = ({ text }) => (
+const SemanticSyllableCard: React.FC<{ text: string; fit?: number }> = ({ text, fit = 1 }) => (
   <div
     data-part2-role="syllable"
     data-wrs-visual="syllable-card"
-    className="h-[112px] min-w-[210px] px-10 flex items-center justify-center shrink-0 select-none"
+    className="flex items-center justify-center shrink-0 select-none"
     style={{
+      height: 112 * fit,
+      minWidth: 210 * fit,
+      paddingInline: 40 * fit,
       background: WRS_NEUTRAL_CARD_VISUALS.white,
       color: WRS_NEUTRAL_CARD_VISUALS.text,
       border: `2px solid ${WRS_NEUTRAL_CARD_VISUALS.border}`,
@@ -133,11 +142,35 @@ const SemanticSyllableCard: React.FC<{ text: string }> = ({ text }) => (
       fontFamily: 'Arial, Helvetica, sans-serif'
     }}
   >
-    <span className="text-[56px] font-semibold leading-none whitespace-nowrap">{text}</span>
+    <span className="font-semibold leading-none whitespace-nowrap" style={{ fontSize: 56 * fit }}>{text}</span>
   </div>
 );
 
-const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all' }) => {
+/**
+ * Width in stage pixels of a Part 2 card, matching how it renders above. The
+ * runner uses this to lay a word out in one line and shrink it when it would
+ * not fit the board. Syllable widths are an estimate from letter count.
+ */
+export const part2CardWidth = (role: string, text: string, size: NonNullable<TileProps['size']> = 'xl', fit = 1): number => {
+  if (role === 'syllable') return Math.max(210, text.length * 56 * 0.6 + 80) * fit;
+  if (role === 'word') return Math.min(430, Math.max(250, text.length * 52 * 0.6 + 80));
+  if (!SEMANTIC_CARD_ROLES.has(role as WrsSemanticVisualRole)) return 205;
+  const visual = getWrsSemanticCardVisual(role as WrsSemanticVisualRole);
+  const scale = sizeScale(size) * fit;
+  if (visual.kind === 'word-element') {
+    const fontSize = WRS_TILE_VISUALS.fontSize * scale;
+    return Math.max(WRS_TILE_VISUALS.affixWidth * scale, text.length * fontSize * 0.62 + 32 * scale);
+  }
+  return (visual.kind === 'affix' ? WRS_TILE_VISUALS.affixWidth : WRS_TILE_VISUALS.width) * scale;
+};
+
+export const part2CardHeight = (role: string, size: NonNullable<TileProps['size']> = 'xl', fit = 1): number => {
+  if (role === 'syllable') return 112 * fit;
+  if (role === 'word') return 118;
+  return WRS_TILE_VISUALS.height * sizeScale(size) * fit;
+};
+
+const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all', fit = 1 }) => {
   if (data.type === 'space') {
     const spaceSizes = {
       sm: 'w-2',
@@ -205,7 +238,7 @@ const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all' }) => {
   }
 
   if (part2Tile?.role === 'word') return <SemanticWholeWord text={part2Tile.text} />;
-  if (part2Tile?.role === 'syllable') return <SemanticSyllableCard text={part2Tile.text} />;
+  if (part2Tile?.role === 'syllable') return <SemanticSyllableCard text={part2Tile.text} fit={fit} />;
 
   if (part2Tile?.role === 'annotation') {
     return (
@@ -256,7 +289,7 @@ const Tile: React.FC<TileProps> = ({ data, size = 'md', rounding = 'all' }) => {
   }
 
   if (part2Tile && SEMANTIC_CARD_ROLES.has(part2Tile.role as WrsSemanticVisualRole)) {
-    return <SemanticWilsonCard role={part2Tile.role as WrsSemanticVisualRole} text={part2Tile.text} size={size} />;
+    return <SemanticWilsonCard role={part2Tile.role as WrsSemanticVisualRole} text={part2Tile.text} size={size} fit={fit} />;
   }
 
   if (part2Tile) {

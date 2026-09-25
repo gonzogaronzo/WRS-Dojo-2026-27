@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, MousePointer2, PenTool, RotateCcw, Save, Trash2, X } from 'lucide-react';
-import Tile from '../Tile';
+import Tile, { part2CardHeight, part2CardWidth } from '../Tile';
 import Draggable from '../interactive/Draggable';
 import { useLessonStageScale } from '../LessonStage';
 import CodingTray, { CodingMark } from './CodingTray';
@@ -81,6 +81,38 @@ const readRunnerMetaState = (value: unknown): RunnerMetaState => {
       ? Math.max(0, record.activeWordIndex)
       : undefined
   };
+};
+
+// Pull-stack cards: preferred size (1 = the "xl" tile), the widest line the
+// board allows, and the space between cards. A word that would not fit at the
+// preferred size is shrunk just enough to fit.
+const PART2_BUILD_CARD_SCALE = 1.45;
+const PART2_BOARD_MAX_WIDTH = 1480;
+const PART2_BOARD_CENTER_X = 800;
+const PART2_BOARD_CENTER_Y = 450;
+const PART2_BUILD_CARD_GAP = 14;
+
+/** Size multiplier that fits every card of a build move on one line. */
+export const part2BuildFit = (objects: Array<Pick<Part2InstructionObject, 'role' | 'text'>>): number => {
+  if (objects.length === 0) return PART2_BUILD_CARD_SCALE;
+  const baseWidth = objects.reduce((sum, object) => sum + part2CardWidth(object.role, object.text, 'xl', 1), 0);
+  const room = PART2_BOARD_MAX_WIDTH - PART2_BUILD_CARD_GAP * (objects.length - 1);
+  return Math.min(PART2_BUILD_CARD_SCALE, room / baseWidth);
+};
+
+/** Board positions (top-left) that lay a build move's cards out in one centred line. */
+export const part2LineLayout = (
+  objects: Array<Pick<Part2InstructionObject, 'role' | 'text'>>,
+  fit: number
+): Array<{ x: number; y: number }> => {
+  const widths = objects.map(object => part2CardWidth(object.role, object.text, 'xl', fit));
+  const total = widths.reduce((sum, width) => sum + width, 0) + PART2_BUILD_CARD_GAP * Math.max(0, objects.length - 1);
+  let x = PART2_BOARD_CENTER_X - total / 2;
+  return objects.map((object, index) => {
+    const position = { x: Math.round(x), y: Math.round(PART2_BOARD_CENTER_Y - part2CardHeight(object.role, 'xl', fit) / 2) };
+    x += widths[index] + PART2_BUILD_CARD_GAP;
+    return position;
+  });
 };
 
 const semanticTile = (object: Part2InstructionObject) => ({
@@ -197,6 +229,8 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
   const [localMarks, setLocalMarks] = useState<CodingMark[]>([]);
   const [localMarkingToolsVisible, setLocalMarkingToolsVisible] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);
+  // Where a press on a stacked card began, so a click can be told apart from a drag.
+  const stackPressRef = useRef<{ x: number; y: number } | null>(null);
   const [contentScale, setContentScale] = useState(1);
   const lessonStageScale = useLessonStageScale();
 
@@ -333,6 +367,19 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
     { x: 0, y: 0, scale: 1 }
   ).placed);
   const topStagedId = unplaced[0]?.id;
+  const buildFit = pullStack ? part2BuildFit(orderedObjects) : 1;
+
+  // One click on the stack lays the whole word out in a neat, centred line.
+  const layOutWord = () => {
+    if (!pullStack || readOnly) return;
+    const positions = part2LineLayout(orderedObjects, buildFit);
+    const next = { ...activeStates };
+    orderedObjects.forEach((object, index) => {
+      const key = objectKey(activeStep.id, object.id);
+      next[key] = { ...readObjectState(activeStates[key], { x: 0, y: 0, scale: 1 }), ...positions[index], placed: true };
+    });
+    replaceStates({ ...stateMap, [resolvedIndex]: next });
+  };
   // Notebook layout itself is the student-facing guide. Location prose remains
   // teacher-private, and build/read/manipulation prompts are source-gated away.
   const studentFacingPrompt = activeStep.actionType === 'MARK_WORDS'
@@ -371,7 +418,6 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
       x: 770,
       y: 385,
       scale: usesWordSequence ? 2.5 : 1.25
-  
     };
     replaceMarks([...activeMarks, mark]);
   };
@@ -418,8 +464,19 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
         } : {})}
         {...(!placed ? { 'data-staging-order': object.stagingOrder || objectIndex + 1 } : {})}
         className={`rounded-xl ${!placed ? 'bg-white/85 p-1 shadow-lg' : 'bg-transparent p-0'} ${dominantReviewWord ? 'origin-center scale-[2.9]' : ''}`}
+        {...(pullStack && !placed && !readOnly ? {
+          title: 'Click to lay out the whole word',
+          onPointerDown: (event: React.PointerEvent) => { stackPressRef.current = { x: event.clientX, y: event.clientY }; },
+          onClick: (event: React.MouseEvent) => {
+            const press = stackPressRef.current;
+            stackPressRef.current = null;
+            // A press that travelled is a drag of the top card, not a click.
+            if (press && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 6) return;
+            layOutWord();
+          }
+        } : {})}
       >
-        <Tile data={semanticTile(object)} size="xl" />
+        <Tile data={semanticTile(object)} size="xl" fit={pullStack ? buildFit : 1} />
       </div>
     );
 
@@ -589,11 +646,11 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
                   </ul>
                 </aside>
               ) : null}
-              {pullStack && !readOnly && <div data-part2-staging-stack className="absolute left-12 top-14 z-20 h-[610px] w-[280px] rounded-2xl border border-stone-300 bg-stone-50/90 p-4 shadow-sm"><p className="text-[11px] font-black uppercase tracking-[0.18em] text-stone-500">Pull stack</p><p className="mt-1 text-xs text-stone-500">Take the top supplied card first.</p></div>}
+              {pullStack && !readOnly && unplaced.length > 0 && <button type="button" data-part2-staging-stack onClick={layOutWord} className="absolute left-12 top-14 z-20 h-[610px] w-[280px] cursor-pointer rounded-2xl border border-stone-300 bg-stone-50/90 p-4 text-left align-top shadow-sm hover:border-stone-400 hover:bg-stone-100/90 flex flex-col justify-start"><span className="text-[11px] font-black uppercase tracking-[0.18em] text-stone-500">Pull stack</span><span className="mt-1 text-xs text-stone-500">Click to lay out the word, or drag the top card.</span></button>}
               {pullStack && readOnly && unplaced.length > 0 && <p className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-center text-2xl font-semibold text-stone-400">Waiting for the teacher to place the supplied materials.</p>}
               {activeStep.actionType === 'NOTEBOOK' ? (
                 <NotebookPage step={activeStep} />
-              ) : pullStack ? orderedObjects.map(renderObject) : (
+              ) : pullStack ? orderedObjects.map((object, index) => renderObject(object, index)) : (
                 <div data-part2-layout-objects data-part2-layout={layout} className="absolute inset-0 z-10">
                   {visibleObjects.map(object => renderObject(object, orderedObjects.indexOf(object), usesWordSequence))}
                 </div>
