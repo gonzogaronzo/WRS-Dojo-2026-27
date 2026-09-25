@@ -62,6 +62,7 @@ import {
   shouldResetQuickDrillForPartChange
 } from './lessonSessionSync';
 import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
+import { chartingPlanForLesson, dealLeveledCharting, defaultDealSettings, CHARTING_WORDS_PER_STUDENT } from './chartingWordBank';
 
 const App: React.FC = () => {
   const { 
@@ -473,6 +474,9 @@ const App: React.FC = () => {
     return chartingWordCardsForLesson(currentLesson);
   }, [currentLesson]);
 
+  // A lesson that names a substep + level deals Part 4 from the Reader word bank.
+  const chartingPlan = useMemo(() => chartingPlanForLesson(currentLesson), [currentLesson]);
+
 
   const setLocalLessonPart = useCallback((nextPart: LessonPart) => {
     touchLessonSession();
@@ -482,7 +486,13 @@ const App: React.FC = () => {
 
   const changeLessonPart = useCallback((nextPart: LessonPart) => {
     if (isStudentView) return;
-    if (nextPart === LessonPart.Part4 && baseReadingCards.length > 0 && rosterSessionStudents.length > 0) {
+    if (nextPart === LessonPart.Part4 && chartingPlan && rosterSessionStudents.length > 0) {
+      if (!hasCompleteWordDistribution(sessionDistribution, rosterSessionStudents.length, CHARTING_WORDS_PER_STUDENT)) {
+        setSessionDistribution(dealLeveledCharting(defaultDealSettings(chartingPlan, rosterSessionStudents)));
+        setSessionWordlistPage(0);
+        setSessionScores([]);
+      }
+    } else if (nextPart === LessonPart.Part4 && baseReadingCards.length > 0 && rosterSessionStudents.length > 0) {
       const wordsPerStudent = targetWordCount(baseReadingCards);
       if (!hasCompleteWordDistribution(sessionDistribution, rosterSessionStudents.length, wordsPerStudent)) {
         setSessionDistribution(buildWordDistribution(baseReadingCards, rosterSessionStudents.length, wordsPerStudent));
@@ -498,7 +508,7 @@ const App: React.FC = () => {
     }
     setLocalLessonPart(nextPart);
   }, [
-    baseReadingCards, currentPart, isStudentView, rosterSessionStudents.length, sessionDistribution,
+    baseReadingCards, chartingPlan, currentPart, isStudentView, rosterSessionStudents, sessionDistribution,
     setLocalLessonPart, setSessionDistribution, setSessionQuickDrillHandwriting, setSessionQuickDrillIndex,
     setSessionQuickDrillItems, setSessionQuickDrillRevealed, setSessionScores, setSessionWordlistPage
   ]);
@@ -756,6 +766,8 @@ const App: React.FC = () => {
         return (
           <WordlistReading 
             cards={baseReadingCards} 
+            chartingPlan={chartingPlan}
+            lessonId={currentLesson?.id}
             students={sessionStudents} 
             scores={sessionScores} 
             onUpdateScores={setSessionScores} 

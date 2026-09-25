@@ -3,9 +3,20 @@ import { WordCard, StudentProfile, WordlistScore } from '../../types';
 import { ArrowRight, ArrowLeft, RefreshCw, Scroll, User, Check, X } from 'lucide-react';
 import { getWordlistStatus, toggleWordlistScore } from '../../lessonRules';
 import { buildWordDistribution, normalizeWordDistribution, targetWordCount, WordInstance } from '../../wordDistribution';
+import {
+  CHARTING_LEVELS, CHARTING_WORDS_PER_STUDENT, ChartingDealSettings, ChartingLevel, ChartingPlan, ChartingWordType,
+  chartingBankHasType, chartingBankSubsteps, chartingReaderFor, dealLeveledCharting, defaultDealSettings, sharedWordCount
+} from '../../chartingWordBank';
+
+// Word-bank settings the teacher changed on screen, kept per lesson so they
+// survive leaving Part 4 and coming back.
+const chartingSettingsCache = new Map<string, ChartingDealSettings>();
 
 interface WordlistReadingProps {
   cards: WordCard[];
+  /** When present, lists are dealt from the Student Reader word bank. */
+  chartingPlan?: ChartingPlan | null;
+  lessonId?: string;
   students: StudentProfile[];
   scores: WordlistScore[];
   onUpdateScores: (scores: WordlistScore[]) => void;
@@ -17,7 +28,7 @@ interface WordlistReadingProps {
 }
 
 const WordlistReading: React.FC<WordlistReadingProps> = ({ 
-  cards, students = [], scores, onUpdateScores, isStudentView,
+  cards, chartingPlan = null, lessonId, students = [], scores, onUpdateScores, isStudentView,
   distribution = [], onUpdateDistribution, page = 0, onUpdatePage
 }) => {
   const [teacherPlayerCount, setTeacherPlayerCount] = useState<number>(students.length > 0 ? students.length : 0);
@@ -29,19 +40,55 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
   // Constants
   const WORDS_PER_PAGE = 5;
   
-  const targetTotalWords = targetWordCount(cards);
+  const targetTotalWords = chartingPlan ? CHARTING_WORDS_PER_STUDENT : targetWordCount(cards);
 
-  // Initialize or Reset Distribution
-  const initializeDistribution = (count: number) => {
-    if (isStudentView || cards.length === 0) return;
+  const playersFor = (count: number) => Array.from({ length: count }, (_, index) => (
+    students[index] || { id: `student-${index}`, name: `Student ${index + 1}` }
+  ));
 
-    const newDistribution = buildWordDistribution(cards, count, targetTotalWords);
+  // Word-bank settings: lesson defaults, or what the teacher last chose for this lesson.
+  const cacheKey = lessonId || 'lesson';
+  const [bankSettings, setBankSettings] = useState<ChartingDealSettings | null>(() => {
+    if (!chartingPlan) return null;
+    const cached = chartingSettingsCache.get(cacheKey);
+    return cached && cached.levels.length === teacherPlayerCount ? cached : defaultDealSettings(chartingPlan, playersFor(teacherPlayerCount));
+  });
 
+  const settingsForCount = (count: number): ChartingDealSettings | null => {
+    if (!chartingPlan) return null;
+    if (bankSettings && bankSettings.levels.length === count) return bankSettings;
+    return defaultDealSettings(chartingPlan, playersFor(count));
+  };
+
+  const dealWith = (count: number, settings: ChartingDealSettings | null) => {
+    if (isStudentView) return;
+    let newDistribution: WordInstance[][];
+    if (settings) {
+      chartingSettingsCache.set(cacheKey, settings);
+      setBankSettings(settings);
+      newDistribution = dealLeveledCharting(settings);
+    } else {
+      if (cards.length === 0) return;
+      newDistribution = buildWordDistribution(cards, count, targetTotalWords);
+    }
     onUpdateDistribution(newDistribution);
     onUpdatePage(0);
     // When re-shuffling, we clear scores to ensure a fresh session
-    onUpdateScores([]); 
+    onUpdateScores([]);
   };
+
+  // Initialize or Reset Distribution
+  const initializeDistribution = (count: number) => dealWith(count, settingsForCount(count));
+
+  // Changing a word-bank setting re-deals the lists, so confirm before losing marks.
+  const changeBankSettings = (next: ChartingDealSettings) => {
+    if (scores.length > 0 && typeof window !== 'undefined'
+      && !window.confirm('Changing this deals new lists and clears the marks made so far. Continue?')) return;
+    dealWith(numPlayers, next);
+  };
+  const activeBankSettings = chartingPlan && !isStudentView ? settingsForCount(numPlayers) : null;
+  const bankSubsteps = chartingPlan ? chartingBankSubsteps().filter(sub => sub.split('.')[0] === chartingPlan.substep.split('.')[0]) : [];
+  const sharedWords = chartingPlan ? sharedWordCount(safeDistribution) : 0;
 
   const handleStart = (n: number) => {
     if (isStudentView) return;
@@ -72,7 +119,7 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
     return 'text-[clamp(1rem,1.5vw,1.5rem)]';
   };
 
-  if (cards.length === 0) {
+  if (!chartingPlan && cards.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-stone-400 italic">
         <Scroll className="w-16 h-16 mb-4 opacity-20" />
@@ -154,6 +201,68 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
         </div>}
       </div>
 
+      {activeBankSettings && (
+        <div data-part4-bank-settings className="bg-stone-50 border-b border-stone-100 px-8 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-stone-600 shrink-0">
+          <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">
+            {chartingReaderFor(activeBankSettings.substep) || 'Student Reader'}
+          </span>
+          <label className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Substep</span>
+            <select
+              aria-label="Charting substep"
+              value={activeBankSettings.substep}
+              onChange={event => {
+                const substep = event.target.value;
+                const type: ChartingWordType = chartingBankHasType(substep, activeBankSettings.type) ? activeBankSettings.type : 'real';
+                changeBankSettings({ ...activeBankSettings, substep, type });
+              }}
+              className="rounded-lg border border-stone-200 bg-white px-2 py-1 font-bold text-stone-800"
+            >
+              {bankSubsteps.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+            </select>
+          </label>
+          <div className="flex items-center gap-1" role="group" aria-label="Word type">
+            {(['real', 'nonsense'] as ChartingWordType[]).map(type => {
+              const available = chartingBankHasType(activeBankSettings.substep, type);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  disabled={!available}
+                  onClick={() => changeBankSettings({ ...activeBankSettings, type })}
+                  title={available ? undefined : `No ${type} word pages for ${activeBankSettings.substep}`}
+                  className={`rounded-lg px-3 py-1 font-bold capitalize border ${activeBankSettings.type === type ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-600 border-stone-200'} disabled:opacity-30`}
+                >
+                  {type}
+                </button>
+              );
+            })}
+          </div>
+          {activeBankSettings.type === 'real' && (
+            <label className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Group level</span>
+              <select
+                aria-label="Group level"
+                value={activeBankSettings.levels.every(level => level === activeBankSettings.levels[0]) ? activeBankSettings.levels[0] : ''}
+                onChange={event => {
+                  const level = event.target.value as ChartingLevel;
+                  if (CHARTING_LEVELS.includes(level)) changeBankSettings({ ...activeBankSettings, levels: activeBankSettings.levels.map(() => level) });
+                }}
+                className="rounded-lg border border-stone-200 bg-white px-2 py-1 font-bold text-stone-800"
+              >
+                {!activeBankSettings.levels.every(level => level === activeBankSettings.levels[0]) && <option value="">Mixed</option>}
+                {CHARTING_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
+              </select>
+            </label>
+          )}
+          {sharedWords > 0 && (
+            <span data-part4-shared-note className="text-xs text-amber-700">
+              Not enough words for fully separate lists: {sharedWords} word{sharedWords === 1 ? ' is' : 's are'} on more than one list.
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex-1 overflow-hidden relative bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')]">
         <div className="h-full w-full flex divide-x-2 divide-stone-300/50">
           
@@ -168,6 +277,26 @@ const WordlistReading: React.FC<WordlistReadingProps> = ({
                   <span className="font-black font-serif text-stone-900 uppercase tracking-widest text-xs px-2 truncate block">
                     {student.name}
                   </span>
+                  {activeBankSettings && (
+                    activeBankSettings.handPicked[sIdx]
+                      ? <span className="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider text-stone-400">Hand-picked list</span>
+                      : activeBankSettings.type === 'real' && (
+                        <button
+                          type="button"
+                          data-part4-student-level
+                          aria-label={`${student.name} level ${activeBankSettings.levels[sIdx]}, click to change`}
+                          title="Click to change this student's level"
+                          onClick={() => {
+                            const current = activeBankSettings.levels[sIdx];
+                            const next = CHARTING_LEVELS[(CHARTING_LEVELS.indexOf(current) + 1) % CHARTING_LEVELS.length];
+                            changeBankSettings({ ...activeBankSettings, levels: activeBankSettings.levels.map((level, index) => index === sIdx ? next : level) });
+                          }}
+                          className="mt-1 rounded-full border border-stone-200 bg-stone-50 px-3 py-0.5 text-[11px] font-black text-stone-600 hover:border-stone-400"
+                        >
+                          Level {activeBankSettings.levels[sIdx]}
+                        </button>
+                      )
+                  )}
                 </div>
 
                 <div className="flex-1 flex flex-col justify-evenly p-4 items-center">
