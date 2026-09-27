@@ -46,6 +46,12 @@ service cloud.firestore {
       allow update: if ownsExistingTeacherRecord() && ownsIncomingTeacherRecord();
     }
 
+    match /lessons/{lessonId} {
+      allow create: if ownsIncomingTeacherRecord();
+      allow read, delete: if ownsExistingTeacherRecord();
+      allow update: if ownsExistingTeacherRecord() && ownsIncomingTeacherRecord();
+    }
+
     match /active_sessions/{teacherId} {
       allow read, write: if signedIn() && teacherId == request.auth.uid;
     }

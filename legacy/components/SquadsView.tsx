@@ -10,6 +10,7 @@ import {
 import { generateId } from '../utils';
 import GroupNotes from './GroupNotes';
 import GroupInstructionalProfilePanel from './GroupInstructionalProfile';
+import LoadedLessons, { LoadLessonsButton } from './LoadedLessons';
 
 interface SquadsViewProps {
   groups: GroupProfile[];
@@ -169,6 +170,11 @@ const SquadsView: React.FC<SquadsViewProps> = ({
           ))}
         </div>
 
+        <div className="flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-bold text-emerald-900">Load lesson files for every group at once. Each file goes to the group in its file name.</p>
+          <LoadLessonsButton groups={groups} students={students} />
+        </div>
+
         <div className="relative max-w-md">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-300" aria-hidden="true" />
           <input
@@ -276,6 +282,14 @@ const SquadsView: React.FC<SquadsViewProps> = ({
         ) : (
           <>
             <GroupInstructionalProfilePanel group={activeGroup} onSave={saveInstructionalProfile} />
+            <LoadedLessons
+              group={activeGroup}
+              groups={groups}
+              students={students}
+              onLaunchLesson={onLaunchLesson}
+              onEditLesson={onEditLesson}
+              onPrintLesson={onPrintLesson}
+            />
             <div className="flex justify-between items-center bg-stone-800/50 p-4 rounded-2xl border border-stone-700">
               <h3 className="font-black uppercase tracking-widest text-[10px] text-stone-500">Ancient Scrolls (Custom Lessons)</h3>
               <button onClick={onCreateLesson} className="px-6 py-2 bg-red-800 text-white rounded-xl font-black uppercase text-[10px] flex items-center gap-2 shadow-lg hover:bg-red-700 active:scale-95"><Plus className="w-4 h-4" /> Forge New Scroll</button>

@@ -11,6 +11,7 @@ import { printLessonToNewWindow } from './utils/printLesson';
 import { shuffleArray } from './utils';
 import { RefreshCw, Flame, AlertTriangle, X, MonitorUp, Maximize2 } from 'lucide-react';
 import { useMasterData } from './useMasterData';
+import { LessonLibraryProvider, useLessonLibrary } from './useLessonLibrary';
 import {
   createInitialLessonSession, lessonSessionFromCloud, lessonSessionsMatch,
   lessonSessionToCloud, useLessonSession
@@ -72,6 +73,7 @@ const App: React.FC = () => {
     deleteStudent, deleteSquad, updateSession, archiveMission, migrateLocalData,
     verifyCloudPersistence, resetToMasterRoster, saveGroupNote
   } = useMasterData();
+  const lessonLibrary = useLessonLibrary(user);
 
   const [activeGroup, setActiveGroup] = useState<GroupProfile | null>(null);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
@@ -650,8 +652,12 @@ const App: React.FC = () => {
     setCurrentLesson(updatedLesson);
     if (!isStudentView) touchLessonSession();
     
-    // 1. Update the lesson in the group's savedLessons list (Perpetuity for future missions)
-    if (activeGroup && user?.uid !== 'guest-sensei') {
+    // 1. Persist the edit for future missions. Loaded lessons live in their own
+    //    Firestore documents; older lessons live in the group's savedLessons list.
+    if (lessonLibrary.isLibraryLesson(updatedLesson.id)) {
+      const result = await lessonLibrary.updateLesson(updatedLesson);
+      if (!result.ok) console.error(`Lesson edit could not be saved: ${result.message}`);
+    } else if (activeGroup && user?.uid !== 'guest-sensei') {
       const updatedSquad = {
         ...activeGroup,
         savedLessons: (activeGroup.savedLessons || []).filter(Boolean).map(l => l.id === updatedLesson.id ? updatedLesson : l)
@@ -997,6 +1003,7 @@ const App: React.FC = () => {
   }
 
   return (
+    <LessonLibraryProvider value={lessonLibrary}>
     <div className="h-full w-full bg-[#fcfbf9] text-stone-900 relative overflow-hidden selection:bg-red-500/10">
       {safeBoot && isSafeBootNoticeVisible && mode === 'dashboard' && (
         <div className="fixed left-1/2 top-4 z-[300] flex w-[min(92vw,44rem)] -translate-x-1/2 items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950 shadow-xl" role="status">
@@ -1108,10 +1115,26 @@ const App: React.FC = () => {
             initialLesson={currentLesson || undefined} 
             activeGroup={activeGroup || undefined}
             onSave={async (l, run = false) => {
-              if(!activeGroup) return;
-              const updated = { ...activeGroup, savedLessons: [...activeGroup.savedLessons.filter(sl => sl && sl.id !== l.id), l] };
-              await updateSquad(updated);
-              setActiveGroup(updated); // Sync local activeGroup state
+              if (lessonLibrary.isLibraryLesson(l.id)) {
+                // Loaded lessons live in their own Firestore documents.
+                const result = await lessonLibrary.updateLesson(l);
+                if (!result.ok) {
+                  window.alert(`This lesson was not saved.\n\n${result.message}`);
+                  return;
+                }
+              } else {
+                if (!activeGroup) {
+                  window.alert('Choose a group before saving this lesson.');
+                  return;
+                }
+                const updated = { ...activeGroup, savedLessons: [...activeGroup.savedLessons.filter(sl => sl && sl.id !== l.id), l] };
+                // updateSquad reports failure by returning false; never show a save that didn't happen.
+                if (!(await updateSquad(updated))) {
+                  window.alert(`This lesson was not saved to ${activeGroup.name}. Details are in the browser console (Ctrl+Shift+J).`);
+                  return;
+                }
+                setActiveGroup(updated); // Sync local activeGroup state
+              }
               setCurrentLesson(l);
               if (run) {
                 setMode('run');
@@ -1170,6 +1193,7 @@ const App: React.FC = () => {
         )
       )}
     </div>
+    </LessonLibraryProvider>
   );
 };
 
