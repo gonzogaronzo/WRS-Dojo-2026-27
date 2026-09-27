@@ -1,3 +1,4 @@
+import { useBoardSafe } from '../boardSafeContext';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DictationSection, Lesson } from '../../types';
 import {
@@ -106,6 +107,7 @@ const Spelling: React.FC<SpellingProps> = ({
   cipherCheckResult: syncedCipherCheckResult,
   onUpdateCipherCheckResult
 }) => {
+  const boardSafe = useBoardSafe()?.boardSafe ?? false;
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
   const [isSlow, setIsSlow] = useState(false);
@@ -557,10 +559,12 @@ const Spelling: React.FC<SpellingProps> = ({
       {!readOnly && viewMode !== 'cipher' && currentDictationItem && (
         <div data-testid="teacher-dictation-cue" className="flex-shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-3 shadow-sm z-20">
           <div className="mx-auto flex max-w-5xl items-center gap-4">
-            <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
+            <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">{boardSafe ? 'Board-safe' : 'Teacher only'}</div>
             <div className="min-w-0 flex-1">
               <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700">Dictate next • {currentSection.title}</div>
-              <div className="truncate text-2xl font-black font-serif text-stone-900">{teacherPromptForItem(currentDictationItem)}</div>
+              {boardSafe
+                ? <div data-part8-board-safe-prompt className="truncate text-base font-bold text-stone-500">Item {currentItemIndex + 1} of {currentSection.data.length} — read it from your plan</div>
+                : <div className="truncate text-2xl font-black font-serif text-stone-900">{teacherPromptForItem(currentDictationItem)}</div>}
             </div>
             <button
               data-part8-teacher-control={currentItemIsRevealed ? 'next' : 'reveal'}
