@@ -50,7 +50,8 @@ test('Part 8 board-safe keeps Reveal/Next but hides the item to dictate', () => 
   for (const [tab, key, src] of p8cases) {
     const html = wrap(true, part8(tab, key));
     assert.equal(html.includes(src), false, key);
-    assert.match(html, /data-part8-board-safe-prompt/);
+    assert.match(html, /data-part8-board-safe-prompt[^>]*>Item 1 of \d+</);
+    assert.equal(/read it from your plan/.test(html), false);
     assert.match(html, /data-part8-teacher-control/);
   }
 });

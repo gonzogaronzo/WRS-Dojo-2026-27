@@ -563,7 +563,7 @@ const Spelling: React.FC<SpellingProps> = ({
             <div className="min-w-0 flex-1">
               <div className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-700">Dictate next • {currentSection.title}</div>
               {boardSafe
-                ? <div data-part8-board-safe-prompt className="truncate text-base font-bold text-stone-500">Item {currentItemIndex + 1} of {currentSection.data.length} — read it from your plan</div>
+                ? <div data-part8-board-safe-prompt className="truncate text-base font-bold text-stone-500">Item {currentItemIndex + 1} of {currentSection.data.length}</div>
                 : <div className="truncate text-2xl font-black font-serif text-stone-900">{teacherPromptForItem(currentDictationItem)}</div>}
             </div>
             <button
