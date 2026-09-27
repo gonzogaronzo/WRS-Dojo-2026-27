@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, Eye, EyeOff, Volume2 } from 'lucide-react';
 import Tile from '../Tile';
 import { encodePart2SemanticUnit } from '../../part2Presentation';
+import { useBoardSafe } from '../boardSafeContext';
 
 type Part7UnitRole =
   | 'consonant'
@@ -176,6 +177,7 @@ const Part7SpellingRunner: React.FC<Part7SpellingRunnerProps> = ({
   onUpdateRevealedItems,
   readOnly = false
 }) => {
+  const boardSafe = useBoardSafe()?.boardSafe ?? false;
   const index = Math.max(0, Math.min(items.length - 1, activeIndex));
   const item = items[index];
   const revealed = Boolean(revealedItems[index]);
@@ -208,7 +210,7 @@ const Part7SpellingRunner: React.FC<Part7SpellingRunnerProps> = ({
           <div className="text-[10px] font-black uppercase tracking-[0.22em] text-red-800">Part 7 · Spelling</div>
           <div className="mt-1 text-sm font-bold text-stone-500">Dictate → Reveal → Next</div>
         </div>
-        {!readOnly && (
+        {!readOnly && !boardSafe && (
           <div data-part7-target-private className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-right shadow-sm">
             <div className="text-[9px] font-black uppercase tracking-[0.18em] text-amber-700">{groupLabel(item.group)} · teacher only</div>
             <div className="text-2xl font-black text-stone-900">{item.word}</div>
@@ -229,7 +231,7 @@ const Part7SpellingRunner: React.FC<Part7SpellingRunnerProps> = ({
             <Volume2 className="h-16 w-16 text-stone-300" />
             <div className="mt-5 text-5xl font-black font-serif text-stone-800">Listen</div>
             <div className="mt-3 text-sm font-bold uppercase tracking-[0.2em] text-stone-400">
-              {readOnly ? 'Wait for the teacher to reveal the spelling.' : 'Student display is hiding the answer.'}
+              {readOnly || boardSafe ? 'Wait for the teacher to reveal the spelling.' : 'Student display is hiding the answer.'}
             </div>
           </div>
         )}

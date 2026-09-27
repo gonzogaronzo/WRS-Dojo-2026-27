@@ -20,6 +20,7 @@ import { buildMissionRecord, createMissionId } from './missionArchive';
 // Modules
 import MissionBriefing from './components/modules/MissionBriefing'; 
 import QuickDrill from './components/modules/QuickDrill';
+import { BoardSafeProvider } from './components/boardSafeContext';
 import WordCards from './components/modules/WordCards';
 import SentenceReading from './components/modules/SentenceReading';
 import TeachConcepts from './components/modules/TeachConcepts';
@@ -127,6 +128,12 @@ const App: React.FC = () => {
   const [displayRole, setDisplayRole] = useState<'resolving' | 'teacher' | 'student'>('resolving');
   const [presenterId, setPresenterId] = useState('');
   const [presenterStatus, setPresenterStatus] = useState<PresenterConnectionStatus>('closed');
+  // Board-safe: on by default whenever no student display is connected (one
+  // projected screen). A manual toggle wins until the display connects/disconnects.
+  const [boardSafeOverride, setBoardSafeOverride] = useState<boolean | null>(null);
+  const studentDisplayConnected = presenterStatus === 'connected' || presenterStatus === 'lagging';
+  const boardSafe = boardSafeOverride ?? !studentDisplayConnected;
+  useEffect(() => { setBoardSafeOverride(null); }, [studentDisplayConnected]);
   const [presenterHasSnapshot, setPresenterHasSnapshot] = useState(false);
   const [presenterStudents, setPresenterStudents] = useState<StudentProfile[]>([]);
   const [isPresenterSetupOpen, setIsPresenterSetupOpen] = useState(false);
@@ -1130,6 +1137,7 @@ const App: React.FC = () => {
         )
       ) : (
         currentLesson && (
+          <BoardSafeProvider value={{ boardSafe: !isStudentView && boardSafe, setBoardSafe: value => setBoardSafeOverride(value) }}>
           <Layout 
             key={currentLesson.id}
             lesson={currentLesson} 
@@ -1158,6 +1166,7 @@ const App: React.FC = () => {
               ? <div className="pointer-events-none h-full w-full">{renderModule()}</div>
               : renderModule()}
           </Layout>
+          </BoardSafeProvider>
         )
       )}
     </div>

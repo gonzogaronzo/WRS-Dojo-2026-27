@@ -9,6 +9,7 @@ import Timer from './interactive/Timer';
 import LessonStage from './LessonStage';
 import { nextLessonPart, normalizePlannedParts, previousLessonPart } from '../lessonRules';
 import { PresenterConnectionStatus } from '../presenterMode';
+import { useBoardSafe } from './boardSafeContext';
 
 interface LayoutProps {
   lesson: Lesson;
@@ -42,6 +43,7 @@ const Layout: React.FC<LayoutProps> = ({
   onOpenStudentDisplay, onCloseStudentDisplay, showDrawingsOnStudentDisplay = true,
   onToggleDrawingsOnStudentDisplay, onResyncStudentDisplay, children
 }) => {
+  const boardSafeState = useBoardSafe();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isNotesOpen, setIsNotesOpen] = React.useState(false);
   const [isSidebarHidden, setIsSidebarHidden] = React.useState(false);
@@ -174,6 +176,17 @@ const Layout: React.FC<LayoutProps> = ({
             >
               {showDrawingsOnStudentDisplay ? <Eye size={18} /> : <EyeOff size={18} />}
             </button>
+            {boardSafeState && !isStudentView && (
+              <button
+                type="button"
+                onClick={() => boardSafeState.setBoardSafe(!boardSafeState.boardSafe)}
+                className={`p-1 transition-colors ${boardSafeState.boardSafe ? 'text-red-800' : 'text-stone-400'}`}
+                aria-pressed={boardSafeState.boardSafe}
+                aria-label={boardSafeState.boardSafe ? 'Board-safe on: show teacher cues' : 'Hide teacher cues (board-safe)'}
+              >
+                {boardSafeState.boardSafe ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            )}
             <button
               onClick={toggleNotes}
               className={`p-1 ${notes ? 'text-amber-500' : 'text-stone-500'}`}
@@ -269,6 +282,19 @@ const Layout: React.FC<LayoutProps> = ({
               {showDrawingsOnStudentDisplay ? <Eye size={12} /> : <EyeOff size={12} />}
               {showDrawingsOnStudentDisplay ? 'Drawings Visible' : 'Drawings Hidden'}
             </button>
+            {boardSafeState && !isStudentView && (
+              <button
+                type="button"
+                data-board-safe-toggle
+                onClick={() => boardSafeState.setBoardSafe(!boardSafeState.boardSafe)}
+                className={`flex items-center gap-2 text-[8px] w-full px-4 py-2 font-black uppercase tracking-widest transition-colors ${boardSafeState.boardSafe ? 'text-red-800 bg-red-50' : 'text-stone-400 hover:text-stone-600'}`}
+                aria-pressed={boardSafeState.boardSafe}
+                title={boardSafeState.boardSafe ? 'Teacher-only cues are hidden (safe to project)' : 'Teacher-only cues are showing — do not project'}
+              >
+                {boardSafeState.boardSafe ? <EyeOff size={12} /> : <Eye size={12} />}
+                {boardSafeState.boardSafe ? 'Board-Safe On' : 'Teacher View'}
+              </button>
+            )}
             <button
               onClick={toggleNotes}
               className={`flex items-center gap-2 text-[8px] w-full px-4 py-2 font-black uppercase tracking-widest transition-colors ${isNotesOpen ? 'text-amber-600 bg-amber-50' : 'text-stone-400 hover:text-stone-600'}`}

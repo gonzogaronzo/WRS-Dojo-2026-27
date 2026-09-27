@@ -1,3 +1,4 @@
+import { useBoardSafe } from '../boardSafeContext';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { parseWordToTiles } from '../../utils';
 import { isSubstepAtLeast } from '../../masterCurriculum';
@@ -87,6 +88,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
   onUpdateStrokes,
   readOnly = false
 }) => {
+  const boardSafe = useBoardSafe()?.boardSafe ?? false;
   const lesson = useLessonRuntime();
   const [localIndex, setLocalIndex] = useState(0);
   const [localRevealedCount, setLocalRevealedCount] = useState(0);
@@ -417,14 +419,14 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
             <button onClick={() => setTool('pen-red')} className={`p-2 rounded-lg ${tool === 'pen-red' ? 'bg-red-600 text-white shadow-md' : 'text-stone-400'}`}><PenTool className="w-4 h-4" /></button>
             <button onClick={clearDrawing} className="p-2 rounded-lg text-stone-300 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
           </div>}
-          {!readOnly && <button onClick={shuffleDrill} className="flex items-center gap-2 px-4 py-2 bg-white text-stone-400 rounded-xl font-bold text-[10px] uppercase border border-stone-100 shadow-sm"><Shuffle className="w-3.5 h-3.5" />Shuffle</button>}
+          {!readOnly && !boardSafe && <button onClick={shuffleDrill} className="flex items-center gap-2 px-4 py-2 bg-white text-stone-400 rounded-xl font-bold text-[10px] uppercase border border-stone-100 shadow-sm"><Shuffle className="w-3.5 h-3.5" />Shuffle</button>}
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden relative flex flex-col items-center justify-center">
         {activeItems.length === 0 ? <div className="w-full h-full flex items-center justify-center text-stone-400 italic font-serif text-xl">No items loaded.</div> : (
           <div className="relative w-full h-full flex flex-col p-6 gap-6 items-center">
-            {isReverse && !readOnly && <div data-testid="teacher-dictation-cue" className="w-full max-w-4xl flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 shadow-sm">
+            {isReverse && !readOnly && !boardSafe && <div data-testid="teacher-dictation-cue" className="w-full max-w-4xl flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 shadow-sm">
               <div className="rounded-full bg-amber-900 px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-white">Teacher only</div>
               <div className="min-w-0">
                 <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">{isWordElementItem ? 'Dictate Word Element' : 'Dictate Sound'}</span>

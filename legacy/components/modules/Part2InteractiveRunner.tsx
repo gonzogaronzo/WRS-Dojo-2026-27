@@ -1,3 +1,4 @@
+import { useBoardSafe } from '../boardSafeContext';
 import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Eye, EyeOff, MousePointer2, PenTool, RotateCcw, Save, Trash2, X } from 'lucide-react';
 import Tile, { part2CardHeight, part2CardWidth } from '../Tile';
@@ -219,7 +220,10 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
 }) => {
   const [localIndex, setLocalIndex] = useState(0);
   const [localStates, setLocalStates] = useState<RunnerStateMap>({});
-  const [boardSafe, setBoardSafe] = useState(false);
+  const globalBoardSafe = useBoardSafe();
+  const [localBoardSafe, setLocalBoardSafe] = useState(false);
+  const boardSafe = globalBoardSafe ? globalBoardSafe.boardSafe : localBoardSafe;
+  const toggleBoardSafe = () => (globalBoardSafe ? globalBoardSafe.setBoardSafe(!boardSafe) : setLocalBoardSafe(value => !value));
   const [completed, setCompleted] = useState(false);
   const [troubleSpots, setTroubleSpots] = useState('');
   const [instructionalNote, setInstructionalNote] = useState('');
@@ -515,7 +519,7 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
               <button type="button" className={buttonClass} onClick={() => navigate('next')} disabled={!hasNextRunnerTarget} aria-label="Next" data-part2-next-scope={usesWordSequence && activeWordIndex < orderedObjects.length - 1 ? 'review-word' : 'instructional-move'}>Next <ChevronRight className="inline h-3.5 w-3.5" /></button>
               <button type="button" className={buttonClass} onClick={clearCurrentWorkspace} aria-label="Repeat current instructional move"><RotateCcw className="inline h-3.5 w-3.5" /> Repeat</button>
               <button type="button" className={buttonClass} onClick={() => navigate('skip')} disabled={resolvedIndex >= stepCount - 1} aria-label="Skip current instructional move">Skip</button>
-              <button type="button" className={buttonClass} onClick={() => setBoardSafe(value => !value)} aria-label="Toggle board-safe projection">
+              <button type="button" className={buttonClass} onClick={toggleBoardSafe} aria-label="Toggle board-safe projection">
                 {boardSafe ? <><Eye className="inline h-3.5 w-3.5" /> Teacher</> : <><EyeOff className="inline h-3.5 w-3.5" /> Board-safe</>}
               </button>
             </div>
