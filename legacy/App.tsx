@@ -64,6 +64,7 @@ import {
   shouldResetQuickDrillForPartChange
 } from './lessonSessionSync';
 import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
+import { part3WordCardsForLesson } from './wordCardsState';
 import { chartingPlanForLesson, dealLeveledCharting, defaultDealSettings, CHARTING_WORDS_PER_STUDENT } from './chartingWordBank';
 
 const App: React.FC = () => {
@@ -483,6 +484,10 @@ const App: React.FC = () => {
     return chartingWordCardsForLesson(currentLesson);
   }, [currentLesson]);
 
+  const part3WordCards = useMemo(() => (
+    currentLesson ? part3WordCardsForLesson(currentLesson) : []
+  ), [currentLesson]);
+
   // A lesson that names a substep + level deals Part 4 from the Reader word bank.
   const chartingPlan = useMemo(() => chartingPlanForLesson(currentLesson), [currentLesson]);
 
@@ -767,7 +772,7 @@ const App: React.FC = () => {
       case LessonPart.Part3: 
         return (
           <WordCards 
-            cards={baseReadingCards} 
+            cards={part3WordCards} 
             hfw={currentLesson.hfwList} 
             students={sessionStudents.map(s => s.name)}
             state={sessionWordCards}
