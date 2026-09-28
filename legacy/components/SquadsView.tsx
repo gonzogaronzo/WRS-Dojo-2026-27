@@ -75,6 +75,7 @@ const SquadsView: React.FC<SquadsViewProps> = ({
   groupNotes, currentRosterReady = false
 }) => {
   const [showJournal, setShowJournal] = useState(false);
+  const [showOlderLessons, setShowOlderLessons] = useState(false);
   const [squadQuery, setSquadQuery] = useState('');
   const [confirmConfig, setConfirmConfig] = useState<{
     isOpen: boolean;
@@ -156,11 +157,10 @@ const SquadsView: React.FC<SquadsViewProps> = ({
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" aria-label="Dojo overview">
+        <div className="grid grid-cols-3 gap-3" aria-label="Dojo overview">
           {[
             ['Groups', groups.length],
             ['Students', students.length],
-            ['Lessons', groups.reduce((total, group) => total + group.savedLessons.length, 0)],
             ['Cloud', cloudStatus === 'online' ? 'Ready' : 'Local']
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-stone-200 bg-white px-4 py-3 shadow-sm">
@@ -200,7 +200,7 @@ const SquadsView: React.FC<SquadsViewProps> = ({
                 </div>
                 <div>
                   <h2 className="text-xl font-black font-serif leading-tight">{g.name}</h2>
-                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{g.studentIds.length} Students · {g.savedLessons.length} Lessons</p>
+                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{g.studentIds.length} {g.studentIds.length === 1 ? 'Student' : 'Students'}</p>
                   {g.schedule && <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-red-800">{g.schedule}</p>}
                 </div>
                 <div className="flex justify-between items-center text-red-800">
@@ -292,8 +292,14 @@ const SquadsView: React.FC<SquadsViewProps> = ({
             />
             <div className="flex justify-between items-center bg-stone-800/50 p-4 rounded-2xl border border-stone-700">
               <h3 className="font-black uppercase tracking-widest text-[10px] text-stone-500">Ancient Scrolls (Custom Lessons)</h3>
-              <button onClick={onCreateLesson} className="px-6 py-2 bg-red-800 text-white rounded-xl font-black uppercase text-[10px] flex items-center gap-2 shadow-lg hover:bg-red-700 active:scale-95"><Plus className="w-4 h-4" /> Forge New Scroll</button>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setShowOlderLessons(value => !value)} aria-expanded={showOlderLessons} className="px-4 py-2 border border-stone-300 bg-white text-stone-700 rounded-xl font-black uppercase text-[10px] hover:border-stone-500 hover:text-stone-900">
+                  {showOlderLessons ? 'Hide older lessons' : `Show older lessons (${savedLessons.length})`}
+                </button>
+                <button onClick={onCreateLesson} className="px-6 py-2 bg-red-800 text-white rounded-xl font-black uppercase text-[10px] flex items-center gap-2 shadow-lg hover:bg-red-700 active:scale-95"><Plus className="w-4 h-4" /> Forge New Scroll</button>
+              </div>
             </div>
+            {showOlderLessons && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedLessons.map(lesson => (
                 <MissionCard 
@@ -332,8 +338,9 @@ const SquadsView: React.FC<SquadsViewProps> = ({
                 />
               ))}
             </div>
+            )}
 
-            {savedLessons.length === 0 && (
+            {showOlderLessons && savedLessons.length === 0 && (
               <div className="rounded-[2rem] border-2 border-dashed border-stone-200 bg-white px-6 py-12 text-center shadow-sm">
                 <BookOpen className="mx-auto mb-4 h-9 w-9 text-stone-300" />
                 <h4 className="font-serif text-xl font-black text-stone-900">This group needs its first lesson.</h4>
