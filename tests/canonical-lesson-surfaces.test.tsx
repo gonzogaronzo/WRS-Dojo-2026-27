@@ -330,11 +330,14 @@ test('Part 8 gates every dictation section behind explicit reveal and hides prio
     />
   );
 
+  // After Next, the earlier revealed item stays revealed; the new current item stays hidden until Reveal.
+  assert.match(nextItemHidden, /data-part8-item-index="0" data-part8-item-state="revealed"/);
   assert.match(nextItemHidden, /data-part8-item-index="1" data-part8-item-state="listen-write"/);
-  assert.equal(nextItemHidden.includes('brindle'), false);
+  assert.ok(nextItemHidden.includes('brindle'));
   assert.equal(nextItemHidden.includes('cavern'), false);
+  assert.match(nextItemRevealed, /data-part8-item-index="0" data-part8-item-state="revealed"/);
   assert.match(nextItemRevealed, /data-part8-item-index="1" data-part8-item-state="revealed"/);
-  assert.equal(nextItemRevealed.includes('brindle'), false);
+  assert.ok(nextItemRevealed.includes('brindle'));
   assert.ok(nextItemRevealed.includes('cavern'));
 });
 

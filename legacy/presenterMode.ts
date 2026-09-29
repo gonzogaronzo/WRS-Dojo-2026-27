@@ -91,11 +91,17 @@ const part8RevealState = (session: LessonSessionState) => {
   const itemIndex = Number.isFinite(parsedIndex) && parsedIndex >= 0 ? parsedIndex : 0;
   const currentMarker = `${currentPrefix}${itemIndex}`;
   const answerMarker = `${sectionKey}-${itemIndex}`;
+  // Every item the teacher has revealed in the active section stays on the board; unrevealed items never leave the teacher view.
+  const answerPrefix = `${sectionKey}-`;
+  const revealedIndices = Object.entries(session.spellingRevealedItems || {})
+    .filter(([key, value]) => Boolean(value) && key.startsWith(answerPrefix) && /^\d+$/.test(key.slice(answerPrefix.length)))
+    .map(([key]) => Number.parseInt(key.slice(answerPrefix.length), 10));
   return {
     sectionKey,
     itemIndex,
     currentMarker,
     answerMarker,
+    revealedIndices,
     revealed: Boolean(session.spellingRevealedItems?.[currentMarker] && session.spellingRevealedItems?.[answerMarker])
   };
 };
@@ -200,7 +206,7 @@ export const sanitizePresenterSession = (
     compact.spellingActiveTab = session.spellingActiveTab;
     compact.spellingRevealedItems = {
       [revealState.currentMarker]: true,
-      ...(revealState.revealed ? { [revealState.answerMarker]: true } : {})
+      ...Object.fromEntries(revealState.revealedIndices.map(index => [`${revealState.sectionKey}-${index}`, true]))
     };
     compact.spellingCipherWord = null;
     compact.spellingCipherResults = {};
@@ -234,14 +240,18 @@ const studentPart8Dictation = (lesson: Lesson, session: LessonSessionState): Les
     sentences: lesson.dictation.sentences.map(() => '')
   };
   const revealState = part8RevealState(session);
-  if (!revealState.revealed) return redacted;
-  const index = revealState.itemIndex;
-  if (revealState.sectionKey === 'sounds' && lesson.dictation.sounds[index] !== undefined) redacted.sounds[index] = lesson.dictation.sounds[index];
-  if (revealState.sectionKey === 'word-elements' && lesson.dictation.wordElements[index] !== undefined) redacted.wordElements[index] = lesson.dictation.wordElements[index];
-  if (revealState.sectionKey === 'real-words' && lesson.dictation.realWords[index] !== undefined) redacted.realWords[index] = lesson.dictation.realWords[index];
-  if (revealState.sectionKey === 'nonsense-words' && lesson.dictation.nonsenseWords[index] !== undefined) redacted.nonsenseWords[index] = lesson.dictation.nonsenseWords[index];
-  if (revealState.sectionKey === 'phrases' && lesson.dictation.phrases[index] !== undefined) redacted.phrases[index] = lesson.dictation.phrases[index];
-  if (revealState.sectionKey === 'sentences' && lesson.dictation.sentences[index] !== undefined) redacted.sentences[index] = lesson.dictation.sentences[index];
+  const sources: Record<Part8SectionKey, [string[], string[]]> = {
+    sounds: [lesson.dictation.sounds, redacted.sounds],
+    'word-elements': [lesson.dictation.wordElements, redacted.wordElements],
+    'real-words': [lesson.dictation.realWords, redacted.realWords],
+    'nonsense-words': [lesson.dictation.nonsenseWords, redacted.nonsenseWords],
+    phrases: [lesson.dictation.phrases, redacted.phrases],
+    sentences: [lesson.dictation.sentences, redacted.sentences]
+  };
+  const [source, target] = sources[revealState.sectionKey];
+  revealState.revealedIndices.forEach(index => {
+    if (source[index] !== undefined) target[index] = source[index];
+  });
   return redacted;
 };
 

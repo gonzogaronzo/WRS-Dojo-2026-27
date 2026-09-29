@@ -3,7 +3,7 @@ import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import QuickDrill from '../legacy/components/modules/QuickDrill';
-import Spelling from '../legacy/components/modules/Spelling';
+import Spelling, { clickPart8Item, movePart8CurrentItem } from '../legacy/components/modules/Spelling';
 import { LessonRuntimeProvider } from '../legacy/components/lessonRuntimeContext';
 import { createPresenterSnapshot } from '../legacy/presenterMode';
 import { createInitialLessonSession } from '../legacy/useLessonSession';
@@ -120,15 +120,70 @@ test('actual presenter path hides all six Part 8 section answers until Reveal', 
   }
 });
 
-test('Part 8 Next removes the prior answer and starts the next item unrevealed', () => {
+test('Part 8 Next keeps the prior answer revealed and starts the next item unrevealed', () => {
   const two = { ...lesson, dictation: { ...dictation, realWords: ['brindlex', 'cavernx'] } } as Lesson;
   const hidden = renderPart8(2, { '__part8-current__:real-words-1': true, 'real-words-0': true }, two);
   assert.match(hidden.markup, /Listen and write/i);
-  assert.equal(JSON.stringify(hidden.snapshot).includes('brindlex'), false);
+  assert.equal(hidden.markup.includes('brindlex'), true);
   assert.equal(JSON.stringify(hidden.snapshot).includes('cavernx'), false);
+  assert.equal(hidden.markup.includes('cavernx'), false);
   const shown = renderPart8(2, { '__part8-current__:real-words-1': true, 'real-words-0': true, 'real-words-1': true }, two);
-  assert.equal(shown.markup.includes('brindlex'), false);
+  assert.equal(shown.markup.includes('brindlex'), true);
   assert.equal(shown.markup.includes('cavernx'), true);
+});
+
+const threeWords = { ...lesson, dictation: { ...dictation, realWords: ['brindlex', 'cavernx', 'glimmerx'] } } as Lesson;
+const teacherThreeWordList = (revealedItems: Record<string, boolean>) => renderToStaticMarkup(
+  <Spelling data={threeWords.dictation} lessonStep="2" lessonSubstep="5" viewMode="list" activeTab={2} sectionOrderVersion={2} revealedItems={revealedItems} />
+);
+const itemState = (markup: string, index: number) =>
+  markup.match(new RegExp(`data-part8-item-index="${index}" data-part8-item-state="([a-z-]+)"`))?.[1];
+// Teacher flow: Reveal item 1, Next, Reveal item 2 (same state changes the Reveal / Next item button makes).
+const revealOneThenTwo = () => {
+  let state: Record<string, boolean> = {};
+  state = movePart8CurrentItem(state, 'real-words', 3, 0, true);
+  state = movePart8CurrentItem(state, 'real-words', 3, 1, false);
+  state = movePart8CurrentItem(state, 'real-words', 3, 1, true);
+  return state;
+};
+
+test('Part 8 revealed items stay revealed when the teacher moves on; the upcoming item stays hidden', () => {
+  const state = revealOneThenTwo();
+
+  const teacher = teacherThreeWordList(state);
+  assert.equal(itemState(teacher, 0), 'revealed');
+  assert.equal(itemState(teacher, 1), 'revealed');
+  assert.equal(itemState(teacher, 2), 'waiting');
+  assert.equal(teacher.includes('glimmerx'), false);
+
+  const board = renderPart8(2, state, threeWords);
+  assert.equal(itemState(board.markup, 0), 'revealed');
+  assert.equal(itemState(board.markup, 1), 'revealed');
+  assert.equal(itemState(board.markup, 2), 'waiting');
+  assert.ok(board.markup.includes('brindlex'));
+  assert.ok(board.markup.includes('cavernx'));
+  assert.equal(board.markup.includes('glimmerx'), false);
+  assert.equal(JSON.stringify(board.snapshot).includes('glimmerx'), false, 'upcoming item leaked in presenter payload');
+});
+
+test('Part 8 clicking a revealed item hides only that item', () => {
+  const state = clickPart8Item(revealOneThenTwo(), 'real-words', 3, 0);
+
+  const teacher = teacherThreeWordList(state);
+  assert.equal(itemState(teacher, 0), 'listen-write');
+  assert.equal(itemState(teacher, 1), 'revealed');
+  assert.equal(itemState(teacher, 2), 'waiting');
+
+  const board = renderPart8(2, state, threeWords);
+  assert.equal(itemState(board.markup, 0), 'listen-write');
+  assert.equal(itemState(board.markup, 1), 'revealed');
+  assert.equal(itemState(board.markup, 2), 'waiting');
+  assert.equal(JSON.stringify(board.snapshot).includes('brindlex'), false, 'hidden item leaked in presenter payload');
+  assert.ok(board.markup.includes('cavernx'));
+  assert.equal(JSON.stringify(board.snapshot).includes('glimmerx'), false);
+
+  // Clicking the (now current, hidden) item again re-reveals it, as before.
+  assert.equal(itemState(teacherThreeWordList(clickPart8Item(state, 'real-words', 3, 0)), 0), 'revealed');
 });
 
 
