@@ -1,5 +1,12 @@
-import { WordCard } from './types';
+import { Lesson, WordCard } from './types';
 import { WordCardsFilter, WordCardsMode, WordCardsSessionState } from './useLessonSession';
+
+/**
+ * Part 3 deals the lesson's own word cards. The Part 4 reading/charting pool
+ * (chartingWordCardsForLesson) is a different list for runtime lessons.
+ */
+export const part3WordCardsForLesson = (lesson: Lesson): WordCard[] =>
+  (lesson.wordCards || []).filter((card): card is WordCard => Boolean(card?.id));
 
 export const buildWordCardsDeck = (
   cards: WordCard[],

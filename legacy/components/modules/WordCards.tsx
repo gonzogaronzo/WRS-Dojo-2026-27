@@ -131,7 +131,9 @@ const WordCards: React.FC<WordCardsProps> = ({
 
       <div className="relative z-10 mt-24 flex w-full flex-1 flex-col items-center justify-center p-8">
         {state.deck.length === 0 ? (
-          <div className="text-xl font-medium text-stone-500">Preparing the shared deck…</div>
+          <div className="text-xl font-medium text-stone-500">
+            {validCards.length === 0 ? 'This lesson has no Part 3 word cards.' : 'Preparing the shared deck…'}
+          </div>
         ) : isDone ? (
           <div className="flex h-full flex-col items-center justify-center gap-8">
             <h2 className="text-5xl font-black uppercase tracking-widest text-amber-500">Deck Empty!</h2>
