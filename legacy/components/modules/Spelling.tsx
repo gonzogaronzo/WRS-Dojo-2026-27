@@ -63,6 +63,55 @@ const DICTATION_CURRENT_ITEM_PREFIX = '__part8-current__:';
 const dictationCurrentItemKey = (sectionKey: string, index: number) =>
   DICTATION_CURRENT_ITEM_PREFIX + sectionKey + '-' + index;
 
+type DictationRevealState = Record<string, boolean>;
+const boundDictationIndex = (index: number, itemCount: number) => Math.max(0, Math.min(index, itemCount - 1));
+
+// Moves the section's "current item" marker. Reveal flags on other items are left alone,
+// so items the teacher already revealed stay revealed as the lesson moves on.
+export const movePart8CurrentItem = (
+  previous: DictationRevealState,
+  sectionKey: string,
+  itemCount: number,
+  index: number,
+  reveal: boolean
+): DictationRevealState => {
+  if (itemCount === 0) return previous;
+  const boundedIndex = boundDictationIndex(index, itemCount);
+  const next = { ...previous };
+  for (let itemIndex = 0; itemIndex < itemCount; itemIndex += 1) {
+    delete next[dictationCurrentItemKey(sectionKey, itemIndex)];
+  }
+  next[dictationCurrentItemKey(sectionKey, boundedIndex)] = true;
+  if (reveal) next[dictationItemKey(sectionKey, boundedIndex)] = true;
+  return next;
+};
+
+// Clicking a dictation row: a revealed row is hidden again (only that row) and becomes current;
+// an unrevealed row becomes current, and is revealed if it was already the current item.
+export const clickPart8Item = (
+  previous: DictationRevealState,
+  sectionKey: string,
+  itemCount: number,
+  index: number
+): DictationRevealState => {
+  if (itemCount === 0) return previous;
+  const boundedIndex = boundDictationIndex(index, itemCount);
+  if (previous[dictationItemKey(sectionKey, boundedIndex)]) {
+    const next = movePart8CurrentItem(previous, sectionKey, itemCount, boundedIndex, false);
+    delete next[dictationItemKey(sectionKey, boundedIndex)];
+    delete next[String(LEGACY_CURRENT_INDEX_BY_SECTION[sectionKey]) + '-' + boundedIndex];
+    return next;
+  }
+  let currentIndex = 0;
+  for (let itemIndex = 0; itemIndex < itemCount; itemIndex += 1) {
+    if (previous[dictationCurrentItemKey(sectionKey, itemIndex)]) {
+      currentIndex = itemIndex;
+      break;
+    }
+  }
+  return movePart8CurrentItem(previous, sectionKey, itemCount, boundedIndex, boundedIndex === currentIndex);
+};
+
 const parseDictationSound = (text: string) => {
   const match = text.trim().match(/^\/([^/]+)\/\s*(?:→|->|=)\s*(.+)$/);
   if (match) {
@@ -410,24 +459,10 @@ const Spelling: React.FC<SpellingProps> = ({
   );
   const isItemRevealed = (sectionKey: string, index: number) => (
     sectionKey === currentSection.key &&
-    index === currentItemIndex &&
-    currentItemIsRevealed
+    Boolean(revealedItems[dictationItemKey(sectionKey, index)])
   );
   const setCurrentDictationItem = (index: number, reveal: boolean) => {
-    if (currentSection.data.length === 0) return;
-    const boundedIndex = Math.max(0, Math.min(index, currentSection.data.length - 1));
-    setRevealedItems(previous => {
-      const next = { ...previous };
-      const legacySectionIndex = LEGACY_CURRENT_INDEX_BY_SECTION[currentSection.key];
-      currentSection.data.forEach((_, itemIndex) => {
-        delete next[dictationCurrentItemKey(currentSection.key, itemIndex)];
-        delete next[dictationItemKey(currentSection.key, itemIndex)];
-        delete next[String(legacySectionIndex) + '-' + itemIndex];
-      });
-      next[dictationCurrentItemKey(currentSection.key, boundedIndex)] = true;
-      if (reveal) next[dictationItemKey(currentSection.key, boundedIndex)] = true;
-      return next;
-    });
+    setRevealedItems(previous => movePart8CurrentItem(previous, currentSection.key, currentSection.data.length, index, reveal));
   };
   const teacherPromptForItem = (text: string) => currentSection.key === 'sounds'
     ? parseDictationSound(text).cue
@@ -618,8 +653,7 @@ const Spelling: React.FC<SpellingProps> = ({
                       : 'bg-white border-stone-100 hover:border-red-800/20 hover:shadow-xl'
                   } group`}
                   onClick={!readOnly ? () => {
-                    const revealSelected = idx === currentItemIndex && !currentItemIsRevealed;
-                    setCurrentDictationItem(idx, revealSelected);
+                    setRevealedItems(previous => clickPart8Item(previous, currentSection.key, currentSection.data.length, idx));
                   } : undefined}
                 >
                   {!readOnly && <button
