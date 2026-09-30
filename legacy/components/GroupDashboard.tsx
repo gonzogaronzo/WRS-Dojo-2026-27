@@ -12,6 +12,7 @@ import StudentScreenJoinDialog from './StudentScreenJoinDialog';
 import GroupNotes from './GroupNotes';
 
 import DailyNotes from './DailyNotes';
+import { RunwayNotice } from './Runway';
 import UnfinishedLessons from './UnfinishedLessons';
 import type { GroupSpot, GroupSpotMap } from '../groupSpots';
 import type { CloudCheckResult } from '../useMasterData';
@@ -439,6 +440,8 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({
             )}
          </div>
       </div>
+
+      <RunwayNotice groups={groups} />
 
       <UnfinishedLessons
         spots={spots}

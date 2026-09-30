@@ -10,6 +10,7 @@ import {
 import { generateId } from '../utils';
 import GroupNotes from './GroupNotes';
 import GroupInstructionalProfilePanel from './GroupInstructionalProfile';
+import { GroupRunwayChip } from './Runway';
 import LoadedLessons, { LoadLessonsButton } from './LoadedLessons';
 
 interface SquadsViewProps {
@@ -194,7 +195,7 @@ const SquadsView: React.FC<SquadsViewProps> = ({
           </button>
           {visibleGroups.map(g => (
             <div key={g.id} className="relative group/card">
-              <div onClick={() => onSelectGroup(g)} className="bg-[#fdf6e3] text-stone-900 p-8 rounded-[2rem] border-4 border-stone-800 shadow-xl cursor-pointer hover:border-red-800 transition-all group relative overflow-hidden h-40 flex flex-col justify-between">
+              <div onClick={() => onSelectGroup(g)} className="bg-[#fdf6e3] text-stone-900 p-8 rounded-[2rem] border-4 border-stone-800 shadow-xl cursor-pointer hover:border-red-800 transition-all group relative overflow-hidden min-h-[10rem] gap-3 flex flex-col justify-between">
                 <div className="absolute top-0 right-0 p-4 opacity-5">
                   <Users className="w-24 h-24" />
                 </div>
@@ -204,8 +205,11 @@ const SquadsView: React.FC<SquadsViewProps> = ({
                   {g.schedule && <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-red-800">{g.schedule}</p>}
                 </div>
                 <div className="flex justify-between items-center text-red-800">
-                  <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
-                    <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" /> {formatLastLesson(g.lastLessonDate)}
+                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
+                      <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" /> {formatLastLesson(g.lastLessonDate)}
+                    </span>
+                    <GroupRunwayChip groups={groups} groupId={g.id} />
                   </span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
                 </div>

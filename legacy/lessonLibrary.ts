@@ -22,6 +22,8 @@ export const LESSON_LIBRARY_COLLECTION = 'lessons';
  * there) but is not a lesson. Everything that reads the library must skip it.
  */
 export const PAUSED_SPOT_KIND = 'paused-spot';
+/** One small document per group holding the lessons the teacher marked taught by hand. */
+export const TAUGHT_MARKS_KIND = 'taught-marks';
 /** Firestore's hard limit is 1 MiB per document; stay clearly under it. */
 export const LESSON_DOCUMENT_BYTE_LIMIT = 900_000;
 
@@ -333,7 +335,7 @@ export const planLessonWrite = (
 /** Reads a Firestore `lessons` document, or null if it isn't a usable record. */
 export const normalizeLibraryRecord = (id: string, value: unknown): LibraryLessonRecord | null => {
   const data = asRecord(value);
-  if (data?.kind === PAUSED_SPOT_KIND) return null;
+  if (isSideDocData(data)) return null;
   const lesson = asRecord(data?.lesson);
   if (!data || !lesson || !text(data.teacherId) || !text(data.groupId)) return null;
   return {
@@ -358,6 +360,12 @@ export interface LibrarySnapshotChange { id: string; data: unknown }
 
 export const isPausedSpotData = (value: unknown) => asRecord(value)?.kind === PAUSED_SPOT_KIND;
 
+/** Documents that share the `lessons` collection but are not lessons: saved spots and taught marks. */
+export function isSideDocData(value: unknown): boolean {
+  const kind = asRecord(value)?.kind;
+  return kind === PAUSED_SPOT_KIND || kind === TAUGHT_MARKS_KIND;
+}
+
 /**
  * Turns a `lessons` snapshot into library records. A paused-spot document is
  * saved about once a second during a lesson; a snapshot that only carries
@@ -370,9 +378,9 @@ export const applyLibrarySnapshot = (
   changes: LibrarySnapshotChange[],
   isFirstSnapshot: boolean
 ): LibraryLessonRecord[] => {
-  if (!isFirstSnapshot && changes.every(change => isPausedSpotData(change.data))) return current;
+  if (!isFirstSnapshot && changes.every(change => isSideDocData(change.data))) return current;
   return readDocs().flatMap(doc => {
-    if (isPausedSpotData(doc.data)) return [];
+    if (isSideDocData(doc.data)) return [];
     const record = normalizeLibraryRecord(doc.id, doc.data);
     return record ? [record] : [];
   });

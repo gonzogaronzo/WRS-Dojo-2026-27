@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Edit, FileUp, Printer, Trash2 } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, Edit, FileUp, Printer, Trash2, Undo2 } from 'lucide-react';
 import type { GroupProfile, Lesson, StudentProfile } from '../types';
 import MissionCard from './MissionCard';
 import ConfirmModal from './ConfirmModal';
 import LessonLoader from './LessonLoader';
-import {
-  arrangeGroupLessons, formatLessonDate, LibraryLessonRecord, localDateString, substepLabel
-} from '../lessonLibrary';
+import { formatLessonDate, LibraryLessonRecord, localDateString, substepLabel } from '../lessonLibrary';
+import { LessonStatusEntry, arrangeByStatus } from '../lessonStatus';
 import { useLessonLibraryContext } from '../useLessonLibrary';
+import { useLessonStatusContext } from '../useLessonStatus';
 
 const loadButtonClass =
   'flex items-center gap-2 rounded-xl bg-red-800 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg ' +
@@ -42,19 +42,26 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
 }) => {
   const library = useLessonLibraryContext();
   const [loaderOpen, setLoaderOpen] = useState(false);
-  const [showEarlier, setShowEarlier] = useState(false);
+  const [showTaught, setShowTaught] = useState(false);
   const [pendingRemoval, setPendingRemoval] = useState<LibraryLessonRecord | null>(null);
   const [removeError, setRemoveError] = useState('');
   const today = localDateString();
   const records = library?.records;
-  const { upcoming, earlier } = useMemo(
-    () => arrangeGroupLessons(records || [], group.id, today),
-    [records, group.id, today]
+  const status = useLessonStatusContext();
+  const contextFor = status?.contextFor;
+  const { inProgress, onDeck, taught } = useMemo(
+    () => arrangeByStatus(
+      records || [],
+      group.id,
+      contextFor ? contextFor(group.id) : { completedLessonIds: new Set<string>(), markedTaughtIds: new Set<string>() },
+      today
+    ),
+    [records, group.id, today, contextFor]
   );
 
   if (!library) return null;
 
-  const renderCard = (record: LibraryLessonRecord) => (
+  const renderCard = ({ record, status: lessonStatus, manuallyTaught, plannedFor }: LessonStatusEntry) => (
     <MissionCard
       key={record.id}
       title={record.title}
@@ -66,7 +73,39 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
         { icon: Edit, title: 'Edit Scroll', onClick: () => onEditLesson(record.lesson) },
         { icon: Trash2, title: 'Remove Lesson', variant: 'danger', onClick: () => setPendingRemoval(record) }
       ]}
-    />
+    >
+      <div className="space-y-2">
+        {lessonStatus === 'in-progress' && (
+          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-800">In progress · saved spot</p>
+        )}
+        {lessonStatus === 'taught' && (
+          <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-800">
+            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Taught{manuallyTaught ? ' · marked by you' : ''}
+          </p>
+        )}
+        {plannedFor && (
+          <p className="text-[10px] font-bold text-stone-500">Planned for {formatLessonDate(plannedFor)}</p>
+        )}
+        {status && lessonStatus !== 'taught' && (
+          <button
+            type="button"
+            onClick={() => { void status.markTaught(group.id, record.id); }}
+            className="flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-stone-700 hover:border-emerald-700 hover:text-emerald-800"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Mark as taught
+          </button>
+        )}
+        {status && manuallyTaught && (
+          <button
+            type="button"
+            onClick={() => { void status.putBackOnDeck(group.id, record.id); }}
+            className="flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-stone-700 hover:border-red-700 hover:text-red-800"
+          >
+            <Undo2 className="h-3.5 w-3.5" aria-hidden="true" /> Put back on deck
+          </button>
+        )}
+      </div>
+    </MissionCard>
   );
 
   const confirmRemoval = async () => {
@@ -77,14 +116,14 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
     if (!result.ok) setRemoveError(`${target.title} was not removed. ${result.message}`);
   };
 
-  const isEmpty = library.status === 'ready' && upcoming.length === 0 && earlier.length === 0;
+  const isEmpty = library.status === 'ready' && inProgress.length === 0 && onDeck.length === 0 && taught.length === 0;
 
   return (
     <section className="space-y-4" aria-label="Loaded lessons">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
         <div>
           <h3 className="text-[10px] font-black uppercase tracking-widest text-emerald-900">Loaded Lessons</h3>
-          <p className="mt-0.5 text-[10px] font-bold text-emerald-800/70">Lesson files for {group.name}, soonest first.</p>
+          <p className="mt-0.5 text-[10px] font-bold text-emerald-800/70">Lesson files for {group.name}: in progress, then on deck in date order.</p>
         </div>
         <button type="button" onClick={() => setLoaderOpen(true)} disabled={library.status === 'signed-out'} className={loadButtonClass}>
           <FileUp className="h-4 w-4" /> Load Lessons
@@ -109,21 +148,33 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
         </div>
       )}
 
-      {upcoming.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{upcoming.map(renderCard)}</div>
+      {inProgress.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-800">In progress ({inProgress.length})</h4>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{inProgress.map(renderCard)}</div>
+        </div>
       )}
 
-      {earlier.length > 0 && (
+      {(onDeck.length > 0 || inProgress.length > 0 || taught.length > 0) && (
+        <div className="space-y-3">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-stone-600">On deck ({onDeck.length})</h4>
+          {onDeck.length === 0
+            ? <p className="text-xs font-bold text-red-800">Nothing on deck. Load more lessons for {group.name}.</p>
+            : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{onDeck.map(renderCard)}</div>}
+        </div>
+      )}
+
+      {taught.length > 0 && (
         <div className="space-y-4">
           <button
             type="button"
-            onClick={() => setShowEarlier(value => !value)}
+            onClick={() => setShowTaught(value => !value)}
             className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-stone-500 hover:text-stone-900"
           >
-            {showEarlier ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            Earlier lessons ({earlier.length})
+            {showTaught ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            Show older lessons · Taught ({taught.length})
           </button>
-          {showEarlier && <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{earlier.map(renderCard)}</div>}
+          {showTaught && <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{taught.map(renderCard)}</div>}
         </div>
       )}
 
