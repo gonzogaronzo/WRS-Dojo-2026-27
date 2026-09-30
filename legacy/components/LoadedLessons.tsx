@@ -61,7 +61,7 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
 
   if (!library) return null;
 
-  const renderCard = ({ record, status: lessonStatus, manuallyTaught, plannedFor }: LessonStatusEntry) => (
+  const renderCard = ({ record, status: lessonStatus, manuallyTaught, putBackByYou, plannedFor }: LessonStatusEntry) => (
     <MissionCard
       key={record.id}
       title={record.title}
@@ -83,6 +83,9 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Taught{manuallyTaught ? ' · marked by you' : ''}
           </p>
         )}
+        {putBackByYou && (
+          <p className="text-[10px] font-bold text-stone-500">Put back by you</p>
+        )}
         {plannedFor && (
           <p className="text-[10px] font-bold text-stone-500">Planned for {formatLessonDate(plannedFor)}</p>
         )}
@@ -95,7 +98,7 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Mark as taught
           </button>
         )}
-        {status && manuallyTaught && (
+        {status && lessonStatus === 'taught' && (
           <button
             type="button"
             onClick={() => { void status.putBackOnDeck(group.id, record.id); }}

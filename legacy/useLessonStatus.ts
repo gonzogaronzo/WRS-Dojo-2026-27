@@ -47,6 +47,7 @@ export const useLessonStatusData = (user: User | null, groups: GroupProfile[], s
   const [marksReady, setMarksReady] = useState(false);
   const [error, setError] = useState('');
   const marksRef = useRef<TaughtMarksMap>({});
+  const completedRef = useRef<ReadonlySet<string>>(new Set());
 
   useEffect(() => {
     setLocalMarks(readLocalTaughtMarks(teacherId, deviceStorage()));
@@ -114,6 +115,7 @@ export const useLessonStatusData = (user: User | null, groups: GroupProfile[], s
     [missionIds, historyIds]
   );
 
+  completedRef.current = completedLessonIds;
   const marks = useMemo(() => mergeTaughtMarks(localMarks, cloudMarks), [localMarks, cloudMarks]);
   marksRef.current = marks;
 
@@ -124,16 +126,18 @@ export const useLessonStatusData = (user: User | null, groups: GroupProfile[], s
   } : null, [teacherId]);
 
   const change = useCallback(async (groupId: string, lessonId: string, taught: boolean) => {
-    const current = marksRef.current[groupId]?.lessonIds || [];
+    const existing = marksRef.current[groupId];
+    const current = { lessonIds: existing?.lessonIds || [], onDeckIds: existing?.onDeckIds || [] };
+    const recordSaysTaught = completedRef.current.has(lessonId);
     // Shown at once; the cloud catches up behind it.
     const pending = await setLessonTaught(
-      teacherId, groupId, current, lessonId, taught, new Date().toISOString(), null, deviceStorage()
+      teacherId, groupId, current, lessonId, taught, recordSaysTaught, new Date().toISOString(), null, deviceStorage()
     );
     marksRef.current = { ...marksRef.current, [groupId]: pending.marks };
-    setLocalMarks(existing => ({ ...existing, [groupId]: pending.marks }));
+    setLocalMarks(previous => ({ ...previous, [groupId]: pending.marks }));
     if (!remote) return;
     const result = await setLessonTaught(
-      teacherId, groupId, current, lessonId, taught, pending.marks.savedAt, remote, null
+      teacherId, groupId, current, lessonId, taught, recordSaysTaught, pending.marks.savedAt, remote, null
     );
     setError(result.cloud ? '' : `That change is kept on this computer only. ${result.message}`);
   }, [remote, teacherId]);
@@ -144,6 +148,7 @@ export const useLessonStatusData = (user: User | null, groups: GroupProfile[], s
   const contextFor = useCallback((groupId: string): LessonStatusContext => ({
     completedLessonIds,
     markedTaughtIds: new Set(marks[groupId]?.lessonIds || []),
+    putBackIds: new Set(marks[groupId]?.onDeckIds || []),
     spotLessonId: spots[groupId]?.lessonId
   }), [completedLessonIds, marks, spots]);
 

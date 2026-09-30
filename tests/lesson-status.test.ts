@@ -45,6 +45,7 @@ const memoryStorage = () => {
   const map = new Map<string, string>();
   return { getItem: (key: string) => map.get(key) ?? null, setItem: (key: string, value: string) => { map.set(key, value); } };
 };
+const none = { lessonIds: [] as string[], onDeckIds: [] as string[] };
 const SHEET_COLLECTIONS = ['missions', 'daily_notes', 'group_notes'];
 
 test('a finished mission means Taught; a saved spot means In progress; otherwise On deck', () => {
@@ -143,7 +144,7 @@ test('the runway chip and top line say it in words with an icon, not color alone
 test('Mark as taught writes only its own document in the lesson library, never missions, daily_notes or group_notes', async () => {
   const { calls, remote } = recordingRemote();
   const storage = memoryStorage();
-  const result = await setLessonTaught(teacherId, 'g1', [], 'lesson-1', true, '2026-09-30T10:00:00.000Z', remote, storage);
+  const result = await setLessonTaught(teacherId, 'g1', none, 'lesson-1', true, false, '2026-09-30T10:00:00.000Z', remote, storage);
   assert.equal(result.cloud, true);
   assert.deepEqual(result.marks.lessonIds, ['lesson-1']);
   assert.equal(calls.length, 1);
@@ -152,7 +153,7 @@ test('Mark as taught writes only its own document in the lesson library, never m
   assert.equal(calls[0].data?.kind, TAUGHT_MARKS_KIND);
   for (const call of calls) assert.ok(!SHEET_COLLECTIONS.includes(call.collection));
 
-  await setLessonTaught(teacherId, 'g1', ['lesson-1'], 'lesson-1', false, '2026-09-30T10:05:00.000Z', remote, storage);
+  await setLessonTaught(teacherId, 'g1', { lessonIds: ['lesson-1'], onDeckIds: [] }, 'lesson-1', false, false, '2026-09-30T10:05:00.000Z', remote, storage);
   assert.ok(calls.every(call => call.collection === 'lessons' && call.op === 'set'));
   // It is not a mission record: no lessonId, squadId or results, so nothing a mission trigger could read.
   const doc = calls[0].data as Record<string, unknown>;
@@ -177,11 +178,11 @@ test('Put back on deck restores the lesson', async () => {
   const { remote } = recordingRemote();
   const storage = memoryStorage();
   const lesson = record('lesson-1', '2026-09-14');
-  const marked = await setLessonTaught(teacherId, 'g1', [], 'lesson-1', true, '2026-09-30T10:00:00.000Z', remote, storage);
+  const marked = await setLessonTaught(teacherId, 'g1', none, 'lesson-1', true, false, '2026-09-30T10:00:00.000Z', remote, storage);
   const taught = arrangeByStatus([lesson], 'g1', context({ markedTaughtIds: new Set(marked.marks.lessonIds) }), today);
   assert.equal(taught.taught.length, 1);
   assert.equal(taught.taught[0].manuallyTaught, true);
-  const back = await setLessonTaught(teacherId, 'g1', marked.marks.lessonIds, 'lesson-1', false, '2026-09-30T10:05:00.000Z', remote, storage);
+  const back = await setLessonTaught(teacherId, 'g1', marked.marks, 'lesson-1', false, false, '2026-09-30T10:05:00.000Z', remote, storage);
   const restored = arrangeByStatus([lesson], 'g1', context({ markedTaughtIds: new Set(back.marks.lessonIds) }), today);
   assert.equal(restored.taught.length, 0);
   assert.equal(restored.onDeck.length, 1);
@@ -197,7 +198,7 @@ test('reloading the same lesson file keeps the manual flag', async () => {
   const first = planLessonWrite(reading, group, teacherId, new Set(), '2026-09-27T00:00:00.000Z');
   const lessonId = first.record!.id;
   const { remote } = recordingRemote();
-  const marked = await setLessonTaught(teacherId, group.id, [], lessonId, true, '2026-09-28T00:00:00.000Z', remote, null);
+  const marked = await setLessonTaught(teacherId, group.id, none, lessonId, true, false, '2026-09-28T00:00:00.000Z', remote, null);
 
   // Loading the file again overwrites the same lesson document (same id)...
   const again = planLessonWrite(readLessonFile('WRS_2026-09-14_5A_Substep7-4 (1).json', fixtureText), group, teacherId, new Set([lessonId]), '2026-09-29T00:00:00.000Z');
@@ -211,9 +212,9 @@ test('reloading the same lesson file keeps the manual flag', async () => {
 });
 
 test('the taught-marks document never becomes a library lesson and never re-renders the library', () => {
-  const doc = buildTaughtMarksDoc(teacherId, { groupId: 'g1', lessonIds: ['a'], savedAt: 'now' });
+  const doc = buildTaughtMarksDoc(teacherId, { groupId: 'g1', lessonIds: ['a'], onDeckIds: ['b'], savedAt: 'now' });
   assert.equal(normalizeLibraryRecord(doc.id, doc), null);
-  assert.deepEqual(normalizeTaughtMarks(doc), { groupId: 'g1', lessonIds: ['a'], savedAt: 'now' });
+  assert.deepEqual(normalizeTaughtMarks(doc), { groupId: 'g1', lessonIds: ['a'], onDeckIds: ['b'], savedAt: 'now' });
   const current = [record('a', '2026-10-01')];
   const same = applyLibrarySnapshot(current, () => { throw new Error('should not rebuild'); }, [{ id: doc.id, data: doc }], false);
   assert.equal(same, current);
@@ -245,4 +246,70 @@ test('completing a lesson through the normal flow moves it to Taught', () => {
   const app = readFileSync(new URL('../legacy/App.tsx', import.meta.url), 'utf8');
   assert.match(app, /useLessonStatusData\(user, groups, groupSpots\.spots\)/);
   assert.match(app, /<LessonStatusProvider value=\{lessonStatus\}>/);
+});
+
+test('Put back on deck works on a lesson a mission record says was taught, and the teacher\'s choice wins', async () => {
+  const lesson = record('old-start', '2026-09-10');
+  // An old app wrote a mission when the lesson STARTED, so the record looks finished.
+  const completed = new Set(['old-start']);
+  const arrange = (over: Partial<LessonStatusContext>) => arrangeByStatus([lesson], 'g1', context({ completedLessonIds: completed, ...over }), today);
+
+  assert.equal(arrange({}).taught.length, 1);
+  assert.equal(arrange({}).taught[0].manuallyTaught, false);
+
+  const { calls, remote } = recordingRemote();
+  const storage = memoryStorage();
+  const putBack = await setLessonTaught(teacherId, 'g1', none, 'old-start', false, true, '2026-09-30T09:00:00.000Z', remote, storage);
+  assert.deepEqual(putBack.marks, { groupId: 'g1', lessonIds: [], onDeckIds: ['old-start'], savedAt: '2026-09-30T09:00:00.000Z' });
+  const back = { markedTaughtIds: new Set(putBack.marks.lessonIds), putBackIds: new Set(putBack.marks.onDeckIds) };
+
+  // On deck, with the note, and it counts in the runway.
+  const onDeck = arrange(back);
+  assert.equal(onDeck.onDeck.length, 1);
+  assert.equal(onDeck.taught.length, 0);
+  assert.equal(onDeck.onDeck[0].putBackByYou, true);
+  assert.equal(runwaysByGroup([lesson], ['g1'], () => context({ completedLessonIds: completed, ...back }), today).g1.count, 1);
+
+  // In progress if the group has a saved spot for it, and that is not counted On deck.
+  const running = arrange({ ...back, spotLessonId: 'old-start' });
+  assert.equal(running.inProgress.length, 1);
+  assert.equal(running.onDeck.length, 0);
+
+  // Mark as taught again makes it Taught and clears the put-back entry.
+  const again = await setLessonTaught(teacherId, 'g1', putBack.marks, 'old-start', true, true, '2026-09-30T09:05:00.000Z', remote, storage);
+  assert.deepEqual(again.marks.onDeckIds, []);
+  assert.deepEqual(again.marks.lessonIds, ['old-start']);
+  const taughtAgain = arrange({ markedTaughtIds: new Set(again.marks.lessonIds), putBackIds: new Set(again.marks.onDeckIds) });
+  assert.equal(taughtAgain.taught.length, 1);
+  assert.equal(taughtAgain.taught[0].putBackByYou, false);
+
+  // Putting back a hand-marked lesson that has no record only removes it from the taught list.
+  const plain = await setLessonTaught(teacherId, 'g1', { lessonIds: ['x'], onDeckIds: [] }, 'x', false, false, 'later', remote, storage);
+  assert.deepEqual(plain.marks.lessonIds, []);
+  assert.deepEqual(plain.marks.onDeckIds, []);
+
+  // Every write went to the one taught-marks document, in the lessons collection.
+  assert.ok(calls.length >= 3);
+  for (const call of calls) {
+    assert.equal(call.collection, 'lessons');
+    assert.equal(call.id, taughtMarksId(teacherId, 'g1'));
+    assert.equal(call.op, 'set');
+    assert.equal(call.data?.kind, TAUGHT_MARKS_KIND);
+    assert.ok(!SHEET_COLLECTIONS.includes(call.collection));
+  }
+});
+
+test('a taught-marks document saved before onDeckIds existed still loads', () => {
+  const old = { kind: TAUGHT_MARKS_KIND, teacherId, groupId: 'g1', lessonIds: ['a', 'b'], savedAt: '2026-09-29T00:00:00.000Z' };
+  assert.deepEqual(normalizeTaughtMarks(old), { groupId: 'g1', lessonIds: ['a', 'b'], onDeckIds: [], savedAt: '2026-09-29T00:00:00.000Z' });
+  const storage = memoryStorage();
+  storage.setItem('wrs_dojo_taught_marks_v1', JSON.stringify({ [teacherId]: { g1: { lessonIds: ['a'], savedAt: 'x' } } }));
+  assert.deepEqual(readLocalTaughtMarks(teacherId, storage).g1, { groupId: 'g1', lessonIds: ['a'], onDeckIds: [], savedAt: 'x' });
+});
+
+test('every Taught card offers Put back on deck, and a put-back lesson shows a note', () => {
+  const source = readFileSync(new URL('../legacy/components/LoadedLessons.tsx', import.meta.url), 'utf8');
+  assert.match(source, /status && lessonStatus === 'taught' && \([\s\S]*?Put back on deck/);
+  assert.doesNotMatch(source, /manuallyTaught && \(\s*<button/);
+  assert.match(source, /putBackByYou && [\s\S]*?Put back by you/);
 });

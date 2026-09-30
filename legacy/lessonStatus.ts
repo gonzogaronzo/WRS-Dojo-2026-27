@@ -23,12 +23,21 @@ export interface LessonStatusContext {
   completedLessonIds: ReadonlySet<string>;
   /** Lessons the teacher marked taught by hand, for this group. */
   markedTaughtIds: ReadonlySet<string>;
+  /**
+   * Lessons the teacher put back on deck, for this group. This beats a mission
+   * or history record: an old app wrote a mission when a lesson STARTED, so a
+   * record does not always mean the lesson was finished.
+   */
+  putBackIds?: ReadonlySet<string>;
   /** The lesson this group has a saved spot in (or is running right now). */
   spotLessonId?: string;
 }
 
 export const deriveLessonStatus = (record: Pick<LibraryLessonRecord, 'id'>, context: LessonStatusContext): LessonStatus => {
-  if (context.completedLessonIds.has(record.id) || context.markedTaughtIds.has(record.id)) return 'taught';
+  // The teacher's choice always wins over what the records say.
+  if (context.markedTaughtIds.has(record.id)) return 'taught';
+  const putBack = Boolean(context.putBackIds?.has(record.id));
+  if (!putBack && context.completedLessonIds.has(record.id)) return 'taught';
   if (context.spotLessonId && context.spotLessonId === record.id) return 'in-progress';
   return 'on-deck';
 };
@@ -36,8 +45,10 @@ export const deriveLessonStatus = (record: Pick<LibraryLessonRecord, 'id'>, cont
 export interface LessonStatusEntry {
   record: LibraryLessonRecord;
   status: LessonStatus;
-  /** Taught only by the teacher's mark, so it can be put back on deck. */
+  /** Taught because the teacher marked it (a finished mission may also exist). */
   manuallyTaught: boolean;
+  /** A mission or history record says it was taught, but the teacher put it back. */
+  putBackByYou: boolean;
   /** The file's date when it has already passed and the lesson is not taught. */
   plannedFor: string;
 }
@@ -73,7 +84,8 @@ export const arrangeByStatus = (
       return {
         record,
         status,
-        manuallyTaught: status === 'taught' && !context.completedLessonIds.has(record.id) && context.markedTaughtIds.has(record.id),
+        manuallyTaught: status === 'taught' && context.markedTaughtIds.has(record.id),
+        putBackByYou: status !== 'taught' && Boolean(context.putBackIds?.has(record.id)) && context.completedLessonIds.has(record.id),
         plannedFor: status !== 'taught' && record.lessonDate && record.lessonDate < today ? record.lessonDate : ''
       };
     });
@@ -146,7 +158,10 @@ export const TAUGHT_MARKS_STORAGE_KEY = 'wrs_dojo_taught_marks_v1';
 
 export interface TaughtMarks {
   groupId: string;
+  /** Lessons taught by hand. */
   lessonIds: string[];
+  /** Lessons put back on deck by hand although a mission or history record exists. */
+  onDeckIds: string[];
   /** ISO time of the last change; the newer copy (device or cloud) wins. */
   savedAt: string;
 }
@@ -161,10 +176,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 export const normalizeTaughtMarks = (value: unknown): TaughtMarks | null => {
   if (!isRecord(value) || value.kind !== TAUGHT_MARKS_KIND) return null;
   if (typeof value.groupId !== 'string' || !value.groupId) return null;
-  const lessonIds = Array.isArray(value.lessonIds)
-    ? Array.from(new Set(value.lessonIds.filter((id): id is string => typeof id === 'string' && Boolean(id))))
+  const idList = (list: unknown) => Array.isArray(list)
+    ? Array.from(new Set(list.filter((id): id is string => typeof id === 'string' && Boolean(id))))
     : [];
-  return { groupId: value.groupId, lessonIds, savedAt: typeof value.savedAt === 'string' ? value.savedAt : '' };
+  // Documents saved before onDeckIds existed simply have none.
+  const lessonIds = idList(value.lessonIds);
+  return { groupId: value.groupId, lessonIds, onDeckIds: idList(value.onDeckIds), savedAt: typeof value.savedAt === 'string' ? value.savedAt : '' };
 };
 
 export const buildTaughtMarksDoc = (teacherId: string, marks: TaughtMarks) => ({
@@ -173,6 +190,7 @@ export const buildTaughtMarksDoc = (teacherId: string, marks: TaughtMarks) => ({
   teacherId,
   groupId: marks.groupId,
   lessonIds: marks.lessonIds,
+  onDeckIds: marks.onDeckIds,
   savedAt: marks.savedAt
 });
 
@@ -187,7 +205,7 @@ export const mergeTaughtMarks = (local: TaughtMarksMap, cloud: TaughtMarksMap): 
 };
 
 export const taughtMarksKey = (map: TaughtMarksMap) =>
-  Object.keys(map).sort().map(groupId => `${groupId}:${[...map[groupId].lessonIds].sort().join(',')}`).join('|');
+  Object.keys(map).sort().map(groupId => `${groupId}:${[...map[groupId].lessonIds].sort().join(',')}/${[...map[groupId].onDeckIds].sort().join(',')}`).join('|');
 
 export const readLocalTaughtMarks = (teacherId: string, storage: SpotStorage | null): TaughtMarksMap => {
   try {
@@ -216,7 +234,7 @@ export const writeLocalTaughtMarks = (teacherId: string, marks: TaughtMarks, sto
   const mine = isRecord(all[key]) ? (all[key] as Record<string, unknown>) : {};
   storage.setItem(TAUGHT_MARKS_STORAGE_KEY, JSON.stringify({
     ...all,
-    [key]: { ...mine, [marks.groupId]: { lessonIds: marks.lessonIds, savedAt: marks.savedAt } }
+    [key]: { ...mine, [marks.groupId]: { lessonIds: marks.lessonIds, onDeckIds: marks.onDeckIds, savedAt: marks.savedAt } }
   }));
 };
 
@@ -226,19 +244,30 @@ export interface SetTaughtResult { marks: TaughtMarks; cloud: boolean; message: 
  * Marks a lesson taught, or puts it back on deck. Writes the device copy first,
  * then one document in the lesson library's collection under the group's own
  * id. It never writes anywhere else, and never creates a mission record.
+ *
+ * Marking taught removes the lesson from the put-back list. Putting it back
+ * removes it from the taught list, and adds it to the put-back list only when
+ * a mission or history record says it was taught (`recordSaysTaught`), so the
+ * teacher's choice beats that record.
  */
 export const setLessonTaught = async (
   teacherId: string,
   groupId: string,
-  currentIds: readonly string[],
+  current: Pick<TaughtMarks, 'lessonIds' | 'onDeckIds'>,
   lessonId: string,
   taught: boolean,
+  recordSaysTaught: boolean,
   savedAt: string,
   remote: SpotRemote | null,
   storage: SpotStorage | null
 ): Promise<SetTaughtResult> => {
-  const rest = currentIds.filter(id => id !== lessonId);
-  const marks: TaughtMarks = { groupId, lessonIds: taught ? [...rest, lessonId] : rest, savedAt };
+  const without = (ids: readonly string[]) => ids.filter(id => id !== lessonId);
+  const marks: TaughtMarks = {
+    groupId,
+    lessonIds: taught ? [...without(current.lessonIds), lessonId] : without(current.lessonIds),
+    onDeckIds: taught ? without(current.onDeckIds) : (recordSaysTaught ? [...without(current.onDeckIds), lessonId] : without(current.onDeckIds)),
+    savedAt
+  };
   try {
     writeLocalTaughtMarks(teacherId, marks, storage);
   } catch (error) {
