@@ -8,7 +8,7 @@ import type { GroupProfile } from './types';
 import type { SpotRemote } from './spotStore';
 import {
   LessonStatusContext, Runway, TaughtMarksMap, mergeTaughtMarks, normalizeTaughtMarks, readLocalTaughtMarks,
-  runwaysByGroup, setLessonTaught, taughtMarksKey
+  runwaysByGroup, setLessonTaught, clearLessonPutBack, taughtMarksKey
 } from './lessonStatus';
 import { describeFirestoreError, useLessonLibraryContext } from './useLessonLibrary';
 
@@ -20,6 +20,8 @@ export interface LessonStatusData {
   contextFor: (groupId: string) => LessonStatusContext;
   markTaught: (groupId: string, lessonId: string) => Promise<void>;
   putBackOnDeck: (groupId: string, lessonId: string) => Promise<void>;
+  /** The lesson was finished through the Part 10 dossier: an earlier put-back no longer hides it. */
+  lessonFinished: (groupId: string, lessonId: string) => Promise<void>;
 }
 
 const deviceStorage = () => {
@@ -142,6 +144,20 @@ export const useLessonStatusData = (user: User | null, groups: GroupProfile[], s
     setError(result.cloud ? '' : `That change is kept on this computer only. ${result.message}`);
   }, [remote, teacherId]);
 
+  const lessonFinished = useCallback(async (groupId: string, lessonId: string) => {
+    const existing = marksRef.current[groupId];
+    if (!existing) return;
+    const current = { lessonIds: existing.lessonIds, onDeckIds: existing.onDeckIds };
+    const savedAt = new Date().toISOString();
+    const local = await clearLessonPutBack(teacherId, groupId, current, lessonId, savedAt, null, deviceStorage());
+    if (!local) return;
+    marksRef.current = { ...marksRef.current, [groupId]: local.marks };
+    setLocalMarks(previous => ({ ...previous, [groupId]: local.marks }));
+    if (!remote) return;
+    const result = await clearLessonPutBack(teacherId, groupId, current, lessonId, savedAt, remote, null);
+    if (result && !result.cloud) setError(`That change is kept on this computer only. ${result.message}`);
+  }, [remote, teacherId]);
+
   const markTaught = useCallback((groupId: string, lessonId: string) => change(groupId, lessonId, true), [change]);
   const putBackOnDeck = useCallback((groupId: string, lessonId: string) => change(groupId, lessonId, false), [change]);
 
@@ -154,8 +170,8 @@ export const useLessonStatusData = (user: User | null, groups: GroupProfile[], s
 
   const ready = missionsReady && marksReady;
   return useMemo(
-    () => ({ ready, error, completedLessonIds, contextFor, markTaught, putBackOnDeck }),
-    [ready, error, completedLessonIds, contextFor, markTaught, putBackOnDeck]
+    () => ({ ready, error, completedLessonIds, contextFor, markTaught, putBackOnDeck, lessonFinished }),
+    [ready, error, completedLessonIds, contextFor, markTaught, putBackOnDeck, lessonFinished]
   );
 };
 

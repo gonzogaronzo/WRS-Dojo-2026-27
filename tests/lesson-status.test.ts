@@ -9,7 +9,7 @@ import {
 } from '../legacy/lessonLibrary';
 import {
   LessonStatusContext, arrangeByStatus, buildTaughtMarksDoc, deriveLessonStatus, mergeTaughtMarks,
-  normalizeTaughtMarks, readLocalTaughtMarks, runwayAlerts, runwayFor, runwaysByGroup, setLessonTaught, taughtMarksId
+  normalizeTaughtMarks, readLocalTaughtMarks, clearLessonPutBack, runwayAlerts, runwayFor, runwaysByGroup, setLessonTaught, taughtMarksId
 } from '../legacy/lessonStatus';
 import { addMissionToGroup } from '../legacy/missionArchive';
 import { RunwayChip, RunwayNotice } from '../legacy/components/Runway';
@@ -312,4 +312,68 @@ test('every Taught card offers Put back on deck, and a put-back lesson shows a n
   assert.match(source, /status && lessonStatus === 'taught' && \([\s\S]*?Put back on deck/);
   assert.doesNotMatch(source, /manuallyTaught && \(\s*<button/);
   assert.match(source, /putBackByYou && [\s\S]*?Put back by you/);
+});
+
+test('Taught lessons are all shown, most recent first, with no collapse toggle and the legacy toggle untouched', () => {
+  const records = [record('old', '2026-09-01'), record('newer', '2026-09-20'), record('undated', ''), record('mid', '2026-09-10')];
+  const arranged = arrangeByStatus(records, 'g1', context({ completedLessonIds: new Set(['old', 'newer', 'undated', 'mid']) }), today);
+  assert.deepEqual(arranged.taught.map(e => e.record.id), ['newer', 'mid', 'old', 'undated']);
+
+  const loaded = readFileSync(new URL('../legacy/components/LoadedLessons.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(loaded, /showTaught|setShowTaught|Show older lessons/);
+  assert.match(loaded, /Taught \(\{taught\.length\}\)/);
+  // Order on the page: In progress, On deck, Taught.
+  assert.ok(loaded.indexOf('In progress (') < loaded.indexOf('On deck (') && loaded.indexOf('On deck (') < loaded.indexOf('Taught ('));
+  // The legacy "Show older lessons" toggle for built-in lessons is still there.
+  const squads = readFileSync(new URL('../legacy/components/SquadsView.tsx', import.meta.url), 'utf8');
+  assert.match(squads, /Show older lessons/);
+});
+
+test('put back, then finish through the dossier: it becomes Taught and the runway count drops', async () => {
+  const lesson = record('old-start', '2026-09-10');
+  const other = record('next', '2026-10-05');
+  const records = [lesson, other];
+  const { calls, remote } = recordingRemote();
+  const storage = memoryStorage();
+
+  // Old start-of-lesson record makes it Taught; the teacher puts it back on deck.
+  const completedBefore = new Set(['old-start']);
+  const putBack = await setLessonTaught(teacherId, 'g1', none, 'old-start', false, true, '2026-09-30T09:00:00.000Z', remote, storage);
+  const ctx = (completed: Set<string>, marks: { lessonIds: string[]; onDeckIds: string[] }, spot?: string) => context({
+    completedLessonIds: completed, markedTaughtIds: new Set(marks.lessonIds), putBackIds: new Set(marks.onDeckIds), spotLessonId: spot
+  });
+  const runwayCount = (c: LessonStatusContext) => runwaysByGroup(records, ['g1'], () => c, today).g1.count;
+  assert.equal(runwayCount(ctx(completedBefore, putBack.marks)), 2);
+
+  // The lesson is launched and worked on: In progress, so not counted On deck.
+  assert.equal(runwayCount(ctx(completedBefore, putBack.marks, 'old-start')), 1);
+
+  // Part 10 dossier completed: the group's history gains the record and the put-back entry is cleared.
+  const cleared = await clearLessonPutBack(teacherId, 'g1', putBack.marks, 'old-start', '2026-10-02T09:00:00.000Z', remote, storage);
+  assert.ok(cleared);
+  assert.deepEqual(cleared!.marks.onDeckIds, []);
+  assert.deepEqual(cleared!.marks.lessonIds, []);
+  const after = arrangeByStatus(records, 'g1', ctx(completedBefore, cleared!.marks), today);
+  assert.deepEqual(after.taught.map(e => e.record.id), ['old-start']);
+  assert.deepEqual(after.onDeck.map(e => e.record.id), ['next']);
+  assert.equal(runwayCount(ctx(completedBefore, cleared!.marks)), 1);
+
+  // Nothing to clear means no write at all.
+  const writes = calls.length;
+  assert.equal(await clearLessonPutBack(teacherId, 'g1', cleared!.marks, 'old-start', 'later', remote, storage), null);
+  assert.equal(await clearLessonPutBack(teacherId, 'g1', cleared!.marks, 'never-put-back', 'later', remote, storage), null);
+  assert.equal(calls.length, writes);
+
+  // Only the taught-marks document was written.
+  for (const call of calls) {
+    assert.equal(call.collection, 'lessons');
+    assert.equal(call.id, taughtMarksId(teacherId, 'g1'));
+    assert.equal(call.data?.kind, TAUGHT_MARKS_KIND);
+  }
+
+  // The dossier's completion handler calls it, for the group and lesson that just finished.
+  const app = readFileSync(new URL('../legacy/App.tsx', import.meta.url), 'utf8');
+  assert.match(app, /lessonStatus\.lessonFinished\(finishedGroupId, currentLesson\.id\)/);
+  const hook = readFileSync(new URL('../legacy/useLessonStatus.ts', import.meta.url), 'utf8');
+  assert.match(hook, /clearLessonPutBack\(/);
 });

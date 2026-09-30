@@ -94,8 +94,14 @@ export const arrangeByStatus = (
     else if (entry.status === 'on-deck') arranged.onDeck.push(entry);
     else arranged.taught.push(entry);
   }
-  // Taught lessons: most recent first.
-  arranged.taught.reverse();
+  // Taught lessons: most recent first, undated last.
+  arranged.taught.sort((a, b) => {
+    const x = a.record, y = b.record;
+    if (x.lessonDate && y.lessonDate) return y.lessonDate.localeCompare(x.lessonDate) || newestSave(x, y);
+    if (x.lessonDate) return -1;
+    if (y.lessonDate) return 1;
+    return newestSave(x, y);
+  });
   return arranged;
 };
 
@@ -272,6 +278,42 @@ export const setLessonTaught = async (
     writeLocalTaughtMarks(teacherId, marks, storage);
   } catch (error) {
     console.warn('The taught mark could not be kept on this device', error);
+  }
+  if (!remote || !teacherId) return { marks, cloud: false, message: 'Kept on this device only.' };
+  try {
+    await remote.set(LESSON_LIBRARY_COLLECTION, taughtMarksId(teacherId, groupId), buildTaughtMarksDoc(teacherId, marks));
+    return { marks, cloud: true, message: 'Saved.' };
+  } catch (error) {
+    return { marks, cloud: false, message: error instanceof Error ? error.message : String(error) };
+  }
+};
+
+/**
+ * A lesson the teacher put back on deck was then genuinely finished (the Part 10
+ * dossier was completed): drop it from the put-back list so its finished record
+ * counts again and it becomes Taught. Returns null when there is nothing to
+ * change, so no write happens. Only the taught-marks document is ever written.
+ */
+export const clearLessonPutBack = async (
+  teacherId: string,
+  groupId: string,
+  current: Pick<TaughtMarks, 'lessonIds' | 'onDeckIds'>,
+  lessonId: string,
+  savedAt: string,
+  remote: SpotRemote | null,
+  storage: SpotStorage | null
+): Promise<SetTaughtResult | null> => {
+  if (!current.onDeckIds.includes(lessonId)) return null;
+  const marks: TaughtMarks = {
+    groupId,
+    lessonIds: [...current.lessonIds],
+    onDeckIds: current.onDeckIds.filter(id => id !== lessonId),
+    savedAt
+  };
+  try {
+    writeLocalTaughtMarks(teacherId, marks, storage);
+  } catch (error) {
+    console.warn('The put-back could not be cleared on this device', error);
   }
   if (!remote || !teacherId) return { marks, cloud: false, message: 'Kept on this device only.' };
   try {

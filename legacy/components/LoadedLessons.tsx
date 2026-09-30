@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CheckCircle2, ChevronDown, ChevronUp, Edit, FileUp, Printer, Trash2, Undo2 } from 'lucide-react';
+import { CheckCircle2, Edit, FileUp, Printer, Trash2, Undo2 } from 'lucide-react';
 import type { GroupProfile, Lesson, StudentProfile } from '../types';
 import MissionCard from './MissionCard';
 import ConfirmModal from './ConfirmModal';
@@ -42,7 +42,6 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
 }) => {
   const library = useLessonLibraryContext();
   const [loaderOpen, setLoaderOpen] = useState(false);
-  const [showTaught, setShowTaught] = useState(false);
   const [pendingRemoval, setPendingRemoval] = useState<LibraryLessonRecord | null>(null);
   const [removeError, setRemoveError] = useState('');
   const today = localDateString();
@@ -168,16 +167,9 @@ const LoadedLessons: React.FC<LoadedLessonsProps> = ({
       )}
 
       {taught.length > 0 && (
-        <div className="space-y-4">
-          <button
-            type="button"
-            onClick={() => setShowTaught(value => !value)}
-            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-stone-500 hover:text-stone-900"
-          >
-            {showTaught ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            Show older lessons · Taught ({taught.length})
-          </button>
-          {showTaught && <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{taught.map(renderCard)}</div>}
+        <div className="space-y-3">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-stone-600">Taught ({taught.length})</h4>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{taught.map(renderCard)}</div>
         </div>
       )}
 

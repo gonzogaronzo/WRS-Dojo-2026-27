@@ -1077,6 +1077,8 @@ const App: React.FC = () => {
             onComplete={() => { 
               // Finishing clears only this group's saved spot.
               const finishedGroupId = activeGroup.id;
+              // A lesson the teacher had put back on deck was genuinely finished: it counts as Taught again.
+              void lessonStatus.lessonFinished(finishedGroupId, currentLesson.id);
               dropPendingSpot();
               setMode('dashboard'); 
               setIsSessionDossierOpen(false);
