@@ -12,11 +12,12 @@ import StudentScreenJoinDialog from './StudentScreenJoinDialog';
 import GroupNotes from './GroupNotes';
 
 import DailyNotes from './DailyNotes';
-import { RecoverableSession } from '../sessionRecovery';
+import UnfinishedLessons from './UnfinishedLessons';
+import type { GroupSpot, GroupSpotMap } from '../groupSpots';
 import type { CloudCheckResult } from '../useMasterData';
 import { 
   Users, Plus, X, RefreshCw, Sparkles, LogIn, LogOut, AlertTriangle, AlertCircle, Copy, Globe, Download,
-  UserPlus, BookOpen, History, Calendar, Play, Trash2, CheckCircle2, Database, ShieldCheck,
+  UserPlus, BookOpen, History, Calendar, Play, CheckCircle2, Database, ShieldCheck,
   BarChart3, MonitorUp
 } from 'lucide-react';
 
@@ -46,9 +47,10 @@ interface GroupDashboardProps {
   onResetToMaster?: () => void;
   onMigrateLocalData?: () => Promise<boolean>;
   onVerifyCloudPersistence?: () => Promise<CloudCheckResult>;
-  recoverableSession?: RecoverableSession | null;
-  onResumeSession?: (session: RecoverableSession) => void;
-  onDiscardSession?: () => void;
+  spots?: GroupSpotMap;
+  spotsError?: string;
+  onResumeSpot?: (spot: GroupSpot) => void;
+  onDiscardSpot?: (spot: GroupSpot) => void;
   onJoinStudentDisplay?: (code: string) => void;
   user?: any;
 }
@@ -57,7 +59,7 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({
   groups, students, archivedGroups = [], archivedStudents = [], groupNotes = [], currentRosterReady = false, activeGroup, onSelectGroup, onUpdateGroups, onUpdateGroup, onUpdateStudents,
   onLaunchLesson, onEditLesson, onPrintLesson, onCreateLesson, onDeleteGroup, onDeleteStudent, cloudStatus, onResetToMaster, onMigrateLocalData,
   cloudError, lastCloudSaveAt, lastCloudCheckAt, hasLocalData, onVerifyCloudPersistence,
-  recoverableSession, onResumeSession, onDiscardSession, onJoinStudentDisplay, user
+  spots = {}, spotsError, onResumeSpot, onDiscardSpot, onJoinStudentDisplay, user
 }) => {
   const [view, setView] = useState<'roster' | 'library' | 'archives'>('roster');
   const [subView, setSubView] = useState<string>('squads');
@@ -438,38 +440,12 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({
          </div>
       </div>
 
-      {recoverableSession && (
-        <section className="w-full border-b border-emerald-200 bg-emerald-50 px-4 py-3" aria-label="Unfinished lesson">
-          <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-emerald-700 p-2 text-white shadow-sm">
-                <Play className="h-4 w-4" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-700">Unfinished lesson saved</p>
-                <h2 className="font-serif text-base font-black text-stone-900">{recoverableSession.lesson.title}</h2>
-                <p className="mt-0.5 text-[10px] font-bold text-stone-500">
-                  Part {recoverableSession.currentPart} of 10 · Saved {new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date(recoverableSession.savedAt))}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2 pl-11 sm:pl-0">
-              <button
-                onClick={() => onDiscardSession?.()}
-                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-stone-500 hover:border-red-200 hover:text-red-700"
-              >
-                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Discard
-              </button>
-              <button
-                onClick={() => onResumeSession?.(recoverableSession)}
-                className="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-white shadow-sm hover:bg-emerald-600"
-              >
-                <Play className="h-3.5 w-3.5" aria-hidden="true" /> Resume Lesson
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
+      <UnfinishedLessons
+        spots={spots}
+        error={spotsError}
+        onResume={spot => onResumeSpot?.(spot)}
+        onDiscard={spot => onDiscardSpot?.(spot)}
+      />
 
       {showAddGroup && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-stone-950/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-group-title">
@@ -623,6 +599,15 @@ const GroupDashboard: React.FC<GroupDashboardProps> = ({
       )}
 
       <div className="w-full flex-1 p-4 max-w-5xl">
+        {activeGroup && spots[activeGroup.id] && (
+          <button
+            type="button"
+            onClick={() => onResumeSpot?.(spots[activeGroup.id])}
+            className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-sm hover:bg-emerald-600"
+          >
+            <Play className="h-4 w-4" aria-hidden="true" /> Pick up where you left off · {spots[activeGroup.id].lessonTitle}, Part {spots[activeGroup.id].currentPart}
+          </button>
+        )}
         {view === 'roster' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <SubNav 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Lesson, StudentProfile, GroupProfile, WordlistScore, MissionRecord } from '../types';
 import { CheckCircle, RefreshCw, Trophy, ShieldCheck, Home, Terminal, ClipboardList, ScrollText, WifiOff, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { buildMissionRecord, createMissionId } from '../missionArchive';
+import { buildMissionRecord, createMissionId, todayAsInputDate } from '../missionArchive';
 
 interface SessionDossierProps {
   lesson: Lesson;
@@ -13,6 +13,8 @@ interface SessionDossierProps {
   sessionNotes?: string;
   sessionId?: string;
   sessionDate?: string;
+  /** Day the lesson was first launched for the group; the mission keeps it next to the finish day. */
+  dateStarted?: string;
   teacherId: string;
   onArchiveMission: (mission: MissionRecord) => Promise<'local' | 'cloud'>;
   onComplete: () => void;
@@ -40,7 +42,7 @@ export const UnassignedLessonCompletion: React.FC<{ onReturn?: () => void }> = (
 
 const SessionDossier: React.FC<SessionDossierProps> = ({ 
   lesson, activeGroup, students, sessionStudentIds, sessionScores, sessionNotes = '', 
-  sessionId = '', sessionDate = '', teacherId, onArchiveMission, onComplete, onUpdateGroup
+  sessionId = '', sessionDate = '', dateStarted = '', teacherId, onArchiveMission, onComplete, onUpdateGroup
 }) => {
   const [syncStatus, setSyncStatus] = useState<'saving' | 'success-local' | 'success-cloud' | 'error'>('saving');
   const [journalStatus, setJournalStatus] = useState<'idle' | 'saving' | 'success'>('idle');
@@ -50,6 +52,7 @@ const SessionDossier: React.FC<SessionDossierProps> = ({
   
   const logEndRef = useRef<HTMLDivElement>(null);
   const missionIdRef = useRef(sessionId || createMissionId());
+  const [dateFinished] = useState(() => todayAsInputDate());
   const autoSaveStartedRef = useRef(false);
   const activeStudents = useMemo(
     () => students.filter(s => sessionStudentIds.includes(s.id)),
@@ -59,13 +62,15 @@ const SessionDossier: React.FC<SessionDossierProps> = ({
     id: missionIdRef.current,
     teacherId,
     date: sessionDate,
+    dateStarted: dateStarted || sessionDate,
+    dateFinished,
     lesson,
     group: activeGroup,
     students,
     studentIds: sessionStudentIds,
     scores: sessionScores,
     notes: sessionNotes
-  }), [activeGroup, lesson, sessionDate, sessionNotes, sessionScores, sessionStudentIds, students, teacherId]);
+  }), [activeGroup, dateFinished, dateStarted, lesson, sessionDate, sessionNotes, sessionScores, sessionStudentIds, students, teacherId]);
 
   useEffect(() => {
     const date = sessionDate || new Date().toLocaleDateString();

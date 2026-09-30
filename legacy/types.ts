@@ -396,6 +396,9 @@ export interface MissionRecord {
   squadName: string;
   lessonId: string;
   date: string;
+  /** Day the lesson was first launched for the group; `date` is the day it was finished. */
+  dateStarted?: string;
+  dateFinished?: string;
   step: string;
   substep: string;
   lessonStep: string;

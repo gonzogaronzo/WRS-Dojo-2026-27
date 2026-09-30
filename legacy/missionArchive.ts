@@ -31,6 +31,10 @@ interface BuildMissionRecordInput {
   studentIds: string[];
   scores: WordlistScore[];
   notes?: string;
+  /** Day the lesson was first launched for this group (a lesson can span several days). */
+  dateStarted?: string;
+  /** Day the lesson was completed. `date` keeps meaning the same day, for the Sheets mirror. */
+  dateFinished?: string;
 }
 
 export const buildMissionRecord = ({
@@ -42,7 +46,9 @@ export const buildMissionRecord = ({
   students,
   studentIds,
   scores,
-  notes = ''
+  notes = '',
+  dateStarted,
+  dateFinished
 }: BuildMissionRecordInput): MissionRecord => {
   const results: StudentMissionResult[] = students
     .filter(student => studentIds.includes(student.id))
@@ -92,6 +98,8 @@ export const buildMissionRecord = ({
     squadName: group.name,
     lessonId: lesson.id,
     date: date || todayAsInputDate(),
+    ...(dateStarted ? { dateStarted } : {}),
+    ...(dateFinished ? { dateFinished } : {}),
     step: lesson.step,
     substep: lesson.substep,
     lessonStep: `${lesson.step}.${lesson.substep}`,
