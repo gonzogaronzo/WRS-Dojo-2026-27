@@ -37,6 +37,7 @@ import {
   loadRecoverableSession
 } from './sessionRecovery';
 import { useGroupSpots } from './useGroupSpots';
+import { LessonStatusProvider, useLessonStatusData } from './useLessonStatus';
 import UnfinishedLessonPrompt from './components/UnfinishedLessonPrompt';
 import {
   GroupSpot, buildSpot, launchDecision, migrateLegacySpots, readMigratedSessionIds,
@@ -83,6 +84,7 @@ const App: React.FC = () => {
   } = useMasterData();
   const lessonLibrary = useLessonLibrary(user);
   const groupSpots = useGroupSpots(user);
+  const lessonStatus = useLessonStatusData(user, groups, groupSpots.spots);
   const { getSpot, saveSpot, clearSpot } = groupSpots;
 
   const [activeGroup, setActiveGroup] = useState<GroupProfile | null>(null);
@@ -1075,6 +1077,8 @@ const App: React.FC = () => {
             onComplete={() => { 
               // Finishing clears only this group's saved spot.
               const finishedGroupId = activeGroup.id;
+              // A lesson the teacher had put back on deck was genuinely finished: it counts as Taught again.
+              void lessonStatus.lessonFinished(finishedGroupId, currentLesson.id);
               dropPendingSpot();
               setMode('dashboard'); 
               setIsSessionDossierOpen(false);
@@ -1147,6 +1151,7 @@ const App: React.FC = () => {
 
   return (
     <LessonLibraryProvider value={lessonLibrary}>
+    <LessonStatusProvider value={lessonStatus}>
     <div className="h-full w-full bg-[#fcfbf9] text-stone-900 relative overflow-hidden selection:bg-red-500/10">
       {safeBoot && isSafeBootNoticeVisible && mode === 'dashboard' && (
         <div className="fixed left-1/2 top-4 z-[300] flex w-[min(92vw,44rem)] -translate-x-1/2 items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-950 shadow-xl" role="status">
@@ -1336,6 +1341,7 @@ const App: React.FC = () => {
         onCancel={() => setLaunchPrompt(null)}
       />
     </div>
+    </LessonStatusProvider>
     </LessonLibraryProvider>
   );
 };
