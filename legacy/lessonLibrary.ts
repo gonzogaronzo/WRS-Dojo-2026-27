@@ -16,6 +16,12 @@ import { normalizeRuntimeLessonPlan, runtimeLessonToLegacyLesson } from './runti
 import { createEmptyWrsLessonPlan, normalizeWrsLessonPlan } from './wrsLessonPlan';
 
 export const LESSON_LIBRARY_COLLECTION = 'lessons';
+/**
+ * A group's paused lesson is stored in this same collection (the current
+ * Firestore rules already let a teacher read and write their own documents
+ * there) but is not a lesson. Everything that reads the library must skip it.
+ */
+export const PAUSED_SPOT_KIND = 'paused-spot';
 /** Firestore's hard limit is 1 MiB per document; stay clearly under it. */
 export const LESSON_DOCUMENT_BYTE_LIMIT = 900_000;
 
@@ -327,6 +333,7 @@ export const planLessonWrite = (
 /** Reads a Firestore `lessons` document, or null if it isn't a usable record. */
 export const normalizeLibraryRecord = (id: string, value: unknown): LibraryLessonRecord | null => {
   const data = asRecord(value);
+  if (data?.kind === PAUSED_SPOT_KIND) return null;
   const lesson = asRecord(data?.lesson);
   if (!data || !lesson || !text(data.teacherId) || !text(data.groupId)) return null;
   return {
@@ -344,6 +351,31 @@ export const normalizeLibraryRecord = (id: string, value: unknown): LibraryLesso
     // The document id is the lesson's identity everywhere in the app.
     lesson: { ...(lesson as Lesson), id }
   };
+};
+
+export interface LibrarySnapshotDoc { id: string; data: unknown }
+export interface LibrarySnapshotChange { id: string; data: unknown }
+
+export const isPausedSpotData = (value: unknown) => asRecord(value)?.kind === PAUSED_SPOT_KIND;
+
+/**
+ * Turns a `lessons` snapshot into library records. A paused-spot document is
+ * saved about once a second during a lesson; a snapshot that only carries
+ * those changes must hand back the SAME array, so nothing that depends on the
+ * library re-renders. The first snapshot always rebuilds the list.
+ */
+export const applyLibrarySnapshot = (
+  current: LibraryLessonRecord[],
+  readDocs: () => LibrarySnapshotDoc[],
+  changes: LibrarySnapshotChange[],
+  isFirstSnapshot: boolean
+): LibraryLessonRecord[] => {
+  if (!isFirstSnapshot && changes.every(change => isPausedSpotData(change.data))) return current;
+  return readDocs().flatMap(doc => {
+    if (isPausedSpotData(doc.data)) return [];
+    const record = normalizeLibraryRecord(doc.id, doc.data);
+    return record ? [record] : [];
+  });
 };
 
 /** The record to write after the lesson is edited in the app. */

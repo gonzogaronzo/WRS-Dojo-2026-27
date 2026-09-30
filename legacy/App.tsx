@@ -16,7 +16,7 @@ import {
   createInitialLessonSession, lessonSessionFromCloud, lessonSessionsMatch,
   lessonSessionToCloud, useLessonSession
 } from './useLessonSession';
-import { buildMissionRecord, createMissionId } from './missionArchive';
+import { createMissionId } from './missionArchive';
 
 // Modules
 import MissionBriefing from './components/modules/MissionBriefing'; 
@@ -34,9 +34,15 @@ import MissionPlayer from './components/MissionPlayer';
 import {
   RecoverableSession,
   clearRecoverableSession,
-  loadRecoverableSession,
-  saveRecoverableSession
+  loadRecoverableSession
 } from './sessionRecovery';
+import { useGroupSpots } from './useGroupSpots';
+import UnfinishedLessonPrompt from './components/UnfinishedLessonPrompt';
+import {
+  GroupSpot, buildSpot, launchDecision, migrateLegacySpots, readMigratedSessionIds,
+  resolveSpotLesson, resumeSession, spotDateStarted, spotLessonSourceOf, writeMigratedSessionIds
+} from './groupSpots';
+import { localDateString } from './lessonLibrary';
 import {
   createPresenterSnapshot,
   createPresenterCode,
@@ -60,6 +66,7 @@ import { DrawingStroke, updateDrawingSurface } from './drawingSync';
 import { clearSafeBootMode, isSafeBootMode } from './safeBoot';
 import {
   nextLessonSyncRevision,
+  normalizeLessonSyncRevision,
   shouldApplyIncomingLessonState,
   shouldResetQuickDrillForPartChange
 } from './lessonSessionSync';
@@ -75,6 +82,8 @@ const App: React.FC = () => {
     verifyCloudPersistence, resetToMasterRoster, saveGroupNote
   } = useMasterData();
   const lessonLibrary = useLessonLibrary(user);
+  const groupSpots = useGroupSpots(user);
+  const { getSpot, saveSpot, clearSpot } = groupSpots;
 
   const [activeGroup, setActiveGroup] = useState<GroupProfile | null>(null);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
@@ -147,7 +156,17 @@ const App: React.FC = () => {
   const [isGuestModeNoticeVisible, setIsGuestModeNoticeVisible] = useState<boolean>(true);
   const [safeBoot] = useState(isSafeBootMode);
   const [isSafeBootNoticeVisible, setIsSafeBootNoticeVisible] = useState(true);
-  const [recoverableSession, setRecoverableSession] = useState<RecoverableSession | null>(() => safeBoot ? null : loadRecoverableSession());
+  // The old single unfinished-lesson slot is only read now, once, to carry an
+  // existing unfinished lesson over into that group's own saved spot.
+  const [legacyRecoverable] = useState<RecoverableSession | null>(() => safeBoot ? null : loadRecoverableSession());
+  const [launchPrompt, setLaunchPrompt] = useState<{ spot: GroupSpot; startNew: () => void } | null>(null);
+  const spotInputsRef = useRef<{
+    group: GroupProfile; lesson: Lesson; part: LessonPart; session: typeof lessonSession
+  } | null>(null);
+  const spotDirtyRef = useRef(false);
+  // Set when the teacher has already answered "start the new lesson" for this group's
+  // saved spot, so the Briefing's Start doesn't ask the same question again.
+  const replaceSpotApprovedRef = useRef<{ groupId: string; sessionId: string } | null>(null);
   const presenterChannelRef = useRef<BroadcastChannel | null>(null);
   const presenterWindowRef = useRef<Window | null>(null);
   const latestPresenterSnapshotRef = useRef<PresenterSnapshot | null>(null);
@@ -157,23 +176,95 @@ const App: React.FC = () => {
 
   const isStudentDisplayWindow = displayRole === 'student';
 
-  const discardRecoverableSession = () => {
-    clearRecoverableSession();
-    setRecoverableSession(null);
+  /** Writes the latest unsaved spot now. Used when leaving a lesson, launching another, or closing the tab. */
+  const flushSpot = useCallback(() => {
+    const inputs = spotInputsRef.current;
+    if (!spotDirtyRef.current || !inputs || !user) return;
+    spotDirtyRef.current = false;
+    const today = localDateString();
+    void saveSpot(buildSpot({
+      teacherId: user.uid,
+      group: inputs.group,
+      lesson: inputs.lesson,
+      lessonSource: spotLessonSourceOf(lessonLibrary.isLibraryLesson(inputs.lesson.id), inputs.lesson, inputs.group),
+      currentPart: inputs.part,
+      session: inputs.session,
+      dateStarted: spotDateStarted(
+        getSpot(inputs.group.id), inputs.lesson.id, inputs.session.sessionId, inputs.session.sessionDate, today
+      ),
+      today,
+      now: new Date().toISOString()
+    }));
+  }, [getSpot, lessonLibrary, saveSpot, user]);
+
+  /** Nothing more to save for the lesson on screen (it was finished, discarded or replaced). */
+  const dropPendingSpot = () => {
+    spotDirtyRef.current = false;
+    spotInputsRef.current = null;
   };
 
-  const resumeRecoverableSession = (session: RecoverableSession) => {
-    const group = groups.find(candidate => candidate.id === session.groupId);
-    if (!group) {
-      discardRecoverableSession();
+  const resumeGroupSpot = (spot: GroupSpot, lessonOverride?: Lesson) => {
+    flushSpot();
+    const group = groups.find(candidate => candidate.id === spot.groupId);
+    const lesson = lessonOverride || resolveSpotLesson(spot, lessonLibrary.records, group);
+    if (!group || !lesson) {
+      window.alert(`${spot.groupName}'s unfinished lesson can't be opened because ${group ? 'the lesson is no longer loaded' : 'the group no longer exists'}. It has been kept; load the lesson again to resume it.`);
       return;
     }
-
+    clearSafeBootMode();
+    dropPendingSpot();
+    const restored = resumeSession(
+      spot, lesson, localDateString(),
+      Math.max(lessonSession.syncRevision, normalizeLessonSyncRevision((activeSession as { syncRevision?: number } | null)?.syncRevision))
+    );
+    setLaunchPrompt(null);
     setActiveGroup(group);
-    setCurrentLesson(session.lesson);
-    setCurrentPart(session.currentPart);
-    replaceLessonSession(lessonSessionFromCloud(session));
+    setCurrentLesson(lesson);
+    setCurrentPart(spot.currentPart as LessonPart);
+    replaceLessonSession(restored);
+    setIsSessionDossierOpen(false);
     setMode('run');
+  };
+
+  const startLessonFresh = (lesson: Lesson) => {
+    dropPendingSpot();
+    setLaunchPrompt(null);
+    setCurrentLesson(lesson);
+    setMode('run');
+    setCurrentPart(LessonPart.Briefing);
+    resetLessonSession();
+  };
+
+  /** Launching a lesson never erases another lesson's saved spot. */
+  const launchLesson = (lesson: Lesson) => {
+    clearSafeBootMode();
+    flushSpot();
+    const spot = activeGroup ? getSpot(activeGroup.id) : null;
+    const decision = launchDecision(lesson.id, spot);
+    if (decision === 'resume' && spot) {
+      resumeGroupSpot(spot, lesson);
+    } else if (decision === 'ask' && spot) {
+      setLaunchPrompt({
+        spot,
+        startNew: () => {
+          replaceSpotApprovedRef.current = { groupId: spot.groupId, sessionId: spot.session.sessionId || '' };
+          startLessonFresh(lesson);
+        }
+      });
+    } else {
+      startLessonFresh(lesson);
+    }
+  };
+
+  const discardGroupSpot = (spot: GroupSpot) => {
+    const sessionIdOfSpot = spot.session.sessionId || '';
+    void clearSpot(spot.groupId);
+    if (sessionIdOfSpot) {
+      // The old copies of this same lesson must not bring the spot back.
+      writeMigratedSessionIds([...readMigratedSessionIds(), sessionIdOfSpot]);
+      if (activeSession?.sessionId === sessionIdOfSpot) void updateSession(null);
+      if (legacyRecoverable?.sessionId === sessionIdOfSpot) clearRecoverableSession();
+    }
   };
 
   // Memoize session students and reading cards to prevent unstable array references
@@ -590,26 +681,77 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [activeGroup?.id, activeSession, currentLesson, currentPart, isStudentView, lessonSession, mode, user]);
 
-  // Keep a device-local recovery point even when cloud sync is unavailable.
+  // Keep this group's spot in the lesson. Debounced like the cloud push above; the
+  // latest state is also written when leaving the lesson or closing the tab.
   useEffect(() => {
-    if (isStudentDisplayWindow || mode !== 'run' || !currentLesson || !activeGroup) return;
-
-    const timer = window.setTimeout(() => {
-      const snapshot: RecoverableSession = {
-        ...lessonSessionToCloud(lessonSession, currentLesson, currentPart, activeGroup.id),
-        savedAt: new Date().toISOString()
-      };
-
-      saveRecoverableSession(snapshot);
-      setRecoverableSession(snapshot);
-    }, 600);
-
+    if (mode !== 'run') return;
+    const saveable = !safeBoot && !isStudentDisplayWindow && !isStudentView && user && currentLesson && activeGroup
+      && currentPart !== LessonPart.Briefing && Boolean(lessonSession.sessionId);
+    if (!saveable) {
+      dropPendingSpot();
+      return;
+    }
+    spotInputsRef.current = { group: activeGroup, lesson: currentLesson, part: currentPart, session: lessonSession };
+    spotDirtyRef.current = true;
+    const timer = window.setTimeout(flushSpot, 1000);
     return () => window.clearTimeout(timer);
-  }, [activeGroup, currentLesson, currentPart, isStudentDisplayWindow, lessonSession, mode]);
+  }, [activeGroup, currentLesson, currentPart, flushSpot, isStudentDisplayWindow, isStudentView, lessonSession, mode, safeBoot, user]);
 
-  const handleBriefingStart = async (data: { date: string; studentIds: string[]; isTraining?: boolean }) => {
+  useEffect(() => {
+    if (mode !== 'run') flushSpot();
+  }, [flushSpot, mode]);
+
+  useEffect(() => {
+    const flushWhenHidden = () => { if (document.visibilityState === 'hidden') flushSpot(); };
+    window.addEventListener('pagehide', flushSpot);
+    document.addEventListener('visibilitychange', flushWhenHidden);
+    return () => {
+      window.removeEventListener('pagehide', flushSpot);
+      document.removeEventListener('visibilitychange', flushWhenHidden);
+    };
+  }, [flushSpot]);
+
+  // An unfinished lesson saved the old way (one slot per teacher) becomes that
+  // group's spot, so it is still offered for resume. The old copies are kept.
+  useEffect(() => {
+    if (!groupSpots.ready || safeBoot || isStudentDisplayWindow || !user || groups.length === 0) return;
+    const created = migrateLegacySpots({
+      teacherId: user.uid,
+      candidates: [activeSession as any, legacyRecoverable].map(session => ({
+        session: session as any,
+        lessonSource: session?.lesson && lessonLibrary.isLibraryLesson(session.lesson.id) ? 'library' as const : 'embedded' as const
+      })),
+      groups,
+      existing: groupSpots.spots,
+      migratedSessionIds: readMigratedSessionIds(),
+      today: localDateString(),
+      now: new Date().toISOString()
+    });
+    if (created.length === 0) return;
+    writeMigratedSessionIds([
+      ...readMigratedSessionIds(),
+      ...created.map(spot => spot.session.sessionId || '').filter(Boolean)
+    ]);
+    created.forEach(spot => { void saveSpot(spot); });
+  }, [activeSession, groupSpots.ready, groupSpots.spots, groups, isStudentDisplayWindow, legacyRecoverable, lessonLibrary, safeBoot, saveSpot, user]);
+
+  const handleBriefingStart = async (
+    data: { date: string; studentIds: string[]; isTraining?: boolean },
+    startNewOverGroupSpot = false
+  ): Promise<void> => {
     clearSafeBootMode();
     console.log("Mission Briefing Start:", data);
+    // The group chosen on the Briefing may already have an unfinished lesson. Ask
+    // before this start would replace it.
+    const existingSpot = activeGroup && !data.isTraining && !startNewOverGroupSpot ? getSpot(activeGroup.id) : null;
+    const approved = replaceSpotApprovedRef.current;
+    replaceSpotApprovedRef.current = null;
+    const alreadyApproved = Boolean(existingSpot && approved
+      && approved.groupId === existingSpot.groupId && approved.sessionId === (existingSpot.session.sessionId || ''));
+    if (existingSpot && !alreadyApproved) {
+      setLaunchPrompt({ spot: existingSpot, startNew: () => { setLaunchPrompt(null); void handleBriefingStart(data, true); } });
+      return;
+    }
     const sessionIdentity = { sessionId: createMissionId(), sessionDate: data.date };
     const resetRevision = nextLessonSyncRevision(lessonSession.syncRevision);
     const nextRevision = data.isTraining ? resetRevision : nextLessonSyncRevision(resetRevision);
@@ -631,22 +773,10 @@ const App: React.FC = () => {
       const updatedGroup = { ...activeGroup, lastLessonDate: data.date };
       await updateSquad(updatedGroup);
       
+      // Starting a lesson writes no mission record. The Briefing's student check-in
+      // is kept in the session, and the record (attendance, scores, notes) is
+      // written once, when the lesson is completed.
       if (currentLesson) {
-        try {
-          await archiveMission(buildMissionRecord({
-            id: sessionIdentity.sessionId,
-            teacherId: user?.uid || 'guest-sensei',
-            date: data.date,
-            lesson: currentLesson,
-            group: activeGroup,
-            students,
-            studentIds: data.studentIds,
-            scores: [],
-            notes: ''
-          }));
-        } catch (error) {
-          console.error('Attendance could not be saved at lesson start.', error);
-        }
         updateSession(lessonSessionToCloud(nextSession, currentLesson, LessonPart.Part1, activeGroup.id));
       }
     }
@@ -939,14 +1069,22 @@ const App: React.FC = () => {
             sessionNotes={sessionNotes}
             sessionId={sessionId}
             sessionDate={sessionDate}
+            dateStarted={spotDateStarted(getSpot(activeGroup.id), currentLesson.id, sessionId, sessionDate, localDateString())}
             teacherId={user?.uid || ''}
             onArchiveMission={archiveMission}
             onComplete={() => { 
+              // Finishing clears only this group's saved spot.
+              const finishedGroupId = activeGroup.id;
+              dropPendingSpot();
               setMode('dashboard'); 
               setIsSessionDossierOpen(false);
               updateSession(null); 
               setSessionNotes('');
-              discardRecoverableSession();
+              void clearSpot(finishedGroupId);
+              // A stale copy of this finished lesson (the running-lesson document or the
+              // old device slot) must not be carried over as a new spot.
+              if (sessionId) writeMigratedSessionIds([...readMigratedSessionIds(), sessionId]);
+              if (legacyRecoverable?.sessionId && legacyRecoverable.sessionId === sessionId) clearRecoverableSession();
             }}
             onUpdateGroup={updateSquad}
             gasUrl=""
@@ -1085,14 +1223,7 @@ const App: React.FC = () => {
           onUpdateStudents={(ss) => ss.forEach(s => updateStudent(s))} 
           onDeleteGroup={deleteSquad}
           onDeleteStudent={deleteStudent}
-          onLaunchLesson={(l) => { 
-            clearSafeBootMode();
-            discardRecoverableSession();
-            setCurrentLesson(l); 
-            setMode('run'); 
-            setCurrentPart(LessonPart.Briefing);
-            resetLessonSession();
-          }} 
+          onLaunchLesson={launchLesson}
           onEditLesson={(l) => { setCurrentLesson(l); setMode('edit'); }}
           onPrintLesson={(l) => { printLessonToNewWindow(l, activeGroup || undefined); }}
           onCreateLesson={() => { clearSafeBootMode(); setCurrentLesson(null); setMode('edit'); }}
@@ -1104,9 +1235,10 @@ const App: React.FC = () => {
           onResetToMaster={resetToMasterRoster}
           onMigrateLocalData={migrateLocalData}
           onVerifyCloudPersistence={verifyCloudPersistence}
-          recoverableSession={recoverableSession}
-          onResumeSession={resumeRecoverableSession}
-          onDiscardSession={discardRecoverableSession}
+          spots={groupSpots.spots}
+          spotsError={groupSpots.error}
+          onResumeSpot={spot => resumeGroupSpot(spot)}
+          onDiscardSpot={discardGroupSpot}
           onJoinStudentDisplay={joinCloudStudentDisplay}
           user={user}
         />
@@ -1197,6 +1329,12 @@ const App: React.FC = () => {
           </BoardSafeProvider>
         )
       )}
+      <UnfinishedLessonPrompt
+        spot={launchPrompt?.spot || null}
+        onResume={() => { if (launchPrompt) resumeGroupSpot(launchPrompt.spot); }}
+        onStartNew={() => launchPrompt?.startNew()}
+        onCancel={() => setLaunchPrompt(null)}
+      />
     </div>
     </LessonLibraryProvider>
   );

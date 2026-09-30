@@ -8,8 +8,8 @@ import type { Lesson } from './types';
 import {
   LESSON_LIBRARY_COLLECTION,
   LibraryLessonRecord,
+  applyLibrarySnapshot,
   lessonStorageProblem,
-  normalizeLibraryRecord,
   recordForLessonEdit
 } from './lessonLibrary';
 
@@ -61,11 +61,19 @@ export const useLessonLibrary = (user: User | null): LessonLibrary => {
     }
     setStatus('loading');
     const lessonsQuery = query(collection(db, LESSON_LIBRARY_COLLECTION), where('teacherId', '==', teacherId));
+    let isFirstSnapshot = true;
     return onSnapshot(lessonsQuery, snapshot => {
-      setRecords(snapshot.docs.flatMap(snapshotDoc => {
-        const record = normalizeLibraryRecord(snapshotDoc.id, snapshotDoc.data());
-        return record ? [record] : [];
-      }));
+      const changes = snapshot.docChanges().map(change => ({ id: change.doc.id, data: change.doc.data() }));
+      const first = isFirstSnapshot;
+      isFirstSnapshot = false;
+      // Paused-lesson saves land in this collection too. Returning the same
+      // array (and unchanged status/error) keeps React from re-rendering.
+      setRecords(previous => applyLibrarySnapshot(
+        previous,
+        () => snapshot.docs.map(snapshotDoc => ({ id: snapshotDoc.id, data: snapshotDoc.data() })),
+        changes,
+        first
+      ));
       setStatus('ready');
       setError(null);
     }, listenError => {
