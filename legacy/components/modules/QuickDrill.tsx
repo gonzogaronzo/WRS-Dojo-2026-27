@@ -6,7 +6,7 @@ import { WRS_PHONEME_MAP } from '../../wrsKnowledgeBase';
 import Tile from '../Tile';
 import {
   ChevronLeft, ChevronRight, Shuffle, Ear, Trash2,
-  CloudSun, Plane, Flower, Bug, BookOpen, Layers,
+  CloudSun, Plane, Flower, Bug, Layers,
   CheckCircle2, Pen, MousePointer2, PenTool, Sparkles
 } from 'lucide-react';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
@@ -243,6 +243,22 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     if (activeItems.length > 0 && currentIndex !== safeCurrentIndex) setCurrentIndex(safeCurrentIndex);
   }, [activeItems.length, currentIndex, safeCurrentIndex]);
 
+  // A remotely/synchronously-driven index change is a new prompt. Reset the
+  // reveal through the same setter so controlled sessions write the reset back
+  // to synced state instead of only hiding it locally.
+  const previousSyncedIndexRef = useRef<number | undefined>(syncedIndex);
+  useEffect(() => {
+    if (syncedIndex === undefined) {
+      previousSyncedIndexRef.current = undefined;
+      return;
+    }
+    const previous = previousSyncedIndexRef.current;
+    previousSyncedIndexRef.current = syncedIndex;
+    if (previous !== undefined && previous !== syncedIndex && revealedCount !== 0) {
+      setRevealedCount(0);
+    }
+  }, [syncedIndex, revealedCount]);
+
   const drawGrid = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
     const drawLine = (y: number, color: string, dashed = false) => {
       ctx.beginPath();
@@ -379,14 +395,8 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
       data-testid="part6-primary-surface"
       data-part6-student-state={revealedCount > 0 ? 'revealed' : 'listen'}
       className="flex h-full w-full flex-col items-center justify-center"
-    >
-      {revealedCount > 0 ? renderReverseAnswer() : (
-        <div className="bg-white p-12 rounded-[2rem] border border-stone-100 flex flex-col items-center shadow-sm">
-          <div className="mb-4 p-4 bg-red-50 rounded-full text-red-800"><Ear className="w-12 h-12" /></div>
-          <span className="text-5xl font-black font-serif text-stone-300">LISTEN</span>
-        </div>
-      )}
-    </section>
+      aria-label="Auditory response surface"
+    />
   );
   const renderVisualAnswerLog = () => (
     <div className="flex flex-wrap items-center justify-center gap-3">
@@ -449,14 +459,14 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
                 <div className="absolute left-6 top-0 bottom-0 z-10 flex flex-col justify-around pointer-events-none opacity-20"><CloudSun className="w-8 h-8 text-blue-500" /><Plane className="w-8 h-8 text-stone-400" /><Flower className="w-8 h-8 text-green-500" /><Bug className="w-8 h-8 text-stone-600" /></div>
                 <canvas ref={gridRef} className="absolute inset-0 pointer-events-none" />
                 <canvas ref={syncedDrawing.canvasRef} onPointerDown={syncedDrawing.onPointerDown} onPointerMove={syncedDrawing.onPointerMove} onPointerUp={syncedDrawing.onPointerUp} onPointerCancel={syncedDrawing.onPointerCancel} className={`absolute inset-0 z-20 touch-none ${readOnly || tool === 'cursor' ? 'pointer-events-none' : 'cursor-crosshair'}`} />
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 px-6 py-2 rounded-full border border-stone-100 z-30"><span className="text-stone-900 font-black text-2xl font-serif">{isReverse && revealedCount === 0 ? 'LISTEN' : teacherPrompt}</span></div>
+                {!isReverse && <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/80 px-6 py-2 rounded-full border border-stone-100 z-30"><span className="text-stone-900 font-black text-2xl font-serif">{teacherPrompt}</span></div>}
               </div>}
             </div>
 
-            {!readOnly && <div className="w-full max-w-4xl flex-[1] flex flex-col">
-              <div className="flex items-center justify-between mb-2 px-2"><div className="flex items-center gap-2"><div className={`h-2.5 w-2.5 rounded-full ${revealedCount > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`}></div><span className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Answer Check</span></div><span data-part6-section-progress className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{part6Section ? `${part6Section} ${currentSectionIndex} / ${sectionItems.length}` : `${safeCurrentIndex + 1} / ${activeItems.length}`}</span></div>
+            {(!readOnly || isReverse) && <div data-testid="answer-check" className="w-full max-w-4xl flex-[1] flex flex-col">
+              <div className="flex items-center justify-between mb-2 px-2"><div className="flex items-center gap-2"><div className={`h-2.5 w-2.5 rounded-full ${revealedCount > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`}></div><span className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Answer Check</span></div>{!readOnly && <span data-part6-section-progress className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{part6Section ? `${part6Section} ${currentSectionIndex} / ${sectionItems.length}` : `${safeCurrentIndex + 1} / ${activeItems.length}`}</span>}</div>
               <div className="flex-1 bg-white rounded-2xl border border-stone-100 p-4 flex flex-col shadow-sm overflow-hidden"><div className="w-full h-full overflow-y-auto flex flex-wrap gap-3 items-center justify-center">
-                {revealedCount === 0 ? <div className="flex flex-col items-center justify-center h-full gap-2 opacity-5"><BookOpen className="w-8 h-8 text-stone-900" /><p className="text-[8px] font-black uppercase tracking-[0.4em] text-stone-900">Answer hidden</p></div> : (isReverse ? renderReverseAnswer() : renderVisualAnswerLog())}
+                {revealedCount > 0 ? (isReverse ? renderReverseAnswer() : renderVisualAnswerLog()) : null}
               </div></div>
             </div>}
           </div>

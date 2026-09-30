@@ -62,7 +62,8 @@ test('keeps auditory Quick Drill dictation cues teacher-only', () => {
   assert.match(teacherHtml, /Teacher only/);
   assert.match(teacherHtml, /Dictate/);
   assert.doesNotMatch(studentHtml, /Teacher only/);
-  assert.match(studentHtml, /LISTEN/);
+  assert.match(studentHtml, /data-part6-student-state="listen"/);
+  assert.doesNotMatch(studentHtml, /LISTEN/);
   assert.doesNotMatch(studentHtml, /Shuffle/);
 });
 
