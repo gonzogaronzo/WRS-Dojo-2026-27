@@ -29,9 +29,11 @@ import {
 import {
   createInitialLessonSession,
   lessonSessionFromCloud,
-  lessonSessionToCloud
+  lessonSessionToCloud,
+  lessonSessionsMatch
 } from '../legacy/useLessonSession';
-import { resetWordCardsState } from '../legacy/wordCardsState';
+import { bankWordCardsTurn, dealWordCard, resetWordCardsState } from '../legacy/wordCardsState';
+import { createPresenterSnapshot, sanitizePresenterSession } from '../legacy/presenterMode';
 
 const source = JSON.parse(fs.readFileSync(path.join('tests', 'fixtures', 'word-element-deck-v1.2.source.json'), 'utf8'));
 
@@ -202,7 +204,10 @@ test('element review state round-trips through cloud sync and malformed values a
   const session = { ...createInitialLessonSession(), wordCards: { ...createInitialLessonSession().wordCards, elementReview: review } };
   const cloud = lessonSessionToCloud(session, lesson, LessonPart.Part3, 'group-1');
   const viaJson = JSON.parse(JSON.stringify(cloud));
-  assert.deepEqual(lessonSessionFromCloud(viaJson).wordCards.elementReview, review);
+  const loaded = lessonSessionFromCloud(viaJson);
+  assert.deepEqual(loaded.wordCards.elementReview, review);
+  assert.equal(JSON.stringify(loaded.wordCards.elementReview), JSON.stringify(review));
+  assert.equal(lessonSessionsMatch(session, loaded), true);
 
   assert.equal(normalizeReviewState('nope'), undefined);
   assert.equal(normalizeReviewState([]), undefined);
@@ -223,4 +228,41 @@ test('switching tabs and reviewing never alters the word-card deck fields', () =
   assert.ok(toggled.elementReview);
   const reset = resetWordCardsState(toggled, dealt.deck, 2);
   assert.deepEqual(reset.elementReview, toggled.elementReview);
+});
+
+test('dealing and banking preserve elementReview unchanged', () => {
+  const review = reviewState({ order: WORD_ELEMENT_CARDS.slice(0, 4).map(card => card.id), index: 2, flipped: true });
+  const deck = [{ id: 'a', text: 'cat', type: 'regular' as const }, { id: 'b', text: 'ship', type: 'regular' as const }];
+  const start = { ...resetWordCardsState(createInitialLessonSession().wordCards, deck, 2), elementReview: review };
+  const dealt = dealWordCard(start, 2);
+  assert.equal(dealt.currentIndex, 0);
+  assert.equal(dealt.elementReview, review);
+  const oops = { ...dealt, mode: 'oops' as const, turnScore: 3 };
+  const banked = bankWordCardsTurn(oops, 2);
+  assert.equal(banked.scores[0], 3);
+  assert.equal(JSON.stringify(banked.elementReview), JSON.stringify(review));
+  assert.equal(JSON.stringify(dealWordCard({ ...banked, isBust: true }, 2).elementReview), JSON.stringify(review));
+});
+
+test('presenter frames carry elementReview for Part 3 only', () => {
+  const review = reviewState({ order: WORD_ELEMENT_CARDS.slice(0, 3).map(card => card.id), index: 1, flipped: true, view: 'browse' });
+  const session = { ...createInitialLessonSession(), wordCards: { ...createInitialLessonSession().wordCards, elementReview: review } };
+
+  const part3 = sanitizePresenterSession(session, true, LessonPart.Part3);
+  assert.equal(JSON.stringify(part3.wordCards.elementReview), JSON.stringify(review));
+  const part3Snapshot = createPresenterSnapshot('teacher-1', 'run', lesson, LessonPart.Part3, null, session, []);
+  assert.equal(JSON.stringify(part3Snapshot.session.wordCards.elementReview), JSON.stringify(review));
+
+  const part4 = sanitizePresenterSession(session, true, LessonPart.Part4);
+  assert.equal(part4.wordCards.elementReview, undefined);
+  assert.ok(!('elementReview' in part4.wordCards));
+  const part4Snapshot = createPresenterSnapshot('teacher-1', 'run', lesson, LessonPart.Part4, null, session, []);
+  assert.ok(!('elementReview' in part4Snapshot.session.wordCards));
+});
+
+test('a malformed elementReview in state cannot break the student screen', () => {
+  const broken = { ...createInitialLessonSession().wordCards, elementReview: { tab: 'review', order: 'nope', index: 'x' } as unknown as ElementReviewSessionState };
+  assert.doesNotThrow(() => renderToStaticMarkup(createElement(WordCards, { cards: [], state: broken, readOnly: true })));
+  const html = renderToStaticMarkup(createElement(WordCards, { cards: [], state: broken, readOnly: true }));
+  assert.ok(html.includes('No illustrated cards match those filters.'));
 });

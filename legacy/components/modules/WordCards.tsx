@@ -13,6 +13,7 @@ import {
   ElementReviewSessionState,
   ReviewTab,
   createReviewState,
+  normalizeReviewState,
   runningSubstep,
   setReviewTab
 } from '../../wordElementReview';
@@ -51,13 +52,16 @@ const WordCards: React.FC<WordCardsProps> = ({
 
   // Element Review tab: lives beside the deck in the same session state, never touching deck/filter/mode.
   const lessonSubstep = useMemo(() => runningSubstep(lesson), [lesson?.step, lesson?.substep]);
-  const review = useMemo(() => state.elementReview ?? createReviewState(lessonSubstep), [state.elementReview, lessonSubstep]);
+  const review = useMemo(
+    () => normalizeReviewState(state.elementReview) ?? createReviewState(lessonSubstep),
+    [state.elementReview, lessonSubstep]
+  );
   const updateStateRef = useRef(updateState);
   updateStateRef.current = updateState;
   const updateReview = useCallback((update: (previous: ElementReviewSessionState) => ElementReviewSessionState) => {
     updateStateRef.current(previous => ({
       ...previous,
-      elementReview: update(previous.elementReview ?? createReviewState(lessonSubstep))
+      elementReview: update(normalizeReviewState(previous.elementReview) ?? createReviewState(lessonSubstep))
     }));
   }, [lessonSubstep]);
   const chooseTab = (tab: ReviewTab) => updateReview(previous => setReviewTab(previous, tab));
