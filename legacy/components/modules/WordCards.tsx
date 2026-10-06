@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { WordCard } from '../../types';
 import { WordCardsSessionState } from '../../useLessonSession';
@@ -9,6 +9,14 @@ import {
   resetWordCardsState
 } from '../../wordCardsState';
 import { useLessonRuntime } from '../lessonRuntimeContext';
+import {
+  ElementReviewSessionState,
+  ReviewTab,
+  createReviewState,
+  runningSubstep,
+  setReviewTab
+} from '../../wordElementReview';
+import ElementReviewDeck from './ElementReviewDeck';
 
 interface WordCardsProps {
   cards: WordCard[];
@@ -40,6 +48,19 @@ const WordCards: React.FC<WordCardsProps> = ({
     if (onUpdateState) onUpdateState(value);
     else setLocalState(value);
   };
+
+  // Element Review tab: lives beside the deck in the same session state, never touching deck/filter/mode.
+  const lessonSubstep = useMemo(() => runningSubstep(lesson), [lesson?.step, lesson?.substep]);
+  const review = useMemo(() => state.elementReview ?? createReviewState(lessonSubstep), [state.elementReview, lessonSubstep]);
+  const updateStateRef = useRef(updateState);
+  updateStateRef.current = updateState;
+  const updateReview = useCallback((update: (previous: ElementReviewSessionState) => ElementReviewSessionState) => {
+    updateStateRef.current(previous => ({
+      ...previous,
+      elementReview: update(previous.elementReview ?? createReviewState(lessonSubstep))
+    }));
+  }, [lessonSubstep]);
+  const chooseTab = (tab: ReviewTab) => updateReview(previous => setReviewTab(previous, tab));
 
   const wordElements = useMemo(() => {
     const part3 = lesson?.runtimePlan?.parts?.find(part => part.part === 3);
@@ -88,7 +109,7 @@ const WordCards: React.FC<WordCardsProps> = ({
     updateState(previous => resetWordCardsState(previous, deck, students.length));
   };
 
-  return (
+  const cardsTab = (
     <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-stone-900 font-sans text-stone-100">
       <div className="pointer-events-none absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
 
@@ -179,6 +200,33 @@ const WordCards: React.FC<WordCardsProps> = ({
           <div className="absolute right-8 text-sm font-bold uppercase tracking-widest text-stone-400">{state.currentIndex >= 0 ? `${Math.min(state.currentIndex + 1, state.deck.length)} / ${state.deck.length}` : `${state.deck.length} Cards`}</div>
         </div>
       )}
+    </div>
+  );
+
+  return (
+    <div className="flex h-full w-full flex-col bg-stone-900 font-sans text-stone-100">
+      {!readOnly && (
+        <div className="relative z-30 flex justify-center border-b border-stone-800 bg-stone-950/60 p-2">
+          <div className="flex items-center rounded-xl border border-stone-700 bg-stone-800 p-1" role="tablist" aria-label="Part 3 view">
+            {([['cards', 'Word Cards'], ['review', 'Element Review']] as const).map(([tab, label]) => (
+              <button
+                key={tab}
+                role="tab"
+                aria-selected={review.tab === tab}
+                onClick={() => chooseTab(tab)}
+                className={`rounded-lg px-5 py-2 text-xs font-bold uppercase tracking-wider ${review.tab === tab ? 'bg-blue-600 text-white' : 'text-stone-400'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="relative min-h-0 flex-1">
+        {review.tab === 'review'
+          ? <ElementReviewDeck review={review} lessonSubstep={lessonSubstep} onChange={updateReview} readOnly={readOnly} />
+          : cardsTab}
+      </div>
     </div>
   );
 };
