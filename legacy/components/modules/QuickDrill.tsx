@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { parseWordToTiles } from '../../utils';
 import { isSubstepAtLeast } from '../../masterCurriculum';
 import { WRS_PHONEME_MAP } from '../../wrsKnowledgeBase';
+import { encodePart2SemanticUnit } from '../../part2Presentation';
+import { part6RevealAction, part6ResponseGroups, part6WordElementRole, phonemesMatch } from '../../part6Tiles';
 import Tile from '../Tile';
 import {
   ChevronLeft, ChevronRight, Shuffle, Ear, Trash2,
@@ -294,7 +296,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     if (isReverse) {
       const sourceResponses = parseAuditoryDrillItem(currentItem).responses;
       const fallbackResponses = learnedCorrespondences
-        .filter(c => c.phoneme === parseAuditoryDrillItem(currentItem).phoneme)
+        .filter(c => phonemesMatch(c.phoneme, parseAuditoryDrillItem(currentItem).phoneme))
         .sort((a, b) => compareIntroduced(a.introduced, b.introduced))
         .flatMap(match => match.graphemes);
       return (sourceResponses.length > 0 ? sourceResponses : Array.from(new Set(fallbackResponses))).map(text => ({
@@ -341,7 +343,9 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
   };
 
   const handleReveal = () => {
-    if (revealedCount < revealedData.length) setRevealedCount(prev => prev + 1);
+    const action = part6RevealAction(isReverse, revealedCount, revealedData.length);
+    if (action === 'reveal-all') setRevealedCount(1);
+    else if (action === 'reveal-next') setRevealedCount(prev => prev + 1);
     else nextCard();
   };
 
@@ -355,24 +359,41 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
     setRevealedCount(0);
   };
 
-  const renderWordElementCard = (text: string) => {
-    const suffix = text.startsWith('-') && !text.endsWith('-');
+  const renderReverseAnswer = () => {
+    if (isWordElementItem) {
+      return (
+        <div className="flex items-center justify-center">
+          <Tile data={{ type: 'syllable', text: encodePart2SemanticUnit(part6WordElementRole(currentWordElement), currentWordElement) }} size="lg" />
+        </div>
+      );
+    }
+    const phoneme = currentAuditoryItem?.phoneme || '';
+    const groups = part6ResponseGroups(phoneme, revealedData.map(answer => answer.text));
     return (
-      <div className={`min-w-[180px] rounded-2xl border-4 px-8 py-6 text-center text-5xl font-black shadow-xl ${suffix ? 'border-amber-500 bg-amber-200 text-stone-900' : 'border-stone-500 bg-stone-300 text-stone-900'}`}>
-        {text}
+      <div className="flex w-full min-w-0 flex-col items-center gap-8">
+        <div
+          data-part6-pronunciation
+          className="text-center font-bold leading-none text-stone-900"
+          style={{ fontSize: 64, fontFamily: "'Noto Sans', 'Segoe UI', Arial, sans-serif" }}
+        >
+          /{phoneme}/
+        </div>
+        {groups.length > 0 ? (
+          <div className="flex w-full min-w-0 flex-wrap items-center justify-center gap-x-12 gap-y-8">
+            {groups.map(group => (
+              <div key={group.text} data-part6-group={group.text} className="flex items-center justify-center gap-1.5">
+                {group.tiles.map((tile, tileIndex) => (
+                  <Tile key={tileIndex} data={{ type: 'syllable', text: encodePart2SemanticUnit(tile.role, tile.text) }} size="lg" />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm font-semibold text-stone-400">No answer listed for this sound.</p>
+        )}
       </div>
     );
   };
-
-  const renderReverseAnswer = () => (
-    <div className="flex max-w-5xl flex-wrap items-center justify-center gap-5">
-      {revealedData.slice(0, revealedCount).map((answer, answerIndex) => (
-        answer.kind === 'word-element'
-          ? <React.Fragment key={`${answer.text}-${answerIndex}`}>{renderWordElementCard(answer.text)}</React.Fragment>
-          : <div key={`${answer.text}-${answerIndex}`} className="flex items-center justify-center">{parseWordToTiles(answer.text).map((tile, tileIndex) => <Tile key={`${answerIndex}-${tileIndex}`} data={tile} size="2xl" />)}</div>
-      ))}
-    </div>
-  );
 
   const renderPart6StudentSurface = () => (
     <section
@@ -407,7 +428,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
             <div className="p-1.5 bg-[#b91c1c] rounded-lg shadow-sm">{isReverse ? <Ear className="w-4 h-4 text-white" /> : <Layers className="w-4 h-4 text-white" />}</div>
             <div>
               <h2 className="text-lg font-bold tracking-widest uppercase font-serif text-stone-900">{isReverse ? "Auditory Drill" : "Visual Drill"}</h2>
-              {part6Section ? <p data-part6-section={isWordElementItem ? 'word-elements' : 'sounds'} className="text-[9px] font-black uppercase tracking-[0.18em] text-stone-400">{part6Section}</p> : null}
+              {part6Section ? <p data-part6-section={isWordElementItem ? 'word-elements' : 'sounds'} className="text-[9px] font-black uppercase tracking-[0.18em] text-stone-400">{part6Section}{!readOnly ? <span data-part6-section-progress className="ml-3 text-stone-300">{`${currentSectionIndex} / ${sectionItems.length}`}</span> : null}</p> : null}
             </div>
           </div>
           {!readOnly && <button onClick={() => setIsHandwritingMode(!isHandwritingMode)} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[10px] uppercase tracking-widest ${isHandwritingMode ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-400 hover:text-stone-900'}`}><Pen className={`w-3.5 h-3.5 ${isHandwritingMode ? 'animate-pulse' : ''}`} /> Handwriting</button>}
@@ -439,7 +460,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
               </div>
             </div>}
 
-            <div onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined} className={`flex-[3] w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}>
+            <div onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined} className={`${isReverse ? 'flex-1' : 'flex-[3]'} w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}>
               {isReverse && !isHandwritingMode ? renderPart6StudentSurface() : !isHandwritingMode ? <>
                 {!readOnly && <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity"><Sparkles className="w-64 h-64 text-red-900" /></div>}
                 <div className="flex flex-col items-center justify-center w-full">
@@ -453,10 +474,10 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
               </div>}
             </div>
 
-            {!readOnly && <div className="w-full max-w-4xl flex-[1] flex flex-col">
-              <div className="flex items-center justify-between mb-2 px-2"><div className="flex items-center gap-2"><div className={`h-2.5 w-2.5 rounded-full ${revealedCount > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`}></div><span className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Answer Check</span></div><span data-part6-section-progress className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{part6Section ? `${part6Section} ${currentSectionIndex} / ${sectionItems.length}` : `${safeCurrentIndex + 1} / ${activeItems.length}`}</span></div>
+            {!readOnly && !isReverse && <div className="w-full max-w-4xl flex-[1] flex flex-col">
+              <div className="flex items-center justify-between mb-2 px-2"><div className="flex items-center gap-2"><div className={`h-2.5 w-2.5 rounded-full ${revealedCount > 0 ? 'bg-emerald-500' : 'bg-stone-300'}`}></div><span className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400">Answer Check</span></div><span className="text-[8px] font-black text-stone-300 uppercase tracking-widest">{`${safeCurrentIndex + 1} / ${activeItems.length}`}</span></div>
               <div className="flex-1 bg-white rounded-2xl border border-stone-100 p-4 flex flex-col shadow-sm overflow-hidden"><div className="w-full h-full overflow-y-auto flex flex-wrap gap-3 items-center justify-center">
-                {revealedCount === 0 ? <div className="flex flex-col items-center justify-center h-full gap-2 opacity-5"><BookOpen className="w-8 h-8 text-stone-900" /><p className="text-[8px] font-black uppercase tracking-[0.4em] text-stone-900">Answer hidden</p></div> : (isReverse ? renderReverseAnswer() : renderVisualAnswerLog())}
+                {revealedCount === 0 ? <div className="flex flex-col items-center justify-center h-full gap-2 opacity-5"><BookOpen className="w-8 h-8 text-stone-900" /><p className="text-[8px] font-black uppercase tracking-[0.4em] text-stone-900">Answer hidden</p></div> : renderVisualAnswerLog()}
               </div></div>
             </div>}
           </div>
