@@ -202,15 +202,9 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
 
   const drillItemsStr = drillItems.join(',');
 
-  const sortedItems = useMemo(() => {
-    if (isReverse) return [...drillItems];
-    return [...drillItems].sort((a, b) => {
-      const entryA = learnedCorrespondences.find(c => c.graphemes.includes(a) || c.phoneme === a);
-      const entryB = learnedCorrespondences.find(c => c.graphemes.includes(b) || c.phoneme === b);
-      if (!entryA || !entryB) return 0;
-      return compareIntroduced(entryA.introduced, entryB.introduced);
-    });
-  }, [drillItemsStr, learnedCorrespondences, isReverse]);
+  // Lesson files list cards in a deliberately shuffled order that matches the
+  // printed teacher plan, so both Part 1 and Part 6 keep the file's order.
+  const fileOrderItems = useMemo(() => [...drillItems], [drillItemsStr]);
 
   const shuffledItemsMatchDrill = useMemo(() => {
     if (!shuffledItems.length || shuffledItems.length !== drillItems.length) return false;
@@ -228,7 +222,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
       && wordElementSlice.every(item => item.startsWith(WORD_ELEMENT_PREFIX));
   }, [shuffledItems, drillItemsStr, isReverse, reverseSoundItems.length]);
 
-  const activeItems = shuffledItemsMatchDrill ? shuffledItems : sortedItems;
+  const activeItems = shuffledItemsMatchDrill ? shuffledItems : fileOrderItems;
   const safeCurrentIndex = activeItems.length ? Math.min(currentIndex, activeItems.length - 1) : 0;
   const currentItem = activeItems[safeCurrentIndex];
   const isWordElementItem = Boolean(currentItem?.startsWith(WORD_ELEMENT_PREFIX));
@@ -463,7 +457,7 @@ const QuickDrill: React.FC<QuickDrillProps> = ({
             <div onClick={!readOnly && !isHandwritingMode ? handleReveal : undefined} className={`${isReverse ? 'flex-1' : 'flex-[3]'} w-full max-w-5xl flex flex-col items-center justify-center relative ${!readOnly && !isHandwritingMode ? 'cursor-pointer group' : ''}`}>
               {isReverse && !isHandwritingMode ? renderPart6StudentSurface() : !isHandwritingMode ? <>
                 {!readOnly && <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-5 transition-opacity"><Sparkles className="w-64 h-64 text-red-900" /></div>}
-                <div className="flex flex-col items-center justify-center w-full">
+                <div data-part1-current-card={currentItem} className="flex flex-col items-center justify-center w-full">
                   <div className="flex items-center justify-center">{parseWordToTiles(currentItem).map((t, i) => <Tile key={i} data={t} size="xl" />)}</div>
                 </div>
               </> : <div ref={containerRef} className="w-full h-full bg-white rounded-3xl border border-stone-200 shadow-sm relative overflow-hidden">
