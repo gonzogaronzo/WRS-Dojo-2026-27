@@ -161,6 +161,13 @@ export interface Part2NotebookPageImage {
   imageUrl?: string;
 }
 
+/** The only notebookContext fields a passive student board may see. */
+export interface Part2NotebookHeading {
+  pageNumber?: number;
+  section?: string;
+  subheading?: string;
+}
+
 export interface Part2NotebookVisual {
   layout: Part2NotebookVisualLayout;
   pageNumber: number;
@@ -209,6 +216,8 @@ export interface Part2InstructionStep {
   cardRepresentation?: Part2CardRepresentation;
   /** Kept private; stripped before a passive student projection is created. */
   notebookContext?: Part2NotebookContext;
+  /** Student-safe page/section/subheading copied from notebookContext when projecting. */
+  notebookHeading?: Part2NotebookHeading;
   /**
    * Student-safe, Answer-Key-grounded page recreation. It contains no
    * teacher locator prose and is retained in the passive projection.
@@ -585,6 +594,18 @@ const normalizeNotebookContext = (value: unknown): Part2NotebookContext | undefi
   };
 };
 
+const normalizeNotebookHeading = (value: unknown): Part2NotebookHeading | undefined => {
+  const record = asRecord(value);
+  if (!record) return undefined;
+  const pageNumber = typeof record.pageNumber === 'number' && Number.isInteger(record.pageNumber) && record.pageNumber >= 1
+    ? record.pageNumber
+    : undefined;
+  const section = optionalText(record.section);
+  const subheading = optionalText(record.subheading);
+  if (pageNumber === undefined && !section && !subheading) return undefined;
+  return { pageNumber, section, subheading };
+};
+
 const normalizeNotebookPageImage = (value: unknown): Part2NotebookPageImage | undefined | null => {
   if (value === undefined) return undefined;
   const record = asRecord(value);
@@ -716,9 +737,9 @@ const buildValidationError = (
       if (!roles.some(role => role === 'prefix' || role === 'suffix')) {
         return 'PREFIX_SUFFIX_CARDS requires a supplied Prefix or Suffix Card.';
       }
-      return roles.every(role => tileRole(role) || role === 'prefix' || role === 'suffix')
+      return roles.every(role => tileRole(role) || role === 'syllable' || role === 'prefix' || role === 'suffix')
         ? null
-        : 'PREFIX_SUFFIX_CARDS may contain only supplied Letter-Sound, Prefix, or Suffix Cards.';
+        : 'PREFIX_SUFFIX_CARDS may contain only supplied Letter-Sound, Syllable, Prefix, or Suffix Cards.';
     case 'WORD_ELEMENT_CARDS':
       return roles.every(elementRole) && roles.some(role => role === 'base-element' || role === 'greek-combining-form')
         ? null
@@ -825,6 +846,7 @@ const normalizeInteractiveStep = (
   const notebookContext = normalizeNotebookContext(record.notebookContext);
   const notebookVisual = normalizeNotebookVisual(record.notebookVisual);
   const notebookPageImage = normalizeNotebookPageImage(record.notebookPageImage);
+  const notebookHeading = actionType === 'NOTEBOOK' ? normalizeNotebookHeading(record.notebookHeading) : undefined;
   const wordElementMeanings = normalizeWordElementMeanings(record.wordElementMeanings);
   const studentPrompt = optionalText(record.studentPrompt);
   const provenance = record.provenance as Part2PresentationProvenance | undefined;
@@ -874,6 +896,7 @@ const normalizeInteractiveStep = (
     teacherCue: teacherCue || '', teacherDirections: teacherDirections || [],
     studentPrompt, objects, cardRepresentation,
     notebookContext: notebookContext || undefined,
+    notebookHeading,
     notebookVisual: notebookVisual || undefined,
     notebookPageImage: notebookPageImage || undefined,
     wordElementMeanings: wordElementMeanings || undefined,
@@ -941,6 +964,13 @@ export const sanitizePart2PresentationForStudent = (value: unknown): unknown => 
       const record = asRecord(step);
       if (!record) return step;
       const studentStep = { ...record };
+      const context = asRecord(record.notebookContext);
+      if (context) {
+        const heading = normalizeNotebookHeading({
+          pageNumber: context.pageNumber, section: context.section, subheading: context.subheading
+        });
+        if (heading) studentStep.notebookHeading = heading;
+      }
       for (const privateKey of [
         'teacherCue', 'teacherDirections', 'teachingPoint',
         'expectedStudentAction', 'sourceRef', 'saveHints', 'notebookContext'

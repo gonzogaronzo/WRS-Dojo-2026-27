@@ -122,25 +122,14 @@ const semanticTile = (object: Part2InstructionObject) => ({
 });
 
 /**
- * Renders only source-supplied page structure. There is deliberately no
- * prose-to-layout fallback: a payload without a verified visual is visibly
- * unavailable instead of inventing a notebook page.
+ * Renders only source-supplied page structure: the private page image, else
+ * the verified facsimile, else a plain entry card built from the notebook
+ * objects. There is no prose-to-layout fallback.
  */
 const NotebookPage: React.FC<{ step: Part2InstructionStep }> = ({ step }) => {
   const visual = step.notebookVisual;
   const [imageUnavailable, setImageUnavailable] = useState(false);
   useEffect(() => setImageUnavailable(false), [step.id, step.notebookPageImage?.imageUrl]);
-
-  // The normalizer is the schema gate. A normalized visual is rendered as-is;
-  // only a genuinely absent source visual may use the fail-closed fallback.
-  if (!visual) {
-    return (
-      <article data-part2-notebook-page-unavailable className="absolute inset-x-[255px] top-[120px] z-20 mx-auto max-w-[900px] rounded-2xl border-2 border-amber-200 bg-amber-50 px-10 py-8 text-center text-stone-700">
-        <p className="text-2xl font-black text-stone-800">Notebook page view unavailable</p>
-        <p className="mt-2 text-lg">Wait for the teacher’s source-verified notebook guidance.</p>
-      </article>
-    );
-  }
 
   if (step.notebookPageImage?.imageUrl && !imageUnavailable) {
     return (
@@ -152,6 +141,33 @@ const NotebookPage: React.FC<{ step: Part2InstructionStep }> = ({ step }) => {
           style={{ aspectRatio: String(step.notebookPageImage.aspectRatio) }}
           onError={() => setImageUnavailable(true)}
         />
+      </article>
+    );
+  }
+
+  if (!visual) {
+    if (step.objects.length === 0) {
+      return (
+        <article data-part2-notebook-page-unavailable className="absolute inset-x-[255px] top-[120px] z-20 mx-auto max-w-[900px] rounded-2xl border-2 border-amber-200 bg-amber-50 px-10 py-8 text-center text-stone-700">
+          <p className="text-2xl font-black text-stone-800">Notebook page view unavailable</p>
+          <p className="mt-2 text-lg">Wait for the teacher’s source-verified notebook guidance.</p>
+        </article>
+      );
+    }
+    const heading = step.notebookHeading ?? step.notebookContext;
+    return (
+      <article data-part2-notebook-page data-part2-notebook-entry-card className="absolute left-1/2 top-[120px] z-20 w-[900px] -translate-x-1/2 rounded-[28px] border-[10px] border-[#d7c5a6] bg-[#fffdf6] px-10 py-8 text-center text-stone-900 shadow-[0_18px_45px_rgba(63,47,28,0.18)]">
+        <p className="text-[13px] font-black uppercase tracking-[0.15em] text-stone-500">
+          Student Notebook{heading?.pageNumber ? ` · p. ${heading.pageNumber}` : ''}
+        </p>
+        {heading?.section && heading.subheading ? (
+          <p className="mt-2 text-xl font-bold text-stone-600">{heading.section} → {heading.subheading}</p>
+        ) : null}
+        <div className="mt-6 space-y-3">
+          {step.objects.map(object => (
+            <p key={object.id} className="text-[48px] font-black leading-tight tracking-tight text-stone-900">{object.text}</p>
+          ))}
+        </div>
       </article>
     );
   }

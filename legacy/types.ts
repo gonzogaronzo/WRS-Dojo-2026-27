@@ -1,3 +1,4 @@
+import type { ElementReviewSessionState } from './wordElementReview';
 
 export interface WordCard {
   id: string;
@@ -472,6 +473,7 @@ export interface DojoMasterData {
     wordCardsCurrentPlayerIndex?: number;
     wordCardsTurnScore?: number;
     wordCardsIsBust?: boolean;
+    wordCardsElementReview?: ElementReviewSessionState;
     teachConceptsMode?: string;
     teachConceptsBoardText?: string;
     teachConceptsBoardTitle?: string;

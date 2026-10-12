@@ -259,8 +259,17 @@ test('renders an Answer-Key-grounded notebook facsimile while keeping locator pr
   const noVisualHtml = renderToStaticMarkup(
     <Part2InteractiveRunner presentation={noVisualStudent} activeStepIndex={noVisualIndex} readOnly />
   );
-  assert.match(noVisualHtml, /data-part2-notebook-page-unavailable/);
-  assert.match(noVisualHtml, /Notebook page view unavailable/);
+  // Deliberate change: a no-visual notebook step now shows the entry card, not the "unavailable" box.
+  assert.match(noVisualHtml, /data-part2-notebook-entry-card/);
+  assert.match(noVisualHtml, /data-part2-notebook-page/);
+  assert.match(noVisualHtml, /Student Notebook · p\. 2/);
+  assert.match(noVisualHtml, /Sounds → Consonant Combinations — Digraphs/);
+  assert.match(noVisualHtml, /ph · phone/);
+  assert.doesNotMatch(noVisualHtml, /Notebook page view unavailable|data-part2-notebook-page-unavailable/);
+  assert.doesNotMatch(noVisualHtml, /first unshaded entry box|telephone drawing/);
+  const noVisualSource = JSON.stringify(sanitizePart2PresentationForStudent(noVisual));
+  assert.doesNotMatch(noVisualSource, /notebookContext|first unshaded entry box|telephone drawing|telephone picture/);
+  assert.match(noVisualSource, /"notebookHeading":\{"pageNumber":2,"section":"Sounds","subheading":"Consonant Combinations — Digraphs"\}/);
 
   const malformedVisual = JSON.parse(JSON.stringify(fixture73));
   malformedVisual.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook').notebookVisual.rows[1].target = false;
@@ -521,4 +530,54 @@ test('uses a private whole-page notebook asset when runtime supplies it and othe
   const fallbackHtml = renderToStaticMarkup(<Part2InteractiveRunner presentation={fallback} activeStepIndex={fallbackIndex} readOnly />);
   assert.match(fallbackHtml, /data-part2-notebook-image-unavailable/);
   assert.match(fallbackHtml, /verified page facsimile/);
+});
+
+test('notebook step with a page image but no facsimile shows the page image', () => {
+  const withImage = JSON.parse(JSON.stringify(fixture73));
+  const notebook = withImage.interactiveSteps.find((step: { id: string }) => step.id === 'ph-notebook');
+  delete notebook.notebookVisual;
+  notebook.notebookPageImage.imageUrl = '/notebook-assets/wrs-notebook-7-12-answer-key-page-002.png';
+  const presentation = runnerPresentation(withImage);
+  const index = presentation.steps.findIndex(step => step.id === 'ph-notebook');
+  const html = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={index} readOnly />);
+  assert.match(html, /data-part2-notebook-page-image/);
+  assert.match(html, /wrs-notebook-7-12-answer-key-page-002\.png/);
+  assert.doesNotMatch(html, /data-part2-notebook-entry-card|Notebook page view unavailable/);
+});
+
+const affixFixture = (objects: Array<{ id: string; text: string; role: string }>) => {
+  const fixture = JSON.parse(JSON.stringify(fixture73));
+  const step = fixture.interactiveSteps.find((candidate: { id: string }) => candidate.id === 'latch-affix-manipulation');
+  step.objects = objects.map((object, index) => ({ ...object, stagingOrder: index + 1 }));
+  return fixture;
+};
+const SYLLABLES = [
+  { id: 'es', text: 'es', role: 'syllable' },
+  { id: 'tab', text: 'tab', role: 'syllable' },
+  { id: 'lish', text: 'lish', role: 'syllable' }
+];
+const MENT = { id: '-ment', text: '-ment', role: 'suffix' };
+const DIS = { id: 'dis-', text: 'dis-', role: 'prefix' };
+
+test('PREFIX_SUFFIX_CARDS accepts Syllable Cards alongside affix cards', () => {
+  for (const objects of [[...SYLLABLES, MENT], [DIS, ...SYLLABLES, MENT]]) {
+    const presentation = runnerPresentation(affixFixture(objects));
+    const step = suppliedStep(presentation, 'latch-affix-manipulation');
+    assert.equal(step.displayType, 'PREFIX_SUFFIX_CARDS');
+    assert.equal(step.cardRepresentation, 'morphological');
+    assert.deepEqual(step.objects.map(object => object.text), objects.map(object => object.text));
+    const index = presentation.steps.findIndex(candidate => candidate.id === 'latch-affix-manipulation');
+    const html = renderToStaticMarkup(<Part2InteractiveRunner presentation={presentation} activeStepIndex={index} />);
+    const positions = objects.map(object => html.indexOf(`>${object.text}<`));
+    assert.ok(positions.every(position => position >= 0), 'every card renders');
+    assert.deepEqual([...positions].sort((a, b) => a - b), positions, 'cards render in staging order');
+  }
+});
+
+test('PREFIX_SUFFIX_CARDS still rejects syllables without an affix and word objects', () => {
+  const syllablesOnly = runnerPresentation(affixFixture(SYLLABLES)).steps.find(step => step.id === 'latch-affix-manipulation');
+  assert.equal(syllablesOnly?.kind, 'invalid');
+  const withWord = runnerPresentation(affixFixture([...SYLLABLES, MENT, { id: 'w', text: 'establishment', role: 'word' }]))
+    .steps.find(step => step.id === 'latch-affix-manipulation');
+  assert.equal(withWord?.kind, 'invalid');
 });

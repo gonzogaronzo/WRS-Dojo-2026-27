@@ -3,6 +3,7 @@ import { DojoMasterData, Lesson, LessonPart, WordCard, WordlistScore } from './t
 import { DrawingMap } from './drawingSync';
 import { nextLessonSyncRevision, normalizeLessonSyncRevision } from './lessonSessionSync';
 import { normalizeWordDistribution } from './wordDistribution';
+import { ElementReviewSessionState, normalizeReviewState } from './wordElementReview';
 
 export type SpellingViewMode = 'list' | 'cipher' | 'grid';
 export type WordCardsMode = 'standard' | 'oops';
@@ -18,6 +19,8 @@ export interface WordCardsSessionState {
   currentPlayerIndex: number;
   turnScore: number;
   isBust: boolean;
+  /** Element Review tab state. Optional so sessions saved before it existed load unchanged. */
+  elementReview?: ElementReviewSessionState;
 }
 
 export interface LessonSessionState {
@@ -102,6 +105,11 @@ const parseDistribution = (value: CloudLessonSession['wordDistribution']): any[]
   }
 };
 
+const elementReviewFromCloud = (cloud: CloudLessonSession): Pick<WordCardsSessionState, 'elementReview'> => {
+  const elementReview = normalizeReviewState(cloud.wordCardsElementReview);
+  return elementReview ? { elementReview } : {};
+};
+
 export const lessonSessionFromCloud = (cloud: CloudLessonSession): LessonSessionState => ({
   ...createInitialLessonSession(),
   syncRevision: normalizeLessonSyncRevision(cloud.syncRevision),
@@ -118,7 +126,8 @@ export const lessonSessionFromCloud = (cloud: CloudLessonSession): LessonSession
     scores: cloud.wordCardsScores || [],
     currentPlayerIndex: cloud.wordCardsCurrentPlayerIndex || 0,
     turnScore: cloud.wordCardsTurnScore || 0,
-    isBust: Boolean(cloud.wordCardsIsBust)
+    isBust: Boolean(cloud.wordCardsIsBust),
+    ...elementReviewFromCloud(cloud)
   },
   sentenceIndex: cloud.sentenceIndex || 0, teachConceptsMode: cloud.teachConceptsMode || 'slides',
   teachConceptsBoardText: cloud.teachConceptsBoardText || '', teachConceptsBoardTitle: cloud.teachConceptsBoardTitle || 'Target Word',
@@ -164,6 +173,7 @@ export const lessonSessionToCloud = (
   wordCardsDeck: session.wordCards.deck, wordCardsCurrentIndex: session.wordCards.currentIndex,
   wordCardsScores: session.wordCards.scores, wordCardsCurrentPlayerIndex: session.wordCards.currentPlayerIndex,
   wordCardsTurnScore: session.wordCards.turnScore, wordCardsIsBust: session.wordCards.isBust,
+  ...(session.wordCards.elementReview ? { wordCardsElementReview: session.wordCards.elementReview } : {}),
   sentenceIndex: session.sentenceIndex, teachConceptsMode: session.teachConceptsMode,
   teachConceptsBoardText: session.teachConceptsBoardText, teachConceptsBoardTitle: session.teachConceptsBoardTitle,
   teachConceptsBoardNotes: session.teachConceptsBoardNotes, teachConceptsMarks: session.teachConceptsMarks,
