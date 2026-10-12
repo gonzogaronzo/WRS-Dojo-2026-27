@@ -1042,7 +1042,7 @@ export const WORD_ELEMENT_CARDS: readonly WordElementCard[] = [
     "id": "latin_43_02",
     "family": "Latin",
     "elements": [
-      "-cide"
+      "-cide-"
     ],
     "related": [
       "cise",
@@ -1532,7 +1532,7 @@ export const WORD_ELEMENT_CARDS: readonly WordElementCard[] = [
     "id": "latin_44_06",
     "family": "Latin",
     "elements": [
-      "-serve"
+      "-serve-"
     ],
     "related": [],
     "meaning": "to watch, protect, serve",
