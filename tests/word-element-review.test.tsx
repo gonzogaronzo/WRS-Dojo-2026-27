@@ -65,6 +65,15 @@ test('element review deck has 83 cards, 85 element forms, and unique ids', () =>
   assert.equal(WORD_ELEMENT_SUBSTEPS.length, 63);
 });
 
+test("every Latin card's first element has a dash on both sides", () => {
+  const latin = WORD_ELEMENT_CARDS.filter(card => card.family === 'Latin');
+  assert.ok(latin.length > 0);
+  for (const card of latin) {
+    const element = card.elements[0];
+    assert.ok(element.startsWith('-') && element.endsWith('-'), `${card.id}: ${element}`);
+  }
+});
+
 test('every card image exists under public/ at the rewritten path', () => {
   for (const card of WORD_ELEMENT_CARDS) {
     assert.match(card.image, /^\/word-element-mnemonics\/[\w-]+\.png$/);
