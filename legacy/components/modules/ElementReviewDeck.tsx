@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
+import { AFFIX_SOURCE_NOTE } from '../../affixCards';
 import { WORD_ELEMENT_SOURCE_NOTE, WORD_ELEMENT_SUBSTEPS, WordElementCard } from '../../wordElementMnemonics';
 import {
   ElementReviewSessionState,
@@ -34,13 +35,33 @@ interface ElementReviewDeckProps {
 
 const EMPTY_MESSAGE = 'No illustrated cards match those filters.';
 
+const ELEMENT_PROMPTS: Record<WordElementCard['family'], string> = {
+  Latin: 'What does this Latin base mean?',
+  Greek: 'What does this Greek combining form mean?',
+  Prefix: 'What does this prefix mean?',
+  Suffix: 'What does this suffix mean?'
+};
+
+const FAMILY_LABELS: Record<WordElementCard['family'], string> = {
+  Latin: 'Latin base',
+  Greek: 'Greek combining form',
+  Prefix: 'Prefix',
+  Suffix: 'Suffix'
+};
+
+const REVIEW_FAMILIES: ReviewFamily[] = ['All', 'Latin', 'Greek', 'Prefix', 'Suffix'];
+
+/** Longer text (3 elements joined with " / ", or ~80-character meanings) steps down a size so it never overflows. */
+const longText = (text: string, limit: number) => text.length > limit;
+
 const FRONT_PROMPTS: Record<ReviewPromptMode, (card: WordElementCard) => string> = {
-  element: card => (card.family === 'Latin' ? 'What does this Latin base mean?' : 'What does this Greek combining form mean?'),
+  element: card => ELEMENT_PROMPTS[card.family],
   meaning: () => 'Which word element matches this meaning?',
   picture: () => 'Which word element does this mnemonic picture cue?'
 };
 
-const familyLabel = (card: WordElementCard) => (card.family === 'Latin' ? 'Latin base' : 'Greek combining form');
+const familyLabel = (card: WordElementCard) => FAMILY_LABELS[card.family];
+const relatedLabel = (card: WordElementCard) => (card.family === 'Prefix' || card.family === 'Suffix' ? 'Related form(s)' : 'Related base(s)');
 
 const FrontFace: React.FC<{ card: WordElementCard; promptMode: ReviewPromptMode }> = ({ card, promptMode }) => (
   <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-8 text-center text-stone-900">
@@ -48,7 +69,9 @@ const FrontFace: React.FC<{ card: WordElementCard; promptMode: ReviewPromptMode 
     {promptMode === 'picture' ? (
       <img src={card.image} alt="Mnemonic illustration prompt" className="max-h-[280px] max-w-[70%] object-contain" />
     ) : (
-      <div className={`break-words font-extrabold leading-[1.03] ${promptMode === 'meaning' ? 'max-w-xl text-4xl md:text-[42px]' : 'text-6xl md:text-7xl'}`}>
+      <div className={`max-w-full break-words font-extrabold leading-[1.1] ${promptMode === 'meaning'
+        ? (longText(card.meaning, 50) ? 'max-w-2xl text-3xl md:text-4xl' : 'max-w-xl text-4xl md:text-[42px]')
+        : (longText(elementText(card), 12) ? 'text-4xl md:text-5xl' : 'text-6xl md:text-7xl')}`}>
         {promptMode === 'meaning' ? card.meaning : elementText(card)}
       </div>
     )}
@@ -62,10 +85,10 @@ const BackFace: React.FC<{ card: WordElementCard; showSource: boolean }> = ({ ca
     </div>
     <div className="flex min-h-0 flex-col gap-3 overflow-auto p-6 md:p-8">
       <div className="text-[11px] font-extrabold uppercase tracking-[0.11em] text-stone-500">{familyLabel(card)}</div>
-      <div className="text-3xl font-extrabold leading-[1.05] text-stone-700 md:text-4xl">{elementText(card)}</div>
+      <div className={`break-words font-extrabold leading-[1.1] text-stone-700 ${longText(elementText(card), 12) ? 'text-2xl md:text-3xl' : 'text-3xl md:text-4xl'}`}>{elementText(card)}</div>
       <div>
         <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-stone-500">Meaning</div>
-        <div className="text-2xl font-extrabold leading-[1.12] md:text-3xl">{card.meaning}</div>
+        <div className={`break-words font-extrabold leading-[1.15] ${longText(card.meaning, 40) ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'}`}>{card.meaning}</div>
       </div>
       <div>
         <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-stone-500">Example word</div>
@@ -73,8 +96,8 @@ const BackFace: React.FC<{ card: WordElementCard; showSource: boolean }> = ({ ca
       </div>
       {card.related.length > 0 && (
         <div>
-          <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-stone-500">Related base(s)</div>
-          <div className="text-base leading-tight">{card.related.join(', ')}</div>
+          <div className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.1em] text-stone-500">{relatedLabel(card)}</div>
+          <div className="break-words text-base leading-tight">{card.related.join(', ')}</div>
         </div>
       )}
       {showSource && (
@@ -175,7 +198,7 @@ const ElementReviewDeck: React.FC<ElementReviewDeckProps> = ({ review, lessonSub
   const visible = query
     ? cards.filter(card => [elementText(card), card.meaning, card.example, card.related.join(' '), card.firstTaught].join(' ').toLowerCase().includes(query))
     : cards;
-  const familyName = review.family === 'All' ? 'Latin + Greek' : review.family;
+  const familyName = review.family === 'All' ? 'All word elements' : review.family;
   const scopeSummary = review.scope === 'all'
     ? `${familyName} • all illustrated`
     : review.scope === 'current' ? `${familyName} • Substep ${target ?? '—'}` : `${familyName} • through ${target ?? '—'}`;
@@ -189,7 +212,7 @@ const ElementReviewDeck: React.FC<ElementReviewDeckProps> = ({ review, lessonSub
         <div className="flex flex-col gap-1">
           <span className={fieldLabel}>Family</span>
           <div className="flex items-center rounded-xl border border-stone-700 bg-stone-800 p-1">
-            {(['All', 'Latin', 'Greek'] as ReviewFamily[]).map(family => (
+            {REVIEW_FAMILIES.map(family => (
               <button key={family} onClick={() => onChange(previous => setReviewFamily(previous, family, lessonSubstep))} className={segmentButton(review.family === family)}>{family}</button>
             ))}
           </div>
@@ -268,7 +291,7 @@ const ElementReviewDeck: React.FC<ElementReviewDeckProps> = ({ review, lessonSub
           <div className="flex flex-wrap items-end gap-3">
             <label className="flex min-w-[240px] flex-col gap-1">
               <span className={fieldLabel}>Find an element, meaning, or example</span>
-              <input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Try: water, -cept-, photograph…" className={selectClass} />
+              <input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Try: water, -cept-, photograph, -ness…" className={selectClass} />
             </label>
             <div className="ml-auto text-xs text-stone-400">{visible.length} card{visible.length === 1 ? '' : 's'}</div>
           </div>
@@ -282,14 +305,14 @@ const ElementReviewDeck: React.FC<ElementReviewDeckProps> = ({ review, lessonSub
                   aria-label={`Study ${elementText(card)}`}
                   onClick={() => onChange(previous => jumpToReviewCard(previous, card.id))}
                   onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onChange(previous => jumpToReviewCard(previous, card.id)); } }}
-                  className="flex min-h-[150px] cursor-pointer flex-col gap-2 rounded-2xl border border-stone-700 bg-stone-800/70 p-3 hover:bg-stone-800"
+                  className="flex min-h-[150px] min-w-0 cursor-pointer flex-col gap-2 rounded-2xl border border-stone-700 bg-stone-800/70 p-3 hover:bg-stone-800"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[9px] font-extrabold uppercase tracking-[0.08em] text-stone-400">{card.family}</span>
                     <span className="rounded-full bg-stone-700 px-2 py-0.5 text-[10px] font-bold text-stone-100">{card.firstTaught}</span>
                   </div>
-                  <div className="text-2xl font-extrabold leading-tight text-stone-100">{elementText(card)}</div>
-                  <div className="text-sm font-semibold leading-tight text-stone-300">{card.meaning}</div>
+                  <div className="min-w-0 break-words text-2xl font-extrabold leading-tight text-stone-100">{elementText(card)}</div>
+                  <div className="min-w-0 break-words text-sm font-semibold leading-tight text-stone-300">{card.meaning}</div>
                   <div className="mt-auto flex items-center gap-2 text-[11px] text-stone-400">
                     <img src={card.image} alt="" className="h-11 w-11 rounded-md bg-stone-100 object-contain" />
                     <span>{card.example}</span>
@@ -304,6 +327,7 @@ const ElementReviewDeck: React.FC<ElementReviewDeckProps> = ({ review, lessonSub
 
       <footer className="border-t border-stone-800 px-6 py-3 text-[11px] leading-snug text-stone-500">
         Wilson-source content, teacher-created review interface. No student data is recorded by this tool. {WORD_ELEMENT_SOURCE_NOTE}
+        <span className="mt-1 block"><strong className="text-stone-400">Prefix and suffix cards:</strong> {AFFIX_SOURCE_NOTE}</span>
       </footer>
     </div>
   );

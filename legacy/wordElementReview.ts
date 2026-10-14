@@ -31,7 +31,7 @@ export interface ElementReviewSessionState {
   view: ReviewView;
 }
 
-const FAMILIES: ReviewFamily[] = ['All', 'Latin', 'Greek'];
+const FAMILIES: ReviewFamily[] = ['All', 'Latin', 'Greek', 'Prefix', 'Suffix'];
 const SCOPES: ReviewScope[] = ['through', 'all', 'current'];
 const PROMPTS: ReviewPromptMode[] = ['element', 'meaning', 'picture'];
 

@@ -2,7 +2,9 @@
 // Card fields are copied verbatim from the standalone deck (only `image` paths are rewritten).
 // Generated from deck-data.js; do not hand-edit meanings, examples, or substeps.
 
-export type WordElementFamily = 'Latin' | 'Greek';
+import { AFFIX_CARDS } from './affixCards';
+
+export type WordElementFamily = 'Latin' | 'Greek' | 'Prefix' | 'Suffix';
 
 export interface WordElementCard {
   id: string;
@@ -29,7 +31,7 @@ export const WORD_ELEMENT_SOURCE_NOTE = "Element, meaning, example word, related
 
 export const WORD_ELEMENT_SUBSTEPS: readonly string[] = ["1.1","1.2","1.3","1.4","1.5","1.6","2.1","2.2","2.3","2.4","2.5","3.1","3.2","3.3","3.4","3.5","4.1","4.2","4.3","4.4","5.1","5.2","5.3","5.4","5.5","6.1","6.2","6.3","6.4","7.1","7.2","7.3","7.4","7.5","8.1","8.2","8.3","8.4","8.5","9.1","9.2","9.3","9.4","9.5","9.6","9.7","10.1","10.2","10.3","10.4","10.5","10.6","11.1","11.2","11.3","11.4","11.5","12.1","12.2","12.3","12.4","12.5","12.6"];
 
-export const WORD_ELEMENT_CARDS: readonly WordElementCard[] = [
+const LATIN_GREEK_CARDS: readonly WordElementCard[] = [
   {
     "id": "latin_26_01",
     "family": "Latin",
@@ -1907,3 +1909,6 @@ export const WORD_ELEMENT_CARDS: readonly WordElementCard[] = [
     "order": 83
   }
 ];
+
+// Latin + Greek (orders 1–83) followed by Prefix + Suffix (orders 84–158).
+export const WORD_ELEMENT_CARDS: readonly WordElementCard[] = [...LATIN_GREEK_CARDS, ...AFFIX_CARDS];

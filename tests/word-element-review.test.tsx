@@ -36,6 +36,7 @@ import { bankWordCardsTurn, dealWordCard, resetWordCardsState } from '../legacy/
 import { createPresenterSnapshot, sanitizePresenterSession } from '../legacy/presenterMode';
 
 const source = JSON.parse(fs.readFileSync(path.join('tests', 'fixtures', 'word-element-deck-v1.2.source.json'), 'utf8'));
+const affixSource = JSON.parse(fs.readFileSync(path.join('tests', 'fixtures', 'affix-deck-v1.0.source.json'), 'utf8'));
 
 const lesson: Lesson = {
   id: 'lesson-2-5', title: 'Test', step: '2', substep: '5',
@@ -58,11 +59,29 @@ const render = (state: ElementReviewSessionState, readOnly: boolean, runtimeLess
 
 // --- Data -----------------------------------------------------------------
 
-test('element review deck has 83 cards, 85 element forms, and unique ids', () => {
-  assert.equal(WORD_ELEMENT_CARDS.length, 83);
-  assert.equal(WORD_ELEMENT_CARDS.reduce((sum, card) => sum + card.elements.length, 0), 85);
-  assert.equal(new Set(WORD_ELEMENT_CARDS.map(card => card.id)).size, 83);
+test('element review deck has 158 cards, 170 element forms, and unique ids', () => {
+  assert.equal(WORD_ELEMENT_CARDS.length, 158);
+  assert.equal(WORD_ELEMENT_CARDS.reduce((sum, card) => sum + card.elements.length, 0), 170);
+  assert.equal(new Set(WORD_ELEMENT_CARDS.map(card => card.id)).size, 158);
   assert.equal(WORD_ELEMENT_SUBSTEPS.length, 63);
+  assert.deepEqual(WORD_ELEMENT_CARDS.map(card => card.order), Array.from({ length: 158 }, (_, i) => i + 1));
+});
+
+test('family counts add up to 158 (83 Latin + Greek, 32 Prefix, 43 Suffix)', () => {
+  const count = (family: string) => WORD_ELEMENT_CARDS.filter(card => card.family === family).length;
+  assert.equal(count('Latin') + count('Greek') + count('Prefix') + count('Suffix'), 158);
+  assert.equal(count('Latin') + count('Greek'), 83);
+  assert.equal(count('Prefix'), 32);
+  assert.equal(count('Suffix'), 43);
+});
+
+test('every Prefix element ends with a dash and every Suffix element starts with one', () => {
+  for (const card of WORD_ELEMENT_CARDS.filter(card => card.family === 'Prefix')) {
+    for (const element of card.elements) assert.ok(element.endsWith('-') && !element.startsWith('-'), `${card.id}: ${element}`);
+  }
+  for (const card of WORD_ELEMENT_CARDS.filter(card => card.family === 'Suffix')) {
+    for (const element of card.elements) assert.ok(element.startsWith('-'), `${card.id}: ${element}`);
+  }
 });
 
 test("every Latin card's first element has a dash on both sides", () => {
@@ -79,11 +98,11 @@ test('every card image exists under public/ at the rewritten path', () => {
     assert.match(card.image, /^\/word-element-mnemonics\/[\w-]+\.png$/);
     assert.ok(fs.existsSync(path.join('public', card.image)), `missing ${card.image}`);
   }
-  assert.equal(fs.readdirSync(path.join('public', 'word-element-mnemonics')).length, 83);
+  assert.equal(fs.readdirSync(path.join('public', 'word-element-mnemonics')).length, 158);
 });
 
 test('card fields are verbatim from the standalone deck; only image paths change', () => {
-  assert.equal(source.cards.length, WORD_ELEMENT_CARDS.length);
+  assert.equal(source.cards.length, 83);
   source.cards.forEach((original: Record<string, unknown>, index: number) => {
     const { image, ...rest } = original;
     const { image: converted, ...convertedRest } = WORD_ELEMENT_CARDS[index] as unknown as Record<string, unknown>;
@@ -93,20 +112,40 @@ test('card fields are verbatim from the standalone deck; only image paths change
   assert.deepEqual([...WORD_ELEMENT_SUBSTEPS], source.substeps);
 });
 
+test('cards 84-158 are verbatim from the affix deck, image paths included', () => {
+  assert.equal(affixSource.cards.length, 75);
+  assert.deepEqual(WORD_ELEMENT_CARDS.slice(83), affixSource.cards);
+  assert.deepEqual(affixSource.counts, { rows: 75, forms: 85, prefixRows: 32, suffixRows: 43 });
+});
+
 // --- Filtering ------------------------------------------------------------
 
 test('cumulative filter never returns a card first taught after the target substep', () => {
   for (const target of WORD_ELEMENT_SUBSTEPS) {
-    for (const family of ['All', 'Latin', 'Greek'] as const) {
+    for (const family of ['All', 'Latin', 'Greek', 'Prefix', 'Suffix'] as const) {
       for (const card of selectReviewCards(family, 'through', target)) {
         assert.ok(substepKey(card.firstTaught)! <= substepKey(target)!, `${card.id} (${card.firstTaught}) leaked into ${target}`);
       }
     }
   }
   assert.equal(selectReviewCards('All', 'through', '1.1').length, 0);
-  assert.equal(selectReviewCards('All', 'through', '12.6').length, 83);
-  assert.equal(selectReviewCards('Latin', 'all', null).length + selectReviewCards('Greek', 'all', null).length, 83);
+  assert.equal(selectReviewCards('All', 'through', '12.6').length, 158);
+  assert.equal(
+    (['Latin', 'Greek', 'Prefix', 'Suffix'] as const).reduce((sum, family) => sum + selectReviewCards(family, 'all', null).length, 0),
+    158
+  );
+  assert.equal(selectReviewCards('Prefix', 'all', null).length, 32);
+  assert.equal(selectReviewCards('Suffix', 'all', null).length, 43);
   assert.ok(selectReviewCards('All', 'current', '2.4').every(card => card.firstTaught === '2.4'));
+});
+
+test('Prefix and Suffix families filter to their own cards', () => {
+  const prefixes = setReviewFamily(createReviewState(null), 'Prefix', null);
+  assert.equal(prefixes.order.length, 32);
+  assert.ok(prefixes.order.every(id => id.startsWith('prefix_')));
+  const suffixes = setReviewFamily(createReviewState(null), 'Suffix', null);
+  assert.equal(suffixes.order.length, 43);
+  assert.ok(suffixes.order.every(id => id.startsWith('suffix_')));
 });
 
 test('running substep joins step and substep, or accepts an already-dotted substep', () => {
@@ -132,6 +171,45 @@ test('review transitions rebuild order, reset flip, and keep id-only state', () 
   assert.deepEqual([...shuffled.order].sort(), [...picked.order].sort());
   const target = picked.order[5];
   assert.equal(jumpToReviewCard({ ...picked, view: 'browse' }, target).view, 'study');
+});
+
+// --- Affix prompts and layout --------------------------------------------
+
+test('Prefix and Suffix cards use their own element prompts and labels', () => {
+  const suffix = WORD_ELEMENT_CARDS.find(card => card.family === 'Suffix')!;
+  const prefix = WORD_ELEMENT_CARDS.find(card => card.family === 'Prefix')!;
+  const suffixHtml = render(reviewState({ order: [suffix.id], family: 'Suffix' }), true);
+  assert.ok(suffixHtml.includes('What does this suffix mean?'));
+  assert.ok(suffixHtml.includes(suffix.elements[0]));
+  assert.ok(!suffixHtml.includes('Latin base'));
+  assert.ok(render(reviewState({ order: [prefix.id], family: 'Prefix' }), true).includes('What does this prefix mean?'));
+  const back = render(reviewState({ order: [suffix.id], flipped: true }), true);
+  assert.ok(back.includes('>Suffix<'));
+  assert.ok(render(reviewState({ order: [prefix.id], flipped: true }), true).includes('>Prefix<'));
+});
+
+test('teacher screen offers five family buttons, "All word elements", and the affix source note', () => {
+  const html = render(reviewState({ order: [WORD_ELEMENT_CARDS[0].id] }), false);
+  for (const family of ['All', 'Latin', 'Greek', 'Prefix', 'Suffix']) assert.ok(html.includes(`>${family}</button>`), `missing ${family} button`);
+  assert.ok(html.includes('All word elements'));
+  assert.ok(!html.includes('Latin + Greek'));
+  assert.ok(html.includes(affixSource.sourceNote.replace(/&/g, '&amp;')));
+});
+
+test('three-element cards and long meanings wrap in study, back, and browse views', () => {
+  const triple = WORD_ELEMENT_CARDS.find(card => card.elements.length === 3)!;
+  const longest = [...WORD_ELEMENT_CARDS].sort((a, b) => b.meaning.length - a.meaning.length)[0];
+  for (const card of [triple, longest]) {
+    for (const promptMode of ['element', 'meaning'] as const) {
+      const html = render(reviewState({ order: [card.id], promptMode }), true);
+      assert.ok(html.includes('break-words'), `${card.id} ${promptMode} front does not wrap`);
+    }
+    const back = render(reviewState({ order: [card.id], flipped: true }), true);
+    assert.ok(back.includes(card.elements.join(' / ')));
+    assert.ok(back.includes('break-words'));
+    const browse = render(reviewState({ order: [card.id], view: 'browse' }), false);
+    assert.ok(browse.includes(card.elements.join(' / ')) && browse.includes('min-w-0 break-words'));
+  }
 });
 
 // --- Student view privacy ------------------------------------------------
@@ -225,6 +303,13 @@ test('element review state round-trips through cloud sync and malformed values a
   assert.equal(repaired.index, 0);
   assert.equal(repaired.tab, 'cards');
   assert.equal(repaired.substep, null);
+
+  const affixIds = ['prefix_mid', 'suffix_ness'];
+  for (const family of ['Prefix', 'Suffix'] as const) {
+    assert.equal(normalizeReviewState({ family, order: affixIds })!.family, family);
+  }
+  assert.deepEqual(normalizeReviewState({ order: affixIds })!.order, affixIds);
+  assert.equal(normalizeReviewState({ family: 'Hebrew' })!.family, 'All');
 });
 
 test('switching tabs and reviewing never alters the word-card deck fields', () => {
