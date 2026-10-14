@@ -1494,7 +1494,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "related to; or a person or thing that is",
-    "example": "favorite",
+    "example": "graphite, favorite",
     "firstTaught": "10.1",
     "notebookSubstep": "10.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1503,11 +1503,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ite.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON",
-      "TEACHER_CHOSEN_EXAMPLE"
+      "ACCEPTED_DEFINITION_NOT_WILSON"
     ],
     "order": 144
   },

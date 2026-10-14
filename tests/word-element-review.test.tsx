@@ -117,7 +117,7 @@ test('cards 84-158 are verbatim from the affix deck, image paths included', () =
   assert.equal(affixSource.cards.length, 75);
   assert.deepEqual(WORD_ELEMENT_CARDS.slice(83), affixSource.cards);
   assert.equal(affixSource.version, '1.1');
-  assert.deepEqual(affixSource.counts, { rows: 75, forms: 85, prefixRows: 32, suffixRows: 43, teacherChosenExamples: 47 });
+  assert.deepEqual(affixSource.counts, { rows: 75, forms: 85, prefixRows: 32, suffixRows: 43, teacherChosenExamples: 46 });
 });
 
 test('affix v1.1 differs from the printed-Notebook v1.0 only in teacher-chosen examples and meanings', () => {
@@ -140,7 +140,7 @@ test('affix v1.1 differs from the printed-Notebook v1.0 only in teacher-chosen e
     assert.equal(flags.includes('TEACHER_CHOSEN_MEANING'), String(card.id) in MEANING_CHANGES);
     assert.deepEqual(flags.filter(flag => !flag.startsWith('TEACHER_CHOSEN')), before.auditFlags);
   });
-  assert.equal(changedExamples, 47);
+  assert.equal(changedExamples, 46);
 });
 
 test('familiar example words appear on the affix cards that were changed', () => {
@@ -150,6 +150,8 @@ test('familiar example words appear on the affix cards that were changed', () =>
   assert.equal(example('prefix_anti'), 'antifreeze');
   assert.equal(example('suffix_ly'), 'quickly');
   assert.equal(example('suffix_ent'), 'difference, emergency, different');
+  // -ite keeps the Wilson words: the long "ite" in graphite and the short "it" in favorite.
+  assert.equal(example('suffix_ite'), 'graphite, favorite');
 });
 
 // --- Filtering ------------------------------------------------------------
