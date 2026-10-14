@@ -1,11 +1,11 @@
-// Affix Review Deck v1.0 — prefix and suffix cards for the Part 3 Element Review tab.
-// Card fields are copied verbatim from tests/fixtures/affix-deck-v1.0.source.json.
+// Affix Review Deck v1.1 — prefix and suffix cards for the Part 3 Element Review tab.
+// Card fields are copied verbatim from tests/fixtures/affix-deck-v1.1.source.json.
 // Generated from that fixture; do not hand-edit meanings, examples, or substeps.
 
 import type { WordElementCard } from './wordElementMnemonics';
 
-export const AFFIX_DECK_VERSION = "1.0";
-export const AFFIX_SOURCE_NOTE = "Prefix and suffix elements, example words, prefix meanings, and first-taught substeps come from the Fourth Edition Student Notebook Answer Keys (Steps 7-12, printed pp. 33-36, 38-39) and Instructor Manual. Suffix meanings are accepted standard definitions where Wilson gives none. All affix illustrations are teacher-created, not Wilson art.";
+export const AFFIX_DECK_VERSION = "1.1";
+export const AFFIX_SOURCE_NOTE = "Prefix and suffix elements, example words, prefix meanings, and first-taught substeps come from the Fourth Edition Student Notebook Answer Keys (Steps 7-12, printed pp. 33-36, 38-39) and Instructor Manual. Suffix meanings are accepted standard definitions where Wilson gives none. Some example words (and the meanings of hypo-, hyper-, and anti-) were chosen by the teacher to be more familiar and fitting for students; cards flagged TEACHER_CHOSEN_EXAMPLE or TEACHER_CHOSEN_MEANING differ from the printed Notebook row. All affix illustrations are teacher-created, not Wilson art.";
 
 export const AFFIX_CARDS: readonly WordElementCard[] = [
   {
@@ -16,7 +16,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "middle",
-    "example": "midship",
+    "example": "midnight",
     "firstTaught": "3.1",
     "notebookSubstep": "3.1",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -25,9 +25,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_mid.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 84
   },
@@ -39,7 +40,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "wrong, negative",
-    "example": "miscall",
+    "example": "misspell",
     "firstTaught": "3.1",
     "notebookSubstep": "3.1",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -48,9 +49,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_mis.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 85
   },
@@ -85,7 +87,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "across",
-    "example": "transact",
+    "example": "transport",
     "firstTaught": "3.1",
     "notebookSubstep": "3.1",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -94,9 +96,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_trans.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 87
   },
@@ -131,7 +134,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "from, away",
-    "example": "abrupt",
+    "example": "absent",
     "firstTaught": "3.2",
     "notebookSubstep": "3.2",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -140,9 +143,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_ab.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 89
   },
@@ -165,7 +169,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "at-"
     ],
     "meaning": "to, toward, at",
-    "example": "admit",
+    "example": "advance",
     "firstTaught": "3.2",
     "notebookSubstep": "3.2",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -174,9 +178,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_ad.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 90
   },
@@ -193,7 +198,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "col-"
     ],
     "meaning": "with, together",
-    "example": "command, confess",
+    "example": "combine, connect",
     "firstTaught": "3.2",
     "notebookSubstep": "3.2",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -202,10 +207,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_com_con.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "MULTI_ELEMENT_SINGLE_MNEMONIC_ROW"
+      "MULTI_ELEMENT_SINGLE_MNEMONIC_ROW",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 91
   },
@@ -244,7 +250,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "with, on, cause to be",
-    "example": "enfold, embed",
+    "example": "empower, enlarge",
     "firstTaught": "3.2",
     "notebookSubstep": "3.2",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -253,10 +259,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_em_en.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "MULTI_ELEMENT_SINGLE_MNEMONIC_ROW"
+      "MULTI_ELEMENT_SINGLE_MNEMONIC_ROW",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 93
   },
@@ -298,7 +305,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "il-"
     ],
     "meaning": "in, into, not",
-    "example": "imprint, inland",
+    "example": "inside, impossible",
     "firstTaught": "3.2",
     "notebookSubstep": "3.2",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -307,10 +314,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_im_in.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "MULTI_ELEMENT_SINGLE_MNEMONIC_ROW"
+      "MULTI_ELEMENT_SINGLE_MNEMONIC_ROW",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 95
   },
@@ -327,7 +335,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "op-"
     ],
     "meaning": "against",
-    "example": "obstruct",
+    "example": "object",
     "firstTaught": "3.2",
     "notebookSubstep": "3.2",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -336,9 +344,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_ob.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 96
   },
@@ -356,7 +365,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "sup-"
     ],
     "meaning": "under",
-    "example": "subplot",
+    "example": "subway",
     "firstTaught": "3.2",
     "notebookSubstep": "3.2",
     "notebookCategory": "Prefixes with Closed Syllables",
@@ -365,9 +374,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 37,
     "image": "/word-element-mnemonics/prefix_sub.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 97
   },
@@ -381,7 +391,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "ad-"
     ],
     "meaning": "on, in, to",
-    "example": "awake",
+    "example": "aboard",
     "firstTaught": "5.5",
     "notebookSubstep": "5.5",
     "notebookCategory": "Prefixes with Open-Syllables (often a schwa)",
@@ -390,9 +400,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 38,
     "image": "/word-element-mnemonics/prefix_a.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 98
   },
@@ -407,7 +418,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "com-"
     ],
     "meaning": "with, together",
-    "example": "cohost",
+    "example": "coworker",
     "firstTaught": "5.1",
     "notebookSubstep": "5.1",
     "notebookCategory": "Prefixes with Open-Syllables (often a schwa)",
@@ -416,9 +427,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 38,
     "image": "/word-element-mnemonics/prefix_co.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 99
   },
@@ -546,8 +558,8 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "hypo-"
     ],
     "related": [],
-    "meaning": "small",
-    "example": "hypothyroid",
+    "meaning": "under, too little",
+    "example": "hypothermia",
     "firstTaught": "11.1",
     "notebookSubstep": "11.1",
     "notebookCategory": "Prefixes with Open-Syllables (often a schwa)",
@@ -556,10 +568,12 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 38,
     "image": "/word-element-mnemonics/prefix_hypo.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row, verified against the printed page (p. 34): Wilson prints 'small'. Dictionaries give 'under, below'; kept verbatim by teacher decision. Picture shows 'under'. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row, verified against the printed page (p. 34): Wilson prints 'small'. Dictionaries give 'under, below'; kept verbatim by teacher decision. Picture shows 'under'. Example word and meaning chosen by the teacher (replace the Notebook wording; the printed Notebook row is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "NOTEBOOK_MEANING_DIFFERS_FROM_DICTIONARY"
+      "NOTEBOOK_MEANING_DIFFERS_FROM_DICTIONARY",
+      "TEACHER_CHOSEN_EXAMPLE",
+      "TEACHER_CHOSEN_MEANING"
     ],
     "order": 105
   },
@@ -594,7 +608,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "through, intensive",
-    "example": "perfect",
+    "example": "permit",
     "firstTaught": "8.3",
     "notebookSubstep": "8.3",
     "notebookCategory": "Prefixes with R-controlled Syllables",
@@ -603,9 +617,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 39,
     "image": "/word-element-mnemonics/prefix_per.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 107
   },
@@ -640,7 +655,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "beside, near or against",
-    "example": "paragraph",
+    "example": "parallel",
     "firstTaught": "8.4",
     "notebookSubstep": "8.4",
     "notebookCategory": "Prefixes with R-controlled Syllables",
@@ -649,9 +664,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 39,
     "image": "/word-element-mnemonics/prefix_para.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 109
   },
@@ -662,8 +678,8 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "hyper-"
     ],
     "related": [],
-    "meaning": "many",
-    "example": "hyperdrive",
+    "meaning": "over, too much",
+    "example": "hyperactive",
     "firstTaught": "11.1",
     "notebookSubstep": "11.1",
     "notebookCategory": "Prefixes with R-controlled Syllables",
@@ -672,10 +688,12 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 39,
     "image": "/word-element-mnemonics/prefix_hyper.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row, verified against the printed page (p. 35): Wilson prints 'many' (example hyperthyroid; Mark Words hyperdrive). Dictionaries give 'over, above, too much'; kept verbatim by teacher decision. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row, verified against the printed page (p. 35): Wilson prints 'many' (example hyperthyroid; Mark Words hyperdrive). Dictionaries give 'over, above, too much'; kept verbatim by teacher decision. Example word and meaning chosen by the teacher (replace the Notebook wording; the printed Notebook row is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "NOTEBOOK_MEANING_DIFFERS_FROM_DICTIONARY"
+      "NOTEBOOK_MEANING_DIFFERS_FROM_DICTIONARY",
+      "TEACHER_CHOSEN_EXAMPLE",
+      "TEACHER_CHOSEN_MEANING"
     ],
     "order": 110
   },
@@ -686,8 +704,8 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
       "anti-"
     ],
     "related": [],
-    "meaning": "before, against",
-    "example": "anticavity",
+    "meaning": "against",
+    "example": "antifreeze",
     "firstTaught": "11.5",
     "notebookSubstep": "11.5",
     "notebookCategory": "Additional Prefixes",
@@ -696,9 +714,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 40,
     "image": "/word-element-mnemonics/prefix_anti.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word and meaning chosen by the teacher (replace the Notebook wording; the printed Notebook row is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE",
+      "TEACHER_CHOSEN_MEANING"
     ],
     "order": 111
   },
@@ -756,7 +776,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "all, every",
-    "example": "omnipresent",
+    "example": "omnivore",
     "firstTaught": "11.5",
     "notebookSubstep": "11.5",
     "notebookCategory": "Additional Prefixes",
@@ -765,9 +785,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 40,
     "image": "/word-element-mnemonics/prefix_omni.png",
     "sourceStatus": "Wilson Student Notebook Answer Key",
-    "sourceBasis": "Student Notebook row (element, meaning, example word). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element, meaning, example word). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 114
   },
@@ -894,7 +915,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "in a way that is",
-    "example": "likely",
+    "example": "quickly",
     "firstTaught": "6.1",
     "notebookSubstep": "6.1",
     "notebookCategory": "Consonant Suffixes (begin with a consonant)",
@@ -903,9 +924,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 42,
     "image": "/word-element-mnemonics/suffix_ly.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 120
   },
@@ -917,7 +939,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "act, state, or result of",
-    "example": "equipment",
+    "example": "movement",
     "firstTaught": "6.1",
     "notebookSubstep": "6.1",
     "notebookCategory": "Consonant Suffixes (begin with a consonant)",
@@ -926,9 +948,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 42,
     "image": "/word-element-mnemonics/suffix_ment.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 121
   },
@@ -1032,7 +1055,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "happening now",
-    "example": "fishing",
+    "example": "jumping",
     "firstTaught": "3.5",
     "notebookSubstep": "3.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1041,9 +1064,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ing.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 126
   },
@@ -1055,7 +1079,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "can be, able to be",
-    "example": "predictable, respectable",
+    "example": "washable, breakable",
     "firstTaught": "6.1",
     "notebookSubstep": "6.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1064,9 +1088,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_able.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 127
   },
@@ -1101,7 +1126,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "like, somewhat",
-    "example": "selfish",
+    "example": "childish",
     "firstTaught": "6.1",
     "notebookSubstep": "6.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1110,9 +1135,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ish.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 129
   },
@@ -1124,7 +1150,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "tending to, having the quality of",
-    "example": "disruptive",
+    "example": "creative",
     "firstTaught": "4.4",
     "notebookSubstep": "4.4",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1133,9 +1159,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ive.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 130
   },
@@ -1147,7 +1174,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "made of; or to make",
-    "example": "golden",
+    "example": "wooden",
     "firstTaught": "6.1",
     "notebookSubstep": "6.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1156,9 +1183,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_en.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 131
   },
@@ -1193,7 +1221,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "more (comparing two); or a person who",
-    "example": "longer",
+    "example": "longer, teacher",
     "firstTaught": "6.1",
     "notebookSubstep": "6.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1202,9 +1230,10 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_er.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning follows the Instructor Manual's description. Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
-      "TEACHER_CREATED_ILLUSTRATION"
+      "TEACHER_CREATED_ILLUSTRATION",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 133
   },
@@ -1239,7 +1268,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "act, state, or result of",
-    "example": "prediction",
+    "example": "invention",
     "firstTaught": "7.4",
     "notebookSubstep": "7.4",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1248,10 +1277,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ion.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 135
   },
@@ -1263,7 +1293,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "state or quality of",
-    "example": "humidity",
+    "example": "activity",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1272,10 +1302,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ity.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 136
   },
@@ -1287,7 +1318,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "makes a noun (a thing or a state)",
-    "example": "solace",
+    "example": "palace",
     "firstTaught": "10.1",
     "notebookSubstep": "10.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1296,11 +1327,12 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ace.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
       "ACCEPTED_DEFINITION_NOT_WILSON",
-      "NO_COMMON_MEANING_FUNCTION_GIVEN"
+      "NO_COMMON_MEANING_FUNCTION_GIVEN",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 137
   },
@@ -1312,7 +1344,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "to make or become",
-    "example": "standardize",
+    "example": "memorize",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1321,10 +1353,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ize.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 138
   },
@@ -1336,7 +1369,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "act, result, or collection of",
-    "example": "package",
+    "example": "baggage",
     "firstTaught": "10.1",
     "notebookSubstep": "10.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1345,10 +1378,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_age.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 139
   },
@@ -1360,7 +1394,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "to make or act on; or having, full of",
-    "example": "considerate, fixate",
+    "example": "decorate, fortunate",
     "firstTaught": "10.1",
     "notebookSubstep": "10.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1369,10 +1403,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ate.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 140
   },
@@ -1384,7 +1419,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "act, state, or quality of",
-    "example": "justice",
+    "example": "practice",
     "firstTaught": "10.1",
     "notebookSubstep": "10.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1393,10 +1428,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ice.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 141
   },
@@ -1408,7 +1444,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "relating to, able to be",
-    "example": "infantile",
+    "example": "mobile, fragile",
     "firstTaught": "10.1",
     "notebookSubstep": "10.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1417,10 +1453,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ile.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 142
   },
@@ -1432,7 +1469,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "relating to, like",
-    "example": "nectarine, examine",
+    "example": "marine, canine",
     "firstTaught": "10.1",
     "notebookSubstep": "10.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1441,10 +1478,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ine.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 143
   },
@@ -1456,7 +1494,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "related to; or a person or thing that is",
-    "example": "graphite, favorite",
+    "example": "favorite",
     "firstTaught": "10.1",
     "notebookSubstep": "10.1",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1465,10 +1503,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ite.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 144
   },
@@ -1480,7 +1519,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "place for, or relating to",
-    "example": "boundary",
+    "example": "library",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1489,10 +1528,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ary.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 145
   },
@@ -1504,7 +1544,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "place where, act of, or collection of",
-    "example": "fishery",
+    "example": "bakery",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1513,10 +1553,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ery.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 146
   },
@@ -1528,7 +1569,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "place for, or relating to",
-    "example": "directory",
+    "example": "factory",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1537,10 +1578,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ory.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 147
   },
@@ -1576,7 +1618,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "belief, practice, or style",
-    "example": "realism",
+    "example": "tourism",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1585,10 +1627,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ism.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 149
   },
@@ -1624,7 +1667,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "relating to; or the act of",
-    "example": "rental",
+    "example": "musical, arrival",
     "firstTaught": "12.5",
     "notebookSubstep": "12.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1633,10 +1676,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_al.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 151
   },
@@ -1648,7 +1692,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "relating to; or a person from",
-    "example": "suburban",
+    "example": "American",
     "firstTaught": "12.5",
     "notebookSubstep": "12.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1657,10 +1701,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_an.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 152
   },
@@ -1696,7 +1741,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "act or result of",
-    "example": "seizure",
+    "example": "failure",
     "firstTaught": "12.5",
     "notebookSubstep": "12.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1705,10 +1750,11 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ure.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
-      "ACCEPTED_DEFINITION_NOT_WILSON"
+      "ACCEPTED_DEFINITION_NOT_WILSON",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 154
   },
@@ -1722,7 +1768,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "-ance, -ancy: state or act of; -ant: having the quality of, or a person who",
-    "example": "expectance, expectancy, expectant",
+    "example": "assistance, vacancy, assistant",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1731,11 +1777,12 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ance.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
       "ACCEPTED_DEFINITION_NOT_WILSON",
-      "LOOKALIKE_GROUP_ONE_CARD"
+      "LOOKALIKE_GROUP_ONE_CARD",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 155
   },
@@ -1749,7 +1796,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "-ence, -ency: state or quality of; -ent: having the quality of, or a person who",
-    "example": "consistence, consistency, consistent",
+    "example": "difference, emergency, different",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1758,11 +1805,12 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ent.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
       "ACCEPTED_DEFINITION_NOT_WILSON",
-      "LOOKALIKE_GROUP_ONE_CARD"
+      "LOOKALIKE_GROUP_ONE_CARD",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 156
   },
@@ -1776,7 +1824,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "-ible: can be; -ibly: in a way that can be; -ibility: being able to be",
-    "example": "accessible, accessibly, accessibility",
+    "example": "flexible, flexibly, flexibility",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1785,11 +1833,12 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ibility.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
       "ACCEPTED_DEFINITION_NOT_WILSON",
-      "LOOKALIKE_GROUP_ONE_CARD"
+      "LOOKALIKE_GROUP_ONE_CARD",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 157
   },
@@ -1802,7 +1851,7 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     ],
     "related": [],
     "meaning": "-ably: in a way that can be; -ability: being able to be",
-    "example": "respectably, respectability (also respectable)",
+    "example": "dependably, dependability (also dependable)",
     "firstTaught": "10.5",
     "notebookSubstep": "10.5",
     "notebookCategory": "Vowel Suffixes (begin with a vowel)",
@@ -1811,11 +1860,12 @@ export const AFFIX_CARDS: readonly WordElementCard[] = [
     "sourcePdfPage": 43,
     "image": "/word-element-mnemonics/suffix_ably.png",
     "sourceStatus": "Wilson Student Notebook Answer Key (element + example word)",
-    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
+    "sourceBasis": "Student Notebook row (element + example word); meaning is an accepted standard definition (the Notebook gives none). Example word chosen by the teacher for familiarity (replaces the Notebook example; the printed Notebook example is kept in affix-deck-v1.0.source.json). Teacher-created illustration (ChatGPT, Oct 2026), not Wilson art",
     "auditFlags": [
       "TEACHER_CREATED_ILLUSTRATION",
       "ACCEPTED_DEFINITION_NOT_WILSON",
-      "LOOKALIKE_GROUP_ONE_CARD"
+      "LOOKALIKE_GROUP_ONE_CARD",
+      "TEACHER_CHOSEN_EXAMPLE"
     ],
     "order": 158
   }

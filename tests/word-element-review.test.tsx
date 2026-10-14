@@ -36,7 +36,8 @@ import { bankWordCardsTurn, dealWordCard, resetWordCardsState } from '../legacy/
 import { createPresenterSnapshot, sanitizePresenterSession } from '../legacy/presenterMode';
 
 const source = JSON.parse(fs.readFileSync(path.join('tests', 'fixtures', 'word-element-deck-v1.2.source.json'), 'utf8'));
-const affixSource = JSON.parse(fs.readFileSync(path.join('tests', 'fixtures', 'affix-deck-v1.0.source.json'), 'utf8'));
+const affixSource = JSON.parse(fs.readFileSync(path.join('tests', 'fixtures', 'affix-deck-v1.1.source.json'), 'utf8'));
+const affixOriginal = JSON.parse(fs.readFileSync(path.join('tests', 'fixtures', 'affix-deck-v1.0.source.json'), 'utf8'));
 
 const lesson: Lesson = {
   id: 'lesson-2-5', title: 'Test', step: '2', substep: '5',
@@ -115,7 +116,40 @@ test('card fields are verbatim from the standalone deck; only image paths change
 test('cards 84-158 are verbatim from the affix deck, image paths included', () => {
   assert.equal(affixSource.cards.length, 75);
   assert.deepEqual(WORD_ELEMENT_CARDS.slice(83), affixSource.cards);
-  assert.deepEqual(affixSource.counts, { rows: 75, forms: 85, prefixRows: 32, suffixRows: 43 });
+  assert.equal(affixSource.version, '1.1');
+  assert.deepEqual(affixSource.counts, { rows: 75, forms: 85, prefixRows: 32, suffixRows: 43, teacherChosenExamples: 47 });
+});
+
+test('affix v1.1 differs from the printed-Notebook v1.0 only in teacher-chosen examples and meanings', () => {
+  const MEANING_CHANGES: Record<string, string> = {
+    prefix_hypo: 'under, too little', prefix_hyper: 'over, too much', prefix_anti: 'against'
+  };
+  assert.equal(affixOriginal.cards.length, affixSource.cards.length);
+  let changedExamples = 0;
+  affixSource.cards.forEach((card: Record<string, unknown>, index: number) => {
+    const before = affixOriginal.cards[index] as Record<string, unknown>;
+    for (const key of Object.keys(before)) {
+      if (['example', 'meaning', 'auditFlags', 'sourceBasis'].includes(key)) continue;
+      assert.deepEqual(card[key], before[key], `${String(card.id)}.${key} changed`);
+    }
+    const exampleChanged = card.example !== before.example;
+    if (exampleChanged) changedExamples += 1;
+    assert.equal(card.meaning, MEANING_CHANGES[String(card.id)] ?? before.meaning, `${String(card.id)} meaning`);
+    const flags = card.auditFlags as string[];
+    assert.equal(flags.includes('TEACHER_CHOSEN_EXAMPLE'), exampleChanged, `${String(card.id)} flag`);
+    assert.equal(flags.includes('TEACHER_CHOSEN_MEANING'), String(card.id) in MEANING_CHANGES);
+    assert.deepEqual(flags.filter(flag => !flag.startsWith('TEACHER_CHOSEN')), before.auditFlags);
+  });
+  assert.equal(changedExamples, 47);
+});
+
+test('familiar example words appear on the affix cards that were changed', () => {
+  const example = (id: string) => WORD_ELEMENT_CARDS.find(card => card.id === id)!.example;
+  assert.equal(example('prefix_hypo'), 'hypothermia');
+  assert.equal(example('prefix_hyper'), 'hyperactive');
+  assert.equal(example('prefix_anti'), 'antifreeze');
+  assert.equal(example('suffix_ly'), 'quickly');
+  assert.equal(example('suffix_ent'), 'difference, emergency, different');
 });
 
 // --- Filtering ------------------------------------------------------------
