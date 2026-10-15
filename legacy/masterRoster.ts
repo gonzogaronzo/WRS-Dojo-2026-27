@@ -123,13 +123,13 @@ export const MASTER_SQUADS: GroupProfile[] = [
   },
   {
     id: 'group-2026-27-3a', name: 'Group 3A', schedule: '11:00–11:45', active: true, schoolYear: CURRENT_SCHOOL_YEAR,
-    studentIds: ['student-elise', 'student-eleanor', 'student-juliana', 'student-carolyn'],
+    studentIds: ['student-levi', 'student-nora', 'student-eleanor'],
     inventory: { learnedSounds: [], learnedHFW: [] }, instructionalProfile: profileFor('3.1'),
     jobs: {}, savedLessons: [...ALL_MASTER_LESSONS], history: []
   },
   {
     id: 'group-2026-27-3b', name: 'Group 3B', schedule: '1:15–2:00', active: true, schoolYear: CURRENT_SCHOOL_YEAR,
-    studentIds: ['student-izzy', 'student-levi', 'student-nora'],
+    studentIds: ['student-izzy', 'student-juliana', 'student-carolyn', 'student-elise'],
     inventory: { learnedSounds: [], learnedHFW: [] }, instructionalProfile: profileFor('3.1'),
     jobs: {}, savedLessons: [...ALL_MASTER_LESSONS], history: []
   },
