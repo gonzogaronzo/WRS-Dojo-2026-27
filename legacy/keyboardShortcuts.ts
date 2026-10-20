@@ -100,6 +100,18 @@ export const stepLessonPart = (current: LessonPart, delta: 1 | -1): LessonPart |
 export const lessonPartDelta = (key: string): 1 | -1 | null =>
   key === 'PageDown' ? 1 : key === 'PageUp' ? -1 : null;
 
+/**
+ * The Part a digit key jumps to: 1-9 go to Parts 1-9 and 0 goes to Part 10. Returns null
+ * for any other key, from the Briefing (shortcuts never leave it), and when the teacher
+ * is already on that Part.
+ */
+export const jumpToLessonPart = (current: LessonPart, key: string): LessonPart | null => {
+  if (current < FIRST_LESSON_PART || current > LAST_LESSON_PART) return null;
+  if (!/^[0-9]$/.test(key)) return null;
+  const target = key === '0' ? LAST_LESSON_PART : Number(key);
+  return target === current ? null : (target as LessonPart);
+};
+
 export const isCheatSheetToggleKey = (key: string): boolean => key === '?';
 export const isCheatSheetCloseKey = (key: string): boolean => key === 'Escape';
 

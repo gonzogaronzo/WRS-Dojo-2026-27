@@ -6,6 +6,7 @@ import {
   hasShortcutModifier,
   isTypingTarget,
   lastPlacedCardIndex,
+  jumpToLessonPart,
   lessonPartDelta,
   nextUnplacedCardIndex,
   resolvePart2Key,
@@ -168,4 +169,29 @@ test('runner and passage register the keyup guard alongside keydown', () => {
     assert.match(text, /addEventListener\('keyup'/);
     assert.match(text, /removeEventListener\('keyup'/);
   }
+});
+
+test('jumpToLessonPart: 1-9 go to Parts 1-9 and 0 goes to Part 10', () => {
+  assert.equal(jumpToLessonPart(LessonPart.Part1, '5'), LessonPart.Part5);
+  assert.equal(jumpToLessonPart(LessonPart.Part5, '1'), LessonPart.Part1);
+  assert.equal(jumpToLessonPart(LessonPart.Part3, '9'), LessonPart.Part9);
+  assert.equal(jumpToLessonPart(LessonPart.Part3, '0'), LessonPart.Part10);
+});
+
+test('jumpToLessonPart: ignores the current Part, other keys, and the Briefing', () => {
+  assert.equal(jumpToLessonPart(LessonPart.Part4, '4'), null);
+  assert.equal(jumpToLessonPart(LessonPart.Part10, '0'), null);
+  assert.equal(jumpToLessonPart(LessonPart.Part2, 'a'), null);
+  assert.equal(jumpToLessonPart(LessonPart.Part2, '!'), null);
+  assert.equal(jumpToLessonPart(LessonPart.Part2, '10'), null);
+  assert.equal(jumpToLessonPart(LessonPart.Part2, 'PageDown'), null);
+  assert.equal(jumpToLessonPart(LessonPart.Briefing, '3'), null);
+});
+
+test('digit jumps stay behind the shared typing/modifier gate and are on the cheat sheet', () => {
+  assert.equal(shortcutsAllowed({ key: '3', target: element('INPUT') }), false);
+  assert.equal(shortcutsAllowed({ key: '3', ctrlKey: true, target: element('BODY') }), false);
+  assert.equal(shortcutsAllowed({ key: '3', target: element('BODY') }), true);
+  assert.match(source('legacy/App.tsx'), /jumpToLessonPart\(currentPart, event\.key\)/);
+  assert.match(source('legacy/components/ShortcutCheatSheet.tsx'), /'Jump to Part 10'/);
 });
