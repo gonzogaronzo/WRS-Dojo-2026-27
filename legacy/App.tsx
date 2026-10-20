@@ -75,7 +75,7 @@ import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistr
 import { part3WordCardsForLesson } from './wordCardsState';
 import ShortcutCheatSheet from './components/ShortcutCheatSheet';
 import {
-  isCheatSheetCloseKey, isCheatSheetToggleKey, lessonPartDelta, shortcutsAllowed, stepLessonPart
+  isCheatSheetCloseKey, isCheatSheetToggleKey, jumpToLessonPart, lessonPartDelta, shortcutsAllowed, stepLessonPart
 } from './keyboardShortcuts';
 import { chartingPlanForLesson, dealLeveledCharting, defaultDealSettings, CHARTING_WORDS_PER_STUDENT } from './chartingWordBank';
 
@@ -625,8 +625,8 @@ const App: React.FC = () => {
     setSessionQuickDrillItems, setSessionQuickDrillRevealed, setSessionScores, setSessionWordlistPage
   ]);
 
-  // Teacher-window keyboard shortcuts: PageDown/PageUp move between Parts 1-10 and
-  // "?" / Esc toggle the cheat sheet. Part 2 runner keys live in the runner itself.
+  // Teacher-window keyboard shortcuts: PageDown/PageUp step between Parts 1-10, the
+  // digit keys 1-9 / 0 jump straight to Part 1-9 / Part 10, and "?" / Esc toggle the cheat sheet. Part 2 runner keys live in the runner itself.
   const teacherShortcutsActive = mode === 'run' && Boolean(currentLesson) && !isStudentView && !isStudentDisplayWindow;
   useEffect(() => {
     if (!teacherShortcutsActive) { setIsCheatSheetOpen(false); return; }
@@ -643,8 +643,9 @@ const App: React.FC = () => {
         return;
       }
       const delta = lessonPartDelta(event.key);
-      if (delta === null) return;
-      const nextPart = stepLessonPart(currentPart, delta);
+      const nextPart = delta !== null
+        ? stepLessonPart(currentPart, delta)
+        : jumpToLessonPart(currentPart, event.key);
       if (nextPart === null) return;
       event.preventDefault();
       changeLessonPart(nextPart);

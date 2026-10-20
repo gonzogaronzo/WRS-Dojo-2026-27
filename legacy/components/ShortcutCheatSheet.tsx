@@ -15,6 +15,8 @@ const PART2_SHORTCUTS: Array<[string, string]> = [
 const GENERAL_SHORTCUTS: Array<[string, string]> = [
   ['Page Down', 'Next Part (stops at Part 10)'],
   ['Page Up', 'Previous Part (stops at Part 1)'],
+  ['1 – 9', 'Jump to that Part'],
+  ['0', 'Jump to Part 10'],
   ['?', 'Show or hide this list'],
   ['Esc', 'Close this list']
 ];
