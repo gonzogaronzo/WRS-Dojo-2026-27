@@ -20,6 +20,13 @@ import {
   previousPart2Step,
   upsertPart2SavePayloadInNotes
 } from '../../part2StepRunner';
+import {
+  createNativeActivationGuard,
+  lastPlacedCardIndex,
+  nextUnplacedCardIndex,
+  resolvePart2Key,
+  shortcutsAllowed
+} from '../../keyboardShortcuts';
 
 interface RunnerObjectState {
   x: number;
@@ -361,7 +368,27 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
     setSaved(true);
   };
 
+  // Keyboard shortcuts read the latest render's state through this ref, so the
+  // window listener is registered once. The ref is cleared on the unavailable path.
+  const keyHandlerRef = useRef<((event: KeyboardEvent) => boolean) | null>(null);
+  useEffect(() => {
+    if (readOnly) return;
+    const guard = createNativeActivationGuard();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!shortcutsAllowed(event)) return;
+      if (keyHandlerRef.current?.(event)) guard.handled(event);
+    };
+    const onKeyUp = (event: KeyboardEvent) => { guard.onKeyUp(event); };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, [readOnly]);
+
   if (!activeStep || activeStep.kind === 'invalid') {
+    keyHandlerRef.current = null;
     const reason = activeStep?.kind === 'invalid' ? activeStep.reason : 'Part 2 interactive source data is unavailable.';
     return (
       <div data-part2-runner-unavailable className="h-full min-h-[420px] bg-stone-50 p-10 flex items-center justify-center">
@@ -428,6 +455,48 @@ const Part2InteractiveRunner: React.FC<Part2InteractiveRunnerProps> = ({
       ? previousPart2Step({ activeIndex: resolvedIndex }, stepCount)
       : nextPart2Step({ activeIndex: resolvedIndex }, stepCount);
     setIndex(next.activeIndex);
+  };
+
+  const stagedCards = orderedObjects.map(object => ({
+    stagingOrder: object.stagingOrder,
+    placed: readObjectState(activeStates[objectKey(activeStep.id, object.id)], { x: 0, y: 0, scale: 1 }).placed === true
+  }));
+
+  // Same final position layOutWord() gives that card.
+  const placeNextCard = () => {
+    const index = nextUnplacedCardIndex(stagedCards);
+    if (index < 0) return;
+    const key = objectKey(activeStep.id, orderedObjects[index]!.id);
+    const position = part2LineLayout(orderedObjects, buildFit)[index]!;
+    updateCurrentState(key, { ...position, placed: true });
+  };
+
+  const returnLastCard = () => {
+    const index = lastPlacedCardIndex(stagedCards);
+    if (index < 0) return;
+    const object = orderedObjects[index]!;
+    updateCurrentState(objectKey(activeStep.id, object.id), {
+      x: 105,
+      y: 118 + Math.max(0, (object.stagingOrder || index + 1) - 1) * 18,
+      scale: 1,
+      placed: false
+    });
+  };
+
+  // Returns true when the key was handled (the listener then prevents the default).
+  keyHandlerRef.current = (event: KeyboardEvent) => {
+    const action = resolvePart2Key(event.key, {
+      pullStack,
+      unplacedCount: stagedCards.filter(card => !card.placed).length,
+      placedCount: stagedCards.filter(card => card.placed).length,
+      readOnly
+    });
+    if (!action) return false;
+    if (action === 'place-next-card') placeNextCard();
+    else if (action === 'return-card') returnLastCard();
+    else if (action === 'lay-out-all') layOutWord();
+    else navigate(action === 'next-move' ? 'next' : 'back');
+    return true;
   };
 
   const hasPreviousRunnerTarget = resolvedIndex > 0 || (usesWordSequence && activeWordIndex > 0);
