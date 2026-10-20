@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, PenTool, MousePointer2, Trash2, FileText, Layout } from 'lucide-react';
 import { DrawingStroke, useSyncedDrawingCanvas } from '../../drawingSync';
 import { useSyncState } from '../../hooks/useSyncState';
+import { createNativeActivationGuard, resolvePassageKey, shortcutsAllowed } from '../../keyboardShortcuts';
 
 interface PassageReadingProps {
   text: string;
@@ -191,12 +192,22 @@ const PassageReading: React.FC<PassageReadingProps> = ({
 
   useEffect(() => {
     if (readOnly) return;
+    const guard = createNativeActivationGuard();
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' || e.key === 'Space') nextParagraph();
-      else if (e.key === 'ArrowLeft') prevParagraph();
+      if (!shortcutsAllowed(e)) return;
+      const action = resolvePassageKey(e.key);
+      if (!action) return;
+      guard.handled(e);
+      if (action === 'next') nextParagraph();
+      else prevParagraph();
     };
+    const handleKeyUp = (e: KeyboardEvent) => { guard.onKeyUp(e); };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [currentIndex, paragraphs, readOnly]);
 
   if (paragraphs.length === 0) {

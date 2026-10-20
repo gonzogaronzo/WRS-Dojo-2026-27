@@ -73,6 +73,10 @@ import {
 } from './lessonSessionSync';
 import { buildWordDistribution, chartingWordCardsForLesson, hasCompleteWordDistribution, targetWordCount } from './wordDistribution';
 import { part3WordCardsForLesson } from './wordCardsState';
+import ShortcutCheatSheet from './components/ShortcutCheatSheet';
+import {
+  isCheatSheetCloseKey, isCheatSheetToggleKey, lessonPartDelta, shortcutsAllowed, stepLessonPart
+} from './keyboardShortcuts';
 import { chartingPlanForLesson, dealLeveledCharting, defaultDealSettings, CHARTING_WORDS_PER_STUDENT } from './chartingWordBank';
 
 const App: React.FC = () => {
@@ -92,6 +96,7 @@ const App: React.FC = () => {
   const [currentPart, setCurrentPart] = useState<LessonPart>(LessonPart.Briefing);
   const [mode, setMode] = useState<'dashboard' | 'edit' | 'run' | 'mission'>('dashboard');
   const [isSessionDossierOpen, setIsSessionDossierOpen] = useState(false);
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
   const {
     session: lessonSession, resetLessonSession, replaceLessonSession, touchLessonSession,
     setSessionStudentIds, setSessionScores, setSessionNotes, setSessionDistribution,
@@ -619,6 +624,34 @@ const App: React.FC = () => {
     setLocalLessonPart, setSessionDistribution, setSessionQuickDrillHandwriting, setSessionQuickDrillIndex,
     setSessionQuickDrillItems, setSessionQuickDrillRevealed, setSessionScores, setSessionWordlistPage
   ]);
+
+  // Teacher-window keyboard shortcuts: PageDown/PageUp move between Parts 1-10 and
+  // "?" / Esc toggle the cheat sheet. Part 2 runner keys live in the runner itself.
+  const teacherShortcutsActive = mode === 'run' && Boolean(currentLesson) && !isStudentView && !isStudentDisplayWindow;
+  useEffect(() => {
+    if (!teacherShortcutsActive) { setIsCheatSheetOpen(false); return; }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!shortcutsAllowed(event)) return;
+      if (isCheatSheetToggleKey(event.key)) {
+        event.preventDefault();
+        setIsCheatSheetOpen(open => !open);
+        return;
+      }
+      if (isCheatSheetCloseKey(event.key) && isCheatSheetOpen) {
+        event.preventDefault();
+        setIsCheatSheetOpen(false);
+        return;
+      }
+      const delta = lessonPartDelta(event.key);
+      if (delta === null) return;
+      const nextPart = stepLessonPart(currentPart, delta);
+      if (nextPart === null) return;
+      event.preventDefault();
+      changeLessonPart(nextPart);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [changeLessonPart, currentPart, isCheatSheetOpen, teacherShortcutsActive]);
 
   // Keep activeGroup in sync with the latest data from the groups array
   useEffect(() => {
@@ -1333,6 +1366,9 @@ const App: React.FC = () => {
           </Layout>
           </BoardSafeProvider>
         )
+      )}
+      {teacherShortcutsActive && isCheatSheetOpen && (
+        <ShortcutCheatSheet part2Active={currentPart === LessonPart.Part2} onClose={() => setIsCheatSheetOpen(false)} />
       )}
       <UnfinishedLessonPrompt
         spot={launchPrompt?.spot || null}
